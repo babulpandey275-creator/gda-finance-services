@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Customer List</title>
+
+<style>
+
+body{
+margin:0;
+padding:20px;
+font-family:Arial,sans-serif;
+background:#f2f5f9;
+}
+
+h2{
+text-align:center;
+color:#0d47a1;
+}
+
+.search{
+width:100%;
+padding:12px;
+border:1px solid #ccc;
+border-radius:10px;
+margin-bottom:20px;
+font-size:16px;
+}
+
+.card{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+
+.card h3{
+margin:0;
+color:#1565c0;
+}
+
+.card p{
+margin:6px 0;
+font-size:15px;
+}
+
+.btn{
+display:inline-block;
+margin-top:10px;
+padding:10px 15px;
+background:#1565c0;
+color:white;
+text-decoration:none;
+border-radius:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Customer List</h2>
+
+<input
+type="text"
+id="search"
+class="search"
+placeholder="Search Name or Mobile">
+
+<div id="customerList"></div>
+
+<script type="module" src="customer-list.js"></script>
+
+</body>
+</html>
