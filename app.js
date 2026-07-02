@@ -5,8 +5,14 @@ window.addEventListener("load", () => {
     console.log(db);
 });
 
-function showMessage(msg) {
-    alert(msg);
+function showMessage(page) {
+
+    if (page === "Customer Registration") {
+        window.location.href = "register.html";
+    }
+    else {
+        alert(page + " Coming Soon");
+    }
 }
 
 window.showMessage = showMessage;
