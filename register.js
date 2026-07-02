@@ -1,4 +1,5 @@
 import { db } from "./firebase.js";
+
 import {
   collection,
   addDoc
@@ -6,28 +7,58 @@ import {
 
 document.getElementById("saveBtn").addEventListener("click", async () => {
 
-  const name = document.getElementById("name").value;
-  const mobile = document.getElementById("mobile").value;
-  const address = document.getElementById("address").value;
-  const loan = document.getElementById("loan").value;
-  const emi = document.getElementById("emi").value;
-const days = document.getElementById("days").value;
-const loanDate = document.getElementById("loanDate").value;
-const status = document.getElementById("status").value;
-  await addDoc(collection(db, "customers"), {
-    name,
-    mobile,
-    address,
-    loan: Number(loan),
-emi: Number(emi),
-days: Number(days),
-loanDate,
-status,
-paidDays: 0,
-totalCollected: 0,
-remainingAmount: Number(loan),
-createdAt: new Date()
-  });
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const loan = Number(document.getElementById("loan").value);
+  const emi = Number(document.getElementById("emi").value);
+  const days = Number(document.getElementById("days").value);
+  const loanDate = document.getElementById("loanDate").value;
+  const status = document.getElementById("status").value;
 
-  alert("Customer Saved Successfully");
+  if (
+    !name ||
+    !mobile ||
+    !address ||
+    !loan ||
+    !emi ||
+    !days ||
+    !loanDate
+  ) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  try {
+
+    await addDoc(collection(db, "customers"), {
+      name,
+      mobile,
+      address,
+      loan,
+      emi,
+      days,
+      loanDate,
+      status,
+      paidDays: 0,
+      totalCollected: 0,
+      remainingAmount: loan,
+      createdAt: new Date()
+    });
+
+    alert("Customer Saved Successfully");
+
+    document.getElementById("name").value = "";
+    document.getElementById("mobile").value = "";
+    document.getElementById("address").value = "";
+    document.getElementById("loan").value = "";
+    document.getElementById("emi").value = "";
+    document.getElementById("days").value = "60";
+    document.getElementById("loanDate").value = "";
+
+  } catch (e) {
+    alert("Error: " + e.message);
+    console.log(e);
+  }
+
 });
