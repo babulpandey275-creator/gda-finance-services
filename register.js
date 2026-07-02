@@ -1,11 +1,12 @@
 import { db } from "./firebase.js";
-
 import {
   collection,
   addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-document.getElementById("saveBtn").addEventListener("click", async () => {
+const saveBtn = document.getElementById("saveBtn");
+
+saveBtn.addEventListener("click", async () => {
 
   const name = document.getElementById("name").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
@@ -22,10 +23,9 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     !address ||
     !loan ||
     !emi ||
-    !days ||
     !loanDate
   ) {
-    alert("Please fill all fields");
+    alert("कृपया सभी जानकारी भरें");
     return;
   }
 
@@ -46,19 +46,20 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
       createdAt: new Date()
     });
 
-    alert("Customer Saved Successfully");
+    alert("✅ Customer Saved Successfully");
 
     document.getElementById("name").value = "";
     document.getElementById("mobile").value = "";
     document.getElementById("address").value = "";
     document.getElementById("loan").value = "";
     document.getElementById("emi").value = "";
-    document.getElementById("days").value = "60";
     document.getElementById("loanDate").value = "";
 
-  } catch (e) {
-    alert("Error: " + e.message);
-    console.log(e);
+  } catch (error) {
+
+    alert("Firebase Error:\n" + error.message);
+    console.error(error);
+
   }
 
 });
