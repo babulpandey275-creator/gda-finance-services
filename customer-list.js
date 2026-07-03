@@ -24,54 +24,52 @@ async function loadCustomers() {
     const c = docSnap.data();
 
     customerList.innerHTML += `
+      <div class="card">
 
-    <div class="card">
+        <h3>${c.name}</h3>
 
-      <h3>${c.name}</h3>
+        <p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
 
-      <p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
+        <p><b>Mobile:</b> ${c.mobile}</p>
 
-      <p><b>Mobile:</b> ${c.mobile}</p>
+        <p><b>Address:</b> ${c.address}</p>
 
-      <p><b>Address:</b> ${c.address}</p>
+        <p><b>Loan:</b> ₹${c.loan}</p>
 
-      <p><b>Loan:</b> ₹${c.loan}</p>
+        <p><b>Daily EMI:</b> ₹${c.emi}</p>
 
-      <p><b>Daily EMI:</b> ₹${c.emi}</p>
+        <p><b>Loan Date:</b> ${c.loanDate || "N/A"}</p>
 
-      <p><b>Loan Date:</b> ${c.loanDate || "N/A"}</p>
+        <p><b>Remaining:</b> ₹${c.remainingAmount ?? c.loan}</p>
 
-      <p><b>Remaining:</b> ₹${c.remainingAmount ?? c.loan}</p>
+        <br>
 
-      <br>
+        <a class="btn" href="collection.html?id=${docSnap.id}">
+          💰 Daily Collection
+        </a>
 
-      <a class="btn" href="collection.html?id=${docSnap.id}">
-      💰 Daily Collection
-      </a>
+        <br><br>
 
-      <br><br>
+        <a class="btn" href="edit.html?id=${docSnap.id}">
+          ✏ Edit Customer
+        </a>
 
-      <a class="btn" href="edit.html?id=${docSnap.id}">
-      ✏ Edit Customer
-      </a>
+        <br><br>
 
-      <br><br>
+        <a class="btn" href="statement.html?id=${docSnap.id}">
+          📄 Statement
+        </a>
 
-      <a class="btn" href="statement.html?id=${docSnap.id}">
-      📄 Statement
-      </a>
+        <br><br>
 
-      <br><br>
+        <button
+          class="btn"
+          style="background:red"
+          onclick="window.deleteCustomer('${docSnap.id}')">
+          🗑 Delete Customer
+        </button>
 
-      <button
-        class="btn"
-        style="background:red"
-        onclick="deleteCustomer('${docSnap.id}')">
-        🗑 Delete Customer
-      </button>
-
-    </div>
-
+      </div>
     `;
 
   });
@@ -79,14 +77,16 @@ async function loadCustomers() {
 }
 
 window.deleteCustomer = async function(id) {
-const pin = prompt("🔒 Admin PIN दर्ज करें");
 
-if (pin === null) return;
+  const pin = prompt("🔒 Enter Admin PIN");
 
-if (pin !== "2750") {
+  if (pin === null) return;
+
+  if (pin !== "2750") {
     alert("❌ Wrong Admin PIN");
     return;
-}
+  }
+
   const ok = confirm("क्या आप इस ग्राहक को हटाना चाहते हैं?");
 
   if (!ok) return;
@@ -104,7 +104,7 @@ if (pin !== "2750") {
     await deleteDoc(doc(db, "collections", historyDoc.id));
   }
 
-  alert("Customer Deleted Successfully");
+  alert("✅ Customer Deleted Successfully");
 
   loadCustomers();
 
