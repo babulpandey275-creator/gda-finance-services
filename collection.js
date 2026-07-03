@@ -33,6 +33,7 @@ document.getElementById("amount").value = c.emi;
 document.getElementById("statementBtn").href =
   "statement.html?id=" + id;
 
+// Save Collection
 document.getElementById("saveBtn").onclick = async () => {
 
   const amount = Number(
@@ -54,7 +55,9 @@ document.getElementById("saveBtn").onclick = async () => {
 
   const paidDays =
     (c.paidDays || 0) +
-    Math.floor(amount / c.emi);  await addDoc(collection(db, "collections"), {
+    Math.floor(amount / c.emi);
+
+  await addDoc(collection(db, "collections"), {
     customerId: id,
     customerName: c.name,
     mobile: c.mobile,
@@ -69,7 +72,8 @@ document.getElementById("saveBtn").onclick = async () => {
   await updateDoc(ref, {
     remainingAmount: remaining,
     paidDays: paidDays,
-    totalCollected: (c.totalCollected || 0) + amount
+    totalCollected:
+      (c.totalCollected || 0) + amount
   });
 
   document.getElementById("remaining").textContent = remaining;
@@ -77,5 +81,4 @@ document.getElementById("saveBtn").onclick = async () => {
   alert("✅ Collection Saved Successfully");
 
   location.reload();
-
 };
