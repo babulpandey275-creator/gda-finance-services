@@ -23,42 +23,48 @@ async function loadCustomers() {
 
     customerList.innerHTML += `
 
-<div class="card">
+    <div class="card">
 
-<h3>${c.name}</h3>
-<p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
-<p><b>Mobile:</b> ${c.mobile}</p>
+      <h3>${c.name}</h3>
 
-<p><b>Address:</b> ${c.address}</p>
+      <p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
 
-<p><b>Loan:</b> ₹${c.loan}</p>
+      <p><b>Mobile:</b> ${c.mobile}</p>
 
-<p><b>Daily EMI:</b> ₹${c.emi}</p>
+      <p><b>Address:</b> ${c.address}</p>
 
-<p><b>Remaining:</b> ₹${c.remainingAmount}</p>
+      <p><b>Loan:</b> ₹${c.loan}</p>
 
-<a class="btn" href="collection.html?id=${docSnap.id}">
-Daily Collection
-</a>
+      <p><b>Daily EMI:</b> ₹${c.emi}</p>
 
-<br><br>
+      <p><b>Loan Date:</b> ${c.loanDate || "N/A"}</p>
 
-<a class="btn" href="edit.html?id=${docSnap.id}">
-✏️ Edit Customer
-</a>
+      <p><b>Remaining:</b> ₹${c.remainingAmount ?? c.loan}</p>
 
-<br><br>
+      <br>
 
-<button
-class="btn"
-style="background:red"
-onclick="deleteCustomer('${docSnap.id}')">
-🗑 Delete Customer
-</button>
+      <a class="btn" href="collection.html?id=${docSnap.id}">
+        Daily Collection
+      </a>
 
-</div>
+      <br><br>
 
-`;
+      <a class="btn" href="edit.html?id=${docSnap.id}">
+        ✏ Edit Customer
+      </a>
+
+      <br><br>
+
+      <button
+        class="btn"
+        style="background:red"
+        onclick="deleteCustomer('${docSnap.id}')">
+        🗑 Delete Customer
+      </button>
+
+    </div>
+
+    `;
 
   });
 
