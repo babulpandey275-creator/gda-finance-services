@@ -1,11 +1,5 @@
 import { db } from "./firebase.js";
 
-console.log("DB =", db);
-
-import {
-  collection,
-  addDoc
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; { db } from "./firebase.js";
 import {
   collection,
   addDoc
@@ -39,14 +33,14 @@ saveBtn.addEventListener("click", async () => {
   try {
 
     await addDoc(collection(db, "customers"), {
-      name,
-      mobile,
-      address,
-      loan,
-      emi,
-      days,
-      loanDate,
-      status,
+      name: name,
+      mobile: mobile,
+      address: address,
+      loan: loan,
+      emi: emi,
+      days: days,
+      loanDate: loanDate,
+      status: status,
       paidDays: 0,
       totalCollected: 0,
       remainingAmount: loan,
@@ -64,8 +58,8 @@ saveBtn.addEventListener("click", async () => {
 
   } catch (error) {
 
-    alert("Firebase Error:\n" + error.message);
     console.error(error);
+    alert("Firebase Error:\n" + error.message);
 
   }
 
