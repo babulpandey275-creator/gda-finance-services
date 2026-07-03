@@ -1,4 +1,5 @@
 import { db } from "./firebase.js";
+
 import {
   collection,
   getDocs
@@ -24,13 +25,16 @@ async function loadDashboard() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  customerSnap.forEach((doc) => {
-    const c = doc.data();
+  // Customer Summary
+  customerSnap.forEach((docSnap) => {
+
+    const c = docSnap.data();
 
     totalLoan += Number(c.loan || 0);
     totalRemaining += Number(c.remainingAmount || 0);
 
     if (c.loanDate && c.days) {
+
       const loanDate = new Date(c.loanDate);
 
       const passedDays = Math.floor(
@@ -41,24 +45,38 @@ async function loadDashboard() {
 
       const dueDays = passedDays - paidDays;
 
-      if (dueDays > 0 && Number(c.remainingAmount) > 0) {
+      if (dueDays > 0 && Number(c.remainingAmount || 0) > 0) {
         dueCustomers++;
       }
     }
+
   });
 
-  collectionSnap.forEach((doc) => {
-    const data = doc.data();
-if (data.date) {
-    const collectionDate = new Date(data.date.seconds * 1000)
-        .toISOString()
-        .split("T")[0];
+  // Collection Summary
+  collectionSnap.forEach((docSnap) => {
 
-    if (collectionDate === today) {
+    const data = docSnap.data();
+
+    totalCollection += Number(data.amount || 0);
+
+    if (data.date) {
+
+      let collectionDate = "";
+
+      if (data.date.toDate) {
+        collectionDate = data.date.toDate().toISOString().split("T")[0];
+      } else if (data.date.seconds) {
+        collectionDate = new Date(data.date.seconds * 1000)
+          .toISOString()
+          .split("T")[0];
+      }
+
+      if (collectionDate === today) {
         todayCollection += Number(data.amount || 0);
+      }
+
     }
-}
-    
+
   });
 
   document.getElementById("totalCustomers").textContent = totalCustomers;
@@ -70,6 +88,7 @@ if (data.date) {
   if (document.getElementById("dueCustomers")) {
     document.getElementById("dueCustomers").textContent = dueCustomers;
   }
+
 }
 
 loadDashboard();
