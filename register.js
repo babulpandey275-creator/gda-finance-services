@@ -2,7 +2,8 @@ import { db } from "./firebase.js";
 alert("register.js loaded");
 import {
   collection,
-  addDoc
+  addDoc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const saveBtn = document.getElementById("saveBtn");
@@ -29,7 +30,10 @@ saveBtn.addEventListener("click", async () => {
     alert("कृपया सभी जानकारी भरें");
     return;
   }
+const snapshot = await getDocs(collection(db, "customers"));
+const customerId = "GDA" + String(snapshot.size + 1).padStart(3, "0");
 
+document.getElementById("customerId").value = customerId;
   try {
 
     await addDoc(collection(db, "customers"), {
