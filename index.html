@@ -105,6 +105,13 @@ Open
 <footer>
 © 2026 GDA Finance Services
 </footer>
-
+<script>
+function logout() {
+    if (confirm("क्या आप Logout करना चाहते हैं?")) {
+        localStorage.removeItem("gdaLoggedIn");
+        window.location.href = "login.html";
+    }
+}
+</script>
 </body>
 </html>
