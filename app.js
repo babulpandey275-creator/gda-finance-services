@@ -18,24 +18,23 @@ async function loadDashboard() {
   let totalCustomers = customerSnap.size;
   let totalLoan = 0;
   let totalCollection = 0;
+  let todayCollection = 0;
   let totalRemaining = 0;
   let dueCustomers = 0;
 
-  const today = new Date();
+  const today = new Date().toISOString().split("T")[0];
 
   customerSnap.forEach((doc) => {
-
     const c = doc.data();
 
     totalLoan += Number(c.loan || 0);
     totalRemaining += Number(c.remainingAmount || 0);
 
     if (c.loanDate && c.days) {
-
       const loanDate = new Date(c.loanDate);
 
       const passedDays = Math.floor(
-        (today - loanDate) / (1000 * 60 * 60 * 24)
+        (new Date() - loanDate) / (1000 * 60 * 60 * 24)
       );
 
       const paidDays = Number(c.paidDays || 0);
@@ -45,25 +44,28 @@ async function loadDashboard() {
       if (dueDays > 0 && Number(c.remainingAmount) > 0) {
         dueCustomers++;
       }
-
     }
-
   });
 
   collectionSnap.forEach((doc) => {
     const data = doc.data();
+
     totalCollection += Number(data.amount || 0);
+
+    if (data.date === today) {
+      todayCollection += Number(data.amount || 0);
+    }
   });
 
   document.getElementById("totalCustomers").textContent = totalCustomers;
   document.getElementById("totalLoan").textContent = totalLoan;
   document.getElementById("totalCollection").textContent = totalCollection;
+  document.getElementById("todayCollection").textContent = todayCollection;
   document.getElementById("totalRemaining").textContent = totalRemaining;
 
   if (document.getElementById("dueCustomers")) {
     document.getElementById("dueCustomers").textContent = dueCustomers;
   }
-
 }
 
 loadDashboard();
