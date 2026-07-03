@@ -1,5 +1,5 @@
 import { db } from "./firebase.js";
-alert("register.js loaded");
+
 import {
   collection,
   addDoc,
@@ -30,13 +30,14 @@ saveBtn.addEventListener("click", async () => {
     alert("कृपया सभी जानकारी भरें");
     return;
   }
-const snapshot = await getDocs(collection(db, "customers"));
-const customerId = "GDA" + String(snapshot.size + 1).padStart(3, "0");
 
-document.getElementById("customerId").value = customerId;
   try {
 
+    const snapshot = await getDocs(collection(db, "customers"));
+    const customerId = "GDA" + String(snapshot.size + 1).padStart(3, "0");
+
     await addDoc(collection(db, "customers"), {
+      customerId: customerId,
       name: name,
       mobile: mobile,
       address: address,
@@ -52,7 +53,8 @@ document.getElementById("customerId").value = customerId;
     });
 
     alert("✅ Customer Saved Successfully");
-alert("Save button clicked");
+
+    document.getElementById("customerId").value = customerId;
     document.getElementById("name").value = "";
     document.getElementById("mobile").value = "";
     document.getElementById("address").value = "";
