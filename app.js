@@ -1,5 +1,4 @@
 import { db } from "./firebase.js";
-
 import {
   collection,
   getDocs
@@ -18,8 +17,8 @@ async function loadDashboard() {
 
   let totalCustomers = customerSnap.size;
   let totalLoan = 0;
-  let totalRemaining = 0;
   let totalCollection = 0;
+  let totalRemaining = 0;
   let dueCustomers = 0;
 
   const today = new Date();
@@ -46,6 +45,7 @@ async function loadDashboard() {
       if (dueDays > 0 && Number(c.remainingAmount) > 0) {
         dueCustomers++;
       }
+
     }
 
   });
