@@ -79,7 +79,14 @@ async function loadCustomers() {
 }
 
 window.deleteCustomer = async function(id) {
+const pin = prompt("🔒 Admin PIN दर्ज करें");
 
+if (pin === null) return;
+
+if (pin !== "2750") {
+    alert("❌ Wrong Admin PIN");
+    return;
+}
   const ok = confirm("क्या आप इस ग्राहक को हटाना चाहते हैं?");
 
   if (!ok) return;
