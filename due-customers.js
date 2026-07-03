@@ -5,7 +5,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const list = document.getElementById("list");
+const list = document.getElementById("dueList");
 
 async function loadDueCustomers() {
 
