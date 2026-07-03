@@ -38,7 +38,11 @@ async function loadCustomers() {
       <a class="btn" href="collection.html?id=${doc.id}">
       Daily Collection
       </a>
+<br><br>
 
+<a class="btn" href="edit.html?id=${doc.id}">
+    ✏️ Edit Customer
+</a>
     </div>
 
     `;
