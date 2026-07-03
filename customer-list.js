@@ -3,7 +3,7 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js
 
 const customerList = document.getElementById("customerList");
 
