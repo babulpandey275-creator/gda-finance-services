@@ -9,7 +9,7 @@ const list = document.getElementById("dueList");
 
 async function loadDueCustomers() {
 
-  list.innerHTML = "Loading...";
+  list.innerHTML = "<h3>Loading...</h3>";
 
   const snapshot = await getDocs(collection(db, "customers"));
 
@@ -17,28 +17,46 @@ async function loadDueCustomers() {
 
   const today = new Date();
 
-  snapshot.forEach((doc) => {
+  snapshot.forEach((docSnap) => {
 
-    const data = doc.data();
+    const c = docSnap.data();
 
-    if (!data.loanDate || !data.days) return;
+    if (!c.loanDate) return;
 
-    const loanDate = new Date(data.loanDate);
+    const loanDate = new Date(c.loanDate);
 
-    const dueDate = new Date(loanDate);
-    dueDate.setDate(dueDate.getDate() + Number(data.days));
+    const diffTime = today - loanDate;
+    const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (today >= dueDate && Number(data.remainingAmount) > 0) {
+    const paidDays = Number(c.paidDays || 0);
+
+    const dueDays = totalDays - paidDays;
+
+    if (dueDays > 0 && Number(c.remainingAmount) > 0) {
+
+      const dueAmount = dueDays * Number(c.emi);
 
       list.innerHTML += `
       <div class="card">
-        <h3>${data.name}</h3>
-        <p>Customer ID : ${data.customerId}</p>
-        <p>Mobile : ${data.mobile}</p>
-        <p>Loan : ₹${data.loan}</p>
-        <p>Collected : ₹${data.totalCollection}</p>
-        <p>Remaining : ₹${data.remainingAmount}</p>
-        <p style="color:red;font-weight:bold;">⚠️ Due Customer</p>
+
+      <h3>${c.name}</h3>
+
+      <p><b>Customer ID :</b> ${c.customerId}</p>
+
+      <p><b>Mobile :</b> ${c.mobile}</p>
+
+      <p><b>Loan :</b> ₹${c.loan}</p>
+
+      <p><b>Daily EMI :</b> ₹${c.emi}</p>
+
+      <p><b>Paid Days :</b> ${paidDays}</p>
+
+      <p style="color:red;"><b>Due Days :</b> ${dueDays}</p>
+
+      <p style="color:red;"><b>Due Amount :</b> ₹${dueAmount}</p>
+
+      <p><b>Remaining :</b> ₹${c.remainingAmount}</p>
+
       </div>
       `;
     }
@@ -46,7 +64,8 @@ async function loadDueCustomers() {
   });
 
   if (list.innerHTML === "") {
-    list.innerHTML = "<h3 style='text-align:center;color:green;'>🎉 कोई Due Customer नहीं है।</h3>";
+    list.innerHTML =
+      "<h2 style='text-align:center;color:green;'>🎉 कोई Due Customer नहीं है</h2>";
   }
 
 }
