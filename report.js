@@ -8,19 +8,34 @@ import {
 const todayEl = document.getElementById("today");
 const totalEl = document.getElementById("total");
 const customersEl = document.getElementById("customers");
+const loanEl = document.getElementById("loan");
+const remainingEl = document.getElementById("remaining");
 
 async function loadReport() {
 
-  const snapshot = await getDocs(collection(db, "collections"));
+  // Customers Collection
+  const customerSnap = await getDocs(collection(db, "customers"));
 
+  // Collections Collection
+  const collectionSnap = await getDocs(collection(db, "collections"));
+
+  let totalLoan = 0;
+  let totalRemaining = 0;
   let todayTotal = 0;
   let totalCollection = 0;
 
   const today = new Date();
 
-  customersEl.innerHTML = snapshot.size;
+  customersEl.innerHTML = customerSnap.size;
 
-  snapshot.forEach((doc) => {
+  customerSnap.forEach((doc) => {
+    const data = doc.data();
+
+    totalLoan += Number(data.loan || 0);
+    totalRemaining += Number(data.remainingAmount || 0);
+  });
+
+  collectionSnap.forEach((doc) => {
 
     const data = doc.data();
 
@@ -46,6 +61,8 @@ async function loadReport() {
 
   todayEl.innerHTML = "₹" + todayTotal;
   totalEl.innerHTML = "₹" + totalCollection;
+  loanEl.innerHTML = "₹" + totalLoan;
+  remainingEl.innerHTML = "₹" + totalRemaining;
 
 }
 
