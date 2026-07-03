@@ -79,14 +79,16 @@ window.deleteCustomer = async function(id) {
   if (!ok) return;
 
   await deleteDoc(doc(db, "customers", id));
-const historySnapshot = await getDocs(collection(db, "history"));
+const q = query(
+    collection(db, "collections"),
+    where("customerId", "==", id)
+);
 
-historySnapshot.forEach(async (historyDoc) => {
-    const data = historyDoc.data();
+const historySnapshot = await getDocs(q);
 
-    if (data.customerId === id) {
-        await deleteDoc(doc(db, "history", historyDoc.id));
-    }
+for (const historyDoc of historySnapshot.docs) {
+    await deleteDoc(doc(db, "collections", historyDoc.id));
+}
 });
   alert("Customer Deleted Successfully");
 
