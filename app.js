@@ -49,12 +49,16 @@ async function loadDashboard() {
 
   collectionSnap.forEach((doc) => {
     const data = doc.data();
+if (data.date) {
+    const collectionDate = new Date(data.date.seconds * 1000)
+        .toISOString()
+        .split("T")[0];
 
-    totalCollection += Number(data.amount || 0);
-
-    if (data.date === today) {
-      todayCollection += Number(data.amount || 0);
+    if (collectionDate === today) {
+        todayCollection += Number(data.amount || 0);
     }
+}
+    
   });
 
   document.getElementById("totalCustomers").textContent = totalCustomers;
