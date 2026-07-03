@@ -26,7 +26,7 @@ async function loadCustomers() {
 <div class="card">
 
 <h3>${c.name}</h3>
-
+<p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
 <p><b>Mobile:</b> ${c.mobile}</p>
 
 <p><b>Address:</b> ${c.address}</p>
