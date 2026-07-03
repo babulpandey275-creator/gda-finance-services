@@ -6,7 +6,9 @@ import {
   query,
   orderBy,
   deleteDoc,
-  doc
+  doc,
+  getDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const historyList = document.getElementById("historyList");
@@ -49,23 +51,23 @@ async function loadHistory() {
 
         <p><b>Date:</b>
         ${
-          c.date
-            ? new Date(c.date.seconds * 1000).toLocaleString()
+          c.date?.toDate
+            ? c.date.toDate().toLocaleString()
             : "-"
         }
         </p>
 
         <button
-          style="
-            background:red;
-            color:white;
-            border:none;
-            padding:10px 15px;
-            border-radius:6px;
-            cursor:pointer;
-          "
-          onclick="deleteCollection('${id}')">
-          🗑 Delete
+        style="
+        background:red;
+        color:white;
+        border:none;
+        padding:10px 15px;
+        border-radius:6px;
+        cursor:pointer;
+        "
+        onclick="deleteCollection('${id}')">
+        🗑 Delete
         </button>
 
       </div>
@@ -77,15 +79,57 @@ async function loadHistory() {
 
 window.deleteCollection = async function(id) {
 
-  const ok = confirm("क्या आप यह Collection History Delete करना चाहते हैं?");
+  const ok = confirm("क्या आप यह Collection Delete करना चाहते हैं?");
 
   if (!ok) return;
 
   try {
 
-    await deleteDoc(doc(db, "collections", id));
+    // Collection Record
+    const collectionRef = doc(db, "collections", id);
+    const collectionSnap = await getDoc(collectionRef);
 
-    alert("Collection History Deleted Successfully");
+    if (!collectionSnap.exists()) {
+      alert("Collection Record Not Found");
+      return;
+    }
+
+    const data = collectionSnap.data();
+
+    // Customer Record
+    const customerRef = doc(db, "customers", data.customerId);
+    const customerSnap = await getDoc(customerRef);
+
+    if (customerSnap.exists()) {
+
+      const customer = customerSnap.data();
+
+      await updateDoc(customerRef, {
+
+        remainingAmount:
+          (customer.remainingAmount || 0) + (data.amount || 0),
+
+        paidDays:
+          Math.max(
+            0,
+            (customer.paidDays || 0) -
+            Math.floor((data.amount || 0) / (customer.emi || 1))
+          ),
+
+        totalCollected:
+          Math.max(
+            0,
+            (customer.totalCollected || 0) - (data.amount || 0)
+          )
+
+      });
+
+    }
+
+    // Delete History
+    await deleteDoc(collectionRef);
+
+    alert("Collection Deleted Successfully");
 
     loadHistory();
 
