@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 window.addEventListener("load", () => {
-  console.log("GDA Finance Services Loaded");
+  loadDashboard();
 });
 
 async function loadDashboard() {
@@ -22,7 +22,7 @@ async function loadDashboard() {
 
   const today = new Date();
 
-  snapshot.forEach(doc => {
+  snapshot.forEach((doc) => {
 
     const c = doc.data();
 
