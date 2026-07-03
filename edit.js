@@ -6,7 +6,12 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const id = new URLSearchParams(location.search).get("id");
+const id = new URLSearchParams(window.location.search).get("id");
+
+if (!id) {
+  alert("Customer ID not found!");
+  throw new Error("Customer ID missing");
+}
 
 const name = document.getElementById("name");
 const mobile = document.getElementById("mobile");
@@ -17,36 +22,45 @@ const loanDate = document.getElementById("loanDate");
 
 const customerRef = doc(db, "customers", id);
 
-const snap = await getDoc(customerRef);
+try {
+  const snap = await getDoc(customerRef);
 
-if (snap.exists()) {
-  const c = snap.data();
+  if (snap.exists()) {
+    const c = snap.data();
 
-  name.value = c.name || "";
-  mobile.value = c.mobile || "";
-  address.value = c.address || "";
-  loan.value = c.loan || "";
-  emi.value = c.emi || "";
-  loanDate.value = c.loanDate || "";
+    name.value = c.name || "";
+    mobile.value = c.mobile || "";
+    address.value = c.address || "";
+    loan.value = c.loan || "";
+    emi.value = c.emi || "";
+    loanDate.value = c.loanDate || "";
+  } else {
+    alert("Customer not found!");
+  }
+} catch (err) {
+  console.error(err);
+  alert("Error loading customer");
 }
 
-document.getElementById("saveBtn").onclick = async () => {
+document.getElementById("saveBtn").addEventListener("click", async () => {
 
-  await updateDoc(customerRef, {
-  name: name.value,
-  mobile: mobile.value,
-  address: address.value,
-  loan: Number(loan.value),
-  emi: Number(emi.value),
-  loanDate: loanDate.value
+  try {
+
+    await updateDoc(customerRef, {
+      name: name.value,
+      mobile: mobile.value,
+      address: address.value,
+      loan: Number(loan.value),
+      emi: Number(emi.value),
+      loanDate: loanDate.value
+    });
+
+    alert("Customer Updated Successfully");
+    window.location.href = "customer-list.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Update Failed: " + err.message);
+  }
+
 });
-
-alert("Customer Updated Successfully");
-
-location.href = "customer-list.html";
-
-  alert("Customer Updated Successfully");
-
-  location.href = "customer-list.html";
-
-};
