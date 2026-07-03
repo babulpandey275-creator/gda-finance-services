@@ -25,21 +25,32 @@ async function loadReport() {
 
   customersEl.textContent = customerSnap.size;
 
-  customerSnap.forEach((doc) => {
-    const data = doc.data();
+  customerSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
 
     totalLoan += Number(data.loan || 0);
     totalRemaining += Number(data.remainingAmount || 0);
+
   });
 
-  collectionSnap.forEach((doc) => {
-    const data = doc.data();
+  collectionSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
 
     const amount = Number(data.amount || 0);
+
     totalCollection += amount;
 
     if (data.date) {
-      const d = new Date(data.date.seconds * 1000);
+
+      let d;
+
+      if (data.date.toDate) {
+        d = data.date.toDate();
+      } else {
+        d = new Date(data.date.seconds * 1000);
+      }
 
       if (
         d.getDate() === today.getDate() &&
@@ -49,6 +60,7 @@ async function loadReport() {
         todayCollection += amount;
       }
     }
+
   });
 
   todayEl.textContent = "₹" + todayCollection;
