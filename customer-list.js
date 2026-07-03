@@ -24,40 +24,54 @@ async function loadCustomers() {
     const c = docSnap.data();
 
     customerList.innerHTML += `
-      <div class="card">
 
-        <h3>${c.name}</h3>
+    <div class="card">
 
-        <p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
-        <p><b>Mobile:</b> ${c.mobile}</p>
-        <p><b>Address:</b> ${c.address}</p>
-        <p><b>Loan:</b> ₹${c.loan}</p>
-        <p><b>Daily EMI:</b> ₹${c.emi}</p>
-        <p><b>Loan Date:</b> ${c.loanDate || "N/A"}</p>
-        <p><b>Remaining:</b> ₹${c.remainingAmount ?? c.loan}</p>
+      <h3>${c.name}</h3>
 
-        <br>
+      <p><b>Customer ID:</b> ${c.customerId || "N/A"}</p>
 
-        <a class="btn" href="collection.html?id=${docSnap.id}">
-          Daily Collection
-        </a>
+      <p><b>Mobile:</b> ${c.mobile}</p>
 
-        <br><br>
+      <p><b>Address:</b> ${c.address}</p>
 
-        <a class="btn" href="edit.html?id=${docSnap.id}">
-          ✏ Edit Customer
-        </a>
+      <p><b>Loan:</b> ₹${c.loan}</p>
 
-        <br><br>
+      <p><b>Daily EMI:</b> ₹${c.emi}</p>
 
-        <button
-          class="btn"
-          style="background:red"
-          onclick="deleteCustomer('${docSnap.id}')">
-          🗑 Delete Customer
-        </button>
+      <p><b>Loan Date:</b> ${c.loanDate || "N/A"}</p>
 
-      </div>
+      <p><b>Remaining:</b> ₹${c.remainingAmount ?? c.loan}</p>
+
+      <br>
+
+      <a class="btn" href="collection.html?id=${docSnap.id}">
+      💰 Daily Collection
+      </a>
+
+      <br><br>
+
+      <a class="btn" href="edit.html?id=${docSnap.id}">
+      ✏ Edit Customer
+      </a>
+
+      <br><br>
+
+      <a class="btn" href="statement.html?id=${docSnap.id}">
+      📄 Statement
+      </a>
+
+      <br><br>
+
+      <button
+        class="btn"
+        style="background:red"
+        onclick="deleteCustomer('${docSnap.id}')">
+        🗑 Delete Customer
+      </button>
+
+    </div>
+
     `;
 
   });
@@ -67,12 +81,11 @@ async function loadCustomers() {
 window.deleteCustomer = async function(id) {
 
   const ok = confirm("क्या आप इस ग्राहक को हटाना चाहते हैं?");
+
   if (!ok) return;
 
-  // Delete Customer
   await deleteDoc(doc(db, "customers", id));
 
-  // Delete Customer Collection History
   const q = query(
     collection(db, "collections"),
     where("customerId", "==", id)
