@@ -4,7 +4,8 @@ import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
+deleteDoc,
+doc
 const customerList = document.getElementById("customerList");
 
 async function loadCustomers() {
@@ -51,7 +52,17 @@ async function loadCustomers() {
    onclick="deleteCustomer('${doc.id}')">
 🗑 Delete Customer
 </a>    </div>
+window.deleteCustomer = async function(id) {
 
+  if (!confirm("क्या आप इस ग्राहक को हटाना चाहते हैं?")) return;
+
+  await deleteDoc(doc(db, "customers", id));
+
+  alert("Customer Deleted Successfully");
+
+  loadCustomers();
+
+}
     `;
 
   });
