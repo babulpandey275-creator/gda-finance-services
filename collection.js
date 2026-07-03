@@ -12,7 +12,6 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const ref = doc(db, "customers", id);
-
 const snap = await getDoc(ref);
 
 if (!snap.exists()) {
@@ -55,10 +54,7 @@ document.getElementById("saveBtn").onclick = async () => {
 
   const paidDays =
     (c.paidDays || 0) +
-    Math.floor(amount / c.emi);
-
-  await addDoc(collection(db, "collections"), {
-
+    Math.floor(amount / c.emi);  await addDoc(collection(db, "collections"), {
     customerId: id,
     customerName: c.name,
     mobile: c.mobile,
@@ -68,22 +64,15 @@ document.getElementById("saveBtn").onclick = async () => {
     paidDays: paidDays,
     remainingAmount: remaining,
     date: new Date()
-
   });
 
   await updateDoc(ref, {
-
     remainingAmount: remaining,
-
     paidDays: paidDays,
-
-    totalCollected:
-      (c.totalCollected || 0) + amount
-
+    totalCollected: (c.totalCollected || 0) + amount
   });
 
-  document.getElementById("remaining").textContent =
-    remaining;
+  document.getElementById("remaining").textContent = remaining;
 
   alert("✅ Collection Saved Successfully");
 
