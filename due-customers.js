@@ -5,46 +5,50 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const dueList = document.getElementById("dueList");
+const list = document.getElementById("list");
 
 async function loadDueCustomers() {
-  dueList.innerHTML = "Loading...";
+
+  list.innerHTML = "Loading...";
 
   const snapshot = await getDocs(collection(db, "customers"));
 
-  dueList.innerHTML = "";
+  list.innerHTML = "";
 
   const today = new Date();
-  let found = false;
 
   snapshot.forEach((doc) => {
-    const c = doc.data();
 
-    if (!c.loanDate || !c.days) return;
+    const data = doc.data();
 
-    const start = new Date(c.loanDate);
-    const end = new Date(start);
-    end.setDate(start.getDate() + Number(c.days));
+    if (!data.loanDate || !data.days) return;
 
-    if (today > end && Number(c.remainingAmount) > 0) {
-      found = true;
+    const loanDate = new Date(data.loanDate);
 
-      dueList.innerHTML += `
-        <div class="card">
-          <h3>${c.name}</h3>
-          <p><b>Customer ID:</b> ${c.customerId}</p>
-          <p><b>Mobile:</b> ${c.mobile}</p>
-          <p><b>Loan:</b> ₹${c.loan}</p>
-          <p><b>Remaining:</b> ₹${c.remainingAmount}</p>
-          <p style="color:red;"><b>Status:</b> Due</p>
-        </div>
+    const dueDate = new Date(loanDate);
+    dueDate.setDate(dueDate.getDate() + Number(data.days));
+
+    if (today >= dueDate && Number(data.remainingAmount) > 0) {
+
+      list.innerHTML += `
+      <div class="card">
+        <h3>${data.name}</h3>
+        <p>Customer ID : ${data.customerId}</p>
+        <p>Mobile : ${data.mobile}</p>
+        <p>Loan : ₹${data.loan}</p>
+        <p>Collected : ₹${data.totalCollection}</p>
+        <p>Remaining : ₹${data.remainingAmount}</p>
+        <p style="color:red;font-weight:bold;">⚠️ Due Customer</p>
+      </div>
       `;
     }
+
   });
 
-  if (!found) {
-    dueList.innerHTML = "<h3 style='text-align:center;color:green;'>✅ No Due Customers</h3>";
+  if (list.innerHTML === "") {
+    list.innerHTML = "<h3 style='text-align:center;color:green;'>🎉 कोई Due Customer नहीं है।</h3>";
   }
+
 }
 
 loadDueCustomers();
