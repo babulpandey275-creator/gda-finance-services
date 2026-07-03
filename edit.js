@@ -13,7 +13,7 @@ const mobile = document.getElementById("mobile");
 const address = document.getElementById("address");
 const loan = document.getElementById("loan");
 const emi = document.getElementById("emi");
-
+const loanDate = document.getElementById("loanDate");
 const customerRef = doc(db, "customers", id);
 
 const snap = await getDoc(customerRef);
@@ -26,7 +26,7 @@ if (snap.exists()) {
   address.value = c.address;
   loan.value = c.loan;
   emi.value = c.emi;
-}
+}loanDate.value = c.loanDate || "";
 
 document.getElementById("saveBtn").onclick = async () => {
 
@@ -36,7 +36,7 @@ document.getElementById("saveBtn").onclick = async () => {
     address: address.value,
     loan: Number(loan.value),
     emi: Number(emi.value)
-  });
+  });loanDate: loanDate.value,
 
   alert("Customer Updated Successfully");
 
