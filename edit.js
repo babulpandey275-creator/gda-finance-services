@@ -33,13 +33,17 @@ if (snap.exists()) {
 document.getElementById("saveBtn").onclick = async () => {
 
   await updateDoc(customerRef, {
-    name: name.value,
-    mobile: mobile.value,
-    address: address.value,
-    loan: Number(loan.value),
-    emi: Number(emi.value),
-    loanDate: loanDate.value
-  });
+  name: name.value,
+  mobile: mobile.value,
+  address: address.value,
+  loan: Number(loan.value),
+  emi: Number(emi.value),
+  loanDate: loanDate.value
+});
+
+alert("Customer Updated Successfully");
+
+location.href = "customer-list.html";
 
   alert("Customer Updated Successfully");
 
