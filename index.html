@@ -10,7 +10,11 @@
 
 <script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
-
+<script>
+if (localStorage.getItem("gdaLoggedIn") !== "true") {
+    window.location.href = "login.html";
+}
+</script>
 </head>
 
 <body>
