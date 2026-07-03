@@ -1,5 +1,5 @@
 import { db } from "./firebase.js";
-
+alert("register.js loaded");
 import {
   collection,
   addDoc
@@ -48,7 +48,7 @@ saveBtn.addEventListener("click", async () => {
     });
 
     alert("✅ Customer Saved Successfully");
-
+alert("Save button clicked");
     document.getElementById("name").value = "";
     document.getElementById("mobile").value = "";
     document.getElementById("address").value = "";
