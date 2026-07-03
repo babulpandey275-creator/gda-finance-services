@@ -6,7 +6,7 @@ import {
   updateDoc,
   addDoc,
   collection
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
