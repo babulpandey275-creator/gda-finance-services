@@ -43,7 +43,14 @@ async function loadCustomers() {
 <a class="btn" href="edit.html?id=${doc.id}">
     ✏️ Edit Customer
 </a>
-    </div>
+<br><br>
+
+<a class="btn"
+   style="background:red;"
+   href="#"
+   onclick="deleteCustomer('${doc.id}')">
+🗑 Delete Customer
+</a>    </div>
 
     `;
 
