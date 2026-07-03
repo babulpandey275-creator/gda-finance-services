@@ -13,20 +13,17 @@ const remainingEl = document.getElementById("remaining");
 
 async function loadReport() {
 
-  // Customers Collection
   const customerSnap = await getDocs(collection(db, "customers"));
-
-  // Collections Collection
   const collectionSnap = await getDocs(collection(db, "collections"));
 
   let totalLoan = 0;
   let totalRemaining = 0;
-  let todayTotal = 0;
   let totalCollection = 0;
+  let todayCollection = 0;
 
   const today = new Date();
 
-  customersEl.innerHTML = customerSnap.size;
+  customersEl.textContent = customerSnap.size;
 
   customerSnap.forEach((doc) => {
     const data = doc.data();
@@ -36,15 +33,12 @@ async function loadReport() {
   });
 
   collectionSnap.forEach((doc) => {
-
     const data = doc.data();
 
     const amount = Number(data.amount || 0);
-
     totalCollection += amount;
 
     if (data.date) {
-
       const d = new Date(data.date.seconds * 1000);
 
       if (
@@ -52,18 +46,15 @@ async function loadReport() {
         d.getMonth() === today.getMonth() &&
         d.getFullYear() === today.getFullYear()
       ) {
-        todayTotal += amount;
+        todayCollection += amount;
       }
-
     }
-
   });
 
-  todayEl.innerHTML = "₹" + todayTotal;
-  totalEl.innerHTML = "₹" + totalCollection;
-  loanEl.innerHTML = "₹" + totalLoan;
-  remainingEl.innerHTML = "₹" + totalRemaining;
-
+  todayEl.textContent = "₹" + todayCollection;
+  totalEl.textContent = "₹" + totalCollection;
+  loanEl.textContent = "₹" + totalLoan;
+  remainingEl.textContent = "₹" + totalRemaining;
 }
 
 loadReport();
