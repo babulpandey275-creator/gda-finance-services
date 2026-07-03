@@ -32,19 +32,32 @@ document.getElementById("saveBtn").onclick = async () => {
 
   const remaining = c.remainingAmount - amount;
   const paidDays = c.paidDays + Math.floor(amount / c.emi);
-
-  await updateDoc(ref, {
-    remainingAmount: remaining,
-    paidDays: paidDays
-  });
-
-  await addDoc(collection(db, "collections"), {
-    customerId: id,
-    customerName: c.name,
-    amount: amount,
-    date: new Date()
-  });
-
+await addDoc(collection(db, "collections"), {
+  customerId: id,
+  customerName: c.name,
+  mobile: c.mobile,
+  loan: c.loan,
+  emi: c.emi,
+  amount: amount,
+  paidDays: paidDays,
+  remainingAmount: Math.max(0, remaining),
+  status: status,
+  date: new Date()
+});
+  
+await addDoc(collection(db, "collections"), {
+  customerId: id,
+  customerName: c.name,
+  mobile: c.mobile,
+  loan: c.loan,
+  emi: c.emi,
+  amount: amount,
+  paidDays: paidDays,
+  remainingAmount: Math.max(0, remaining),
+  status: status,
+  date: new Date()
+});
+  
   alert("Collection Saved Successfully");
 
   location.reload();
