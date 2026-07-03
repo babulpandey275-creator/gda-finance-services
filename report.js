@@ -5,46 +5,37 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+const todayEl = document.getElementById("today");
+const totalEl = document.getElementById("total");
+const customersEl = document.getElementById("customers");
+
 async function loadReport() {
 
   const snapshot = await getDocs(collection(db, "collections"));
 
   let todayTotal = 0;
-  let monthTotal = 0;
-  let remainingTotal = 0;
-  let customers = 0;
+  let totalCollection = 0;
 
   const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
 
-  customers = snapshot.size;
+  customersEl.innerHTML = snapshot.size;
 
   snapshot.forEach((doc) => {
 
-    const c = doc.data();
+    const data = doc.data();
 
-    const amount = Number(c.amount || 0);
-    const remaining = Number(c.remainingAmount || 0);
+    const amount = Number(data.amount || 0);
 
-    remainingTotal += remaining;
+    totalCollection += amount;
 
-    if (c.date) {
+    if (data.date) {
 
-      const d = new Date(c.date.seconds * 1000);
-
-      if (
-        d.getMonth() === currentMonth &&
-        d.getFullYear() === currentYear
-      ) {
-        monthTotal += amount;
-      }
+      const d = new Date(data.date.seconds * 1000);
 
       if (
-        d.getDate() === currentDay &&
-        d.getMonth() === currentMonth &&
-        d.getFullYear() === currentYear
+        d.getDate() === today.getDate() &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear()
       ) {
         todayTotal += amount;
       }
@@ -53,10 +44,9 @@ async function loadReport() {
 
   });
 
-  document.getElementById("today").innerHTML =
-    "₹" + todayTotal;
+  todayEl.innerHTML = "₹" + todayTotal;
+  totalEl.innerHTML = "₹" + totalCollection;
 
-  document.getElementById("month").innerHTML =
-    "₹" + monthTotal;
+}
 
-  document.getElement
+loadReport();
