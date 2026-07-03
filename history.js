@@ -37,40 +37,42 @@ async function loadHistory() {
     const c = documentSnap.data();
 
     historyList.innerHTML += `
-      <div class="card">
 
-        <h3>${c.customerName || ""}</h3>
+    <div class="card">
 
-        <p><b>Mobile:</b> ${c.mobile || ""}</p>
+      <h3>${c.customerName || ""}</h3>
 
-        <p><b>Collected:</b> ₹${c.amount || 0}</p>
+      <p><b>Mobile:</b> ${c.mobile || ""}</p>
 
-        <p><b>Remaining:</b> ₹${c.remainingAmount || 0}</p>
+      <p><b>Collected:</b> ₹${c.amount || 0}</p>
 
-        <p><b>Paid Days:</b> ${c.paidDays || 0}</p>
+      <p><b>Remaining:</b> ₹${c.remainingAmount || 0}</p>
 
-        <p><b>Date:</b>
-        ${
-          c.date?.toDate
-            ? c.date.toDate().toLocaleString()
-            : "-"
-        }
-        </p>
+      <p><b>Paid Days:</b> ${c.paidDays || 0}</p>
 
-        <button
-        style="
-        background:red;
-        color:white;
-        border:none;
-        padding:10px 15px;
-        border-radius:6px;
-        cursor:pointer;
-        "
-        onclick="deleteCollection('${id}')">
-        🗑 Delete
-        </button>
+      <p><b>Date:</b>
+      ${
+        c.date?.toDate
+          ? c.date.toDate().toLocaleString()
+          : "-"
+      }
+      </p>
 
-      </div>
+      <button
+      style="
+      background:red;
+      color:white;
+      border:none;
+      padding:10px 15px;
+      border-radius:6px;
+      cursor:pointer;
+      "
+      onclick="window.deleteCollection('${id}')">
+      🗑 Delete
+      </button>
+
+    </div>
+
     `;
 
   });
@@ -79,14 +81,23 @@ async function loadHistory() {
 
 window.deleteCollection = async function(id) {
 
+  const pin = prompt("🔒 Enter Admin PIN");
+
+  if (pin === null) return;
+
+  if (pin !== "2750") {
+    alert("❌ Wrong Admin PIN");
+    return;
+  }
+
   const ok = confirm("क्या आप यह Collection Delete करना चाहते हैं?");
 
   if (!ok) return;
 
   try {
 
-    // Collection Record
     const collectionRef = doc(db, "collections", id);
+
     const collectionSnap = await getDoc(collectionRef);
 
     if (!collectionSnap.exists()) {
@@ -96,8 +107,8 @@ window.deleteCollection = async function(id) {
 
     const data = collectionSnap.data();
 
-    // Customer Record
     const customerRef = doc(db, "customers", data.customerId);
+
     const customerSnap = await getDoc(customerRef);
 
     if (customerSnap.exists()) {
@@ -126,10 +137,9 @@ window.deleteCollection = async function(id) {
 
     }
 
-    // Delete History
     await deleteDoc(collectionRef);
 
-    alert("Collection Deleted Successfully");
+    alert("✅ Collection Deleted Successfully");
 
     loadHistory();
 
