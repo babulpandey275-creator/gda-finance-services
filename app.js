@@ -1,4 +1,5 @@
 import { db } from "./firebase.js";
+
 import {
   collection,
   getDocs
@@ -12,22 +13,22 @@ async function loadDashboard() {
 
   if (!document.getElementById("totalCustomers")) return;
 
-  const snapshot = await getDocs(collection(db, "customers"));
+  const customerSnap = await getDocs(collection(db, "customers"));
+  const collectionSnap = await getDocs(collection(db, "collections"));
 
-  let totalCustomers = snapshot.size;
+  let totalCustomers = customerSnap.size;
   let totalLoan = 0;
-  let totalCollection = 0;
   let totalRemaining = 0;
+  let totalCollection = 0;
   let dueCustomers = 0;
 
   const today = new Date();
 
-  snapshot.forEach((doc) => {
+  customerSnap.forEach((doc) => {
 
     const c = doc.data();
 
     totalLoan += Number(c.loan || 0);
-    totalCollection += Number(c.totalCollected || 0);
     totalRemaining += Number(c.remainingAmount || 0);
 
     if (c.loanDate && c.days) {
@@ -47,6 +48,11 @@ async function loadDashboard() {
       }
     }
 
+  });
+
+  collectionSnap.forEach((doc) => {
+    const data = doc.data();
+    totalCollection += Number(data.amount || 0);
   });
 
   document.getElementById("totalCustomers").textContent = totalCustomers;
