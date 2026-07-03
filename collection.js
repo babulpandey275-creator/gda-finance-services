@@ -6,13 +6,18 @@ import {
   updateDoc,
   addDoc,
   collection
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const ref = doc(db, "customers", id);
 const snap = await getDoc(ref);
+
+if (!snap.exists()) {
+  alert("Customer not found");
+  throw new Error("Customer not found");
+}
 
 const c = snap.data();
 
@@ -30,36 +35,27 @@ document.getElementById("saveBtn").onclick = async () => {
     return;
   }
 
-  const remaining = c.remainingAmount - amount;
+  const remaining = Math.max(0, c.remainingAmount - amount);
   const paidDays = c.paidDays + Math.floor(amount / c.emi);
-await addDoc(collection(db, "collections"), {
-  customerId: id,
-  customerName: c.name,
-  mobile: c.mobile,
-  loan: c.loan,
-  emi: c.emi,
-  amount: amount,
-  paidDays: paidDays,
-  remainingAmount: Math.max(0, remaining),
-  status: status,
-  date: new Date()
-});
-  
-await addDoc(collection(db, "collections"), {
-  customerId: id,
-  customerName: c.name,
-  mobile: c.mobile,
-  loan: c.loan,
-  emi: c.emi,
-  amount: amount,
-  paidDays: paidDays,
-  remainingAmount: Math.max(0, remaining),
-  status: status,
-  date: new Date()
-});
-  
+
+  await addDoc(collection(db, "collections"), {
+    customerId: id,
+    customerName: c.name,
+    mobile: c.mobile,
+    loan: c.loan,
+    emi: c.emi,
+    amount: amount,
+    paidDays: paidDays,
+    remainingAmount: remaining,
+    date: new Date()
+  });
+
+  await updateDoc(ref, {
+    remainingAmount: remaining,
+    paidDays: paidDays,
+    totalCollected: (c.totalCollected || 0) + amount
+  });
+
   alert("Collection Saved Successfully");
-
   location.reload();
-
 };
