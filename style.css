@@ -1,8 +1,8 @@
-/* ===========================
-   GDA Finance Services
-   Professional UI v2
+/* ==================================================
+   GDA Finance Services V2
+   Professional Mobile App UI
    Part 1
-=========================== */
+================================================== */
 
 *{
 margin:0;
@@ -12,65 +12,114 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:#f3f7fc;
+background:#f4f7fc;
 color:#333;
 padding-bottom:90px;
 }
 
-/* HEADER */
+/* Header */
 
-header{
+.top-header{
+
 background:linear-gradient(135deg,#1565c0,#0d47a1);
+
 color:#fff;
-padding:25px 20px;
-text-align:center;
+
+padding:20px;
+
 border-radius:0 0 25px 25px;
+
 box-shadow:0 6px 15px rgba(0,0,0,.20);
+
 }
 
-header h1{
+.logo-area{
+
+display:flex;
+
+align-items:center;
+
+gap:15px;
+
+}
+
+.logo-icon{
+
+width:60px;
+
+height:60px;
+
+border-radius:50%;
+
+background:#ffffff33;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
 font-size:30px;
-font-weight:bold;
-margin-bottom:8px;
+
 }
 
-header p{
-font-size:15px;
+.top-header h1{
+
+font-size:24px;
+
+margin-bottom:5px;
+
+}
+
+.top-header p{
+
+font-size:14px;
+
 opacity:.9;
+
 }
 
-/* CONTAINER */
+/* Container */
 
 .container{
-width:95%;
+
+width:94%;
+
 max-width:1200px;
+
 margin:auto;
+
 padding:18px 0;
+
 }
 
-/* MAIN CARD */
+/* Dashboard Card */
 
-.card{
+.dashboard-card{
+
 background:#fff;
+
 border-radius:20px;
+
 padding:20px;
-margin-bottom:22px;
-box-shadow:0 5px 18px rgba(0,0,0,.08);
-transition:.3s;
+
+margin-bottom:20px;
+
+box-shadow:0 5px 15px rgba(0,0,0,.08);
+
 }
 
-.card:hover{
-transform:translateY(-3px);
-}
+.dashboard-card h2{
 
-.card h2{
-text-align:center;
-margin-bottom:18px;
 color:#1565c0;
+
 font-size:22px;
+
+margin-bottom:18px;
+
 }
 
-/* SUMMARY GRID */
+/* Summary Grid */
 
 .summary-grid{
 
@@ -88,7 +137,7 @@ background:linear-gradient(180deg,#ffffff,#eef5ff);
 
 border-radius:18px;
 
-padding:20px;
+padding:18px;
 
 text-align:center;
 
@@ -100,263 +149,156 @@ transition:.3s;
 
 .summary-box:hover{
 
-transform:scale(1.03);
+transform:translateY(-3px);
 
 }
 
-.summary-box h3{
+.summary-icon{
 
-font-size:15px;
-
-color:#666;
+font-size:28px;
 
 margin-bottom:10px;
 
 }
 
-.summary-box span{
+.summary-title{
 
-display:block;
+font-size:14px;
 
-font-size:25px;
+color:#666;
+
+}
+
+.summary-value{
+
+font-size:24px;
 
 font-weight:bold;
 
 color:#1565c0;
 
-}
+margin-top:8px;
 
-/* ===========================
-   ACTION CARDS
-=========================== */
+}
+/* ==================================================
+   GDA Finance Services V2
+   Part 2
+================================================== */
+
+/* Quick Action Grid */
 
 .action-grid{
+
 display:grid;
+
 grid-template-columns:repeat(2,1fr);
+
 gap:18px;
+
+margin-top:15px;
+
 }
 
 .action-card{
-background:#ffffff;
+
+background:#fff;
+
 border-radius:18px;
-padding:22px 18px;
+
+padding:20px 15px;
+
 text-align:center;
-box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+border:1px solid #e8eefc;
+
 transition:.3s;
-border:1px solid #edf2ff;
+
 }
 
 .action-card:hover{
+
 transform:translateY(-4px);
+
 box-shadow:0 8px 20px rgba(0,0,0,.15);
+
 }
 
-.action-card h3{
-font-size:18px;
-color:#1565c0;
-margin:12px 0;
-}
+.action-icon{
 
-.action-card p{
-font-size:14px;
-color:#666;
-margin-bottom:18px;
-line-height:1.5;
-}
+width:60px;
 
-/* BUTTON */
+height:60px;
 
-button{
-width:100%;
-padding:13px;
-border:none;
-border-radius:12px;
-background:linear-gradient(135deg,#1976d2,#1565c0);
-color:#fff;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-transition:.3s;
-}
-
-button:hover{
-background:linear-gradient(135deg,#1565c0,#0d47a1);
-transform:scale(1.02);
-}
-
-/* INPUT */
-
-input,
-select,
-textarea{
-width:100%;
-padding:13px;
-border:1px solid #d9e4f5;
-border-radius:12px;
-font-size:16px;
-background:#fff;
-outline:none;
-margin-bottom:15px;
-transition:.3s;
-}
-
-input:focus,
-select:focus,
-textarea:focus{
-border-color:#1565c0;
-box-shadow:0 0 8px rgba(21,101,192,.20);
-}
-
-/* FOOTER */
-
-footer{
-margin-top:25px;
-padding:18px;
-text-align:center;
-background:linear-gradient(135deg,#1565c0,#0d47a1);
-color:#fff;
-font-size:15px;
-border-radius:20px 20px 0 0;
-}
-/* ===========================
-   GDA Finance Services
+margin
+   /* ==================================================
+   GDA Finance Services V2
    Part 3 (Final)
-=========================== */
+================================================== */
 
-/* Mobile Responsive */
+/* Bottom Navigation */
 
-@media (max-width:768px){
+.bottom-nav{
 
-.container{
-width:94%;
-}
+position:fixed;
 
-.summary-grid{
-grid-template-columns:1fr 1fr;
-gap:12px;
-}
+left:0;
 
-.action-grid{
-grid-template-columns:1fr;
-gap:15px;
-}
+bottom:0;
 
-header h1{
-font-size:24px;
-}
+width:100%;
 
-header p{
-font-size:14px;
-}
+height:70px;
 
-.card{
-padding:16px;
-}
+background:#ffffff;
 
-.summary-box{
-padding:16px;
-}
+display:flex;
 
-.summary-box span{
-font-size:22px;
-}
+justify-content:space-around;
 
-.action-card h3{
-font-size:17px;
-}
+align-items:center;
 
-button{
-font-size:15px;
-padding:12px;
-}
+box-shadow:0 -3px 15px rgba(0,0,0,.12);
+
+z-index:999;
 
 }
 
-/* Small Mobile */
+.bottom-nav a{
 
-@media (max-width:480px){
+flex:1;
 
-.summary-grid{
-grid-template-columns:1fr;
-}
+display:flex;
 
-header{
-padding:20px;
-}
+flex-direction:column;
 
-header h1{
-font-size:22px;
-}
+align-items:center;
 
-.card h2{
-font-size:20px;
-}
+justify-content:center;
 
-.summary-box span{
-font-size:20px;
-}
-
-}
-
-/* Animation */
-
-.card,
-.action-card,
-.summary-box{
-animation:fadeUp .4s ease;
-}
-
-@keyframes fadeUp{
-
-from{
-opacity:0;
-transform:translateY(15px);
-}
-
-to{
-opacity:1;
-transform:translateY(0);
-}
-
-}
-
-/* Scrollbar */
-
-::-webkit-scrollbar{
-width:8px;
-}
-
-::-webkit-scrollbar-thumb{
-background:#1565c0;
-border-radius:20px;
-}
-
-::-webkit-scrollbar-track{
-background:#edf2ff;
-}
-
-/* Selection */
-
-::selection{
-background:#1565c0;
-color:#fff;
-}
-
-/* Links */
-
-a{
 text-decoration:none;
-color:inherit;
+
+color:#666;
+
+font-size:13px;
+
+font-weight:600;
+
+transition:.3s;
+
 }
 
-/* Images */
+.bottom-nav a.active{
 
-img{
-max-width:100%;
-display:block;
+color:#1565c0;
+
 }
 
-/* Utility */
+.bottom-nav a:hover{
 
-.text-center{
-text-align:center;
+color:#1565c0;
+
+}
+
+.bottom-nav
