@@ -1,174 +1,37 @@
+<!DOCTYPE html>
+<html lang="hi">
 
-──────────────────────────
-      💰 Daily Collection
-──────────────────────────
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-🔍 Search Customer
-[_______________]
+<title>Daily Collection</title>
 
-──────────────────────────
+<link rel="stylesheet" href="daily-collection.css">
 
-👤 Customer Name
-📱 Mobile
-💰 Loan Amount
-💵 Daily EMI
-📉 Remaining Amount
+</head>
 
-──────────────────────────
+<body>
 
-💰 Collection Amount
-[ ₹____________ ]
+<div class="header">
+<h2>💰 Daily Collection</h2>
+<p>GDA Finance Services</p>
+</div>
 
-📝 Note (Optional)
-[________________]
+<input
+type="text"
+id="search"
+class="search"
+placeholder="🔍 Search Customer Name or Mobile">
 
-──────────────────────────
+<div id="customerList"></div>
 
-🟢 SAVE COLLECTION
-──────────────────────────
+<a href="history.html" class="historyBtn">
+📜 View Collection History
+</a>
 
-📜 View Collection Historyimport { db } from "./firebase.js";
+<script type="module" src="daily-collection.js"></script>
 
-import {
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+</body>
 
-const customerList = document.getElementById("customerList");
-const search = document.getElementById("search");
-
-let customers = [];
-
-async function loadCustomers() {
-  const snap = await getDocs(collection(db, "customers"));
-
-  customers = [];
-
-  snap.forEach((d) => {
-    customers.push({
-      id: d.id,
-      ...d.data()
-    });
-  });
-
-  showCustomers(customers);
-}
-
-function showCustomers(list) {
-
-  customerList.innerHTML = "";
-
-  list.forEach((c) => {
-
-    customerList.innerHTML += `
-
-    <div class="card">
-
-      <h3>${c.name}</h3>
-
-      <p>📱 ${c.mobile}</p>
-
-      <p>💵 Daily EMI : ₹${c.emi}</p>
-
-      <p>📉 Remaining : ₹${c.remainingAmount}</p>
-
-      <input
-      type="number"
-      id="amount-${c.id}"
-      value="${c.emi}"
-      class="amountBox">
-
-      <button
-      class="saveBtn"
-      onclick="saveCollection('${c.id}')">
-
-      ✅ Save Collection
-
-      </button>
-
-    </div>
-
-    `;
-  });
-
-}
-
-search.addEventListener("keyup", () => {
-
-  const value = search.value.toLowerCase();
-
-  const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(value) ||
-    c.mobile.includes(value)
-  );
-
-  showCustomers(filtered);
-
-});
-
-window.saveCollection = async function(id){
-
-  const customer = customers.find(c => c.id == id);
-
-  const amount = Number(
-    document.getElementById(
-      "amount-"+id
-    ).value
-  );
-
-  if(amount<=0){
-    alert("Enter Valid Amount");
-    return;
-  }
-
-  if(amount>customer.remainingAmount){
-    alert("Amount is greater than Remaining");
-    return;
-  }
-
-  const remaining =
-    customer.remainingAmount-amount;
-
-  const paidDays =
-    (customer.paidDays||0)+
-    Math.floor(amount/customer.emi);
-
-  await addDoc(collection(db,"collections"),{
-
-    customerId:id,
-    customerName:customer.name,
-    mobile:customer.mobile,
-    loan:customer.loan,
-    emi:customer.emi,
-    amount:amount,
-    remainingAmount:remaining,
-    paidDays:paidDays,
-    date:new Date()
-
-  });
-
-  await updateDoc(
-    doc(db,"customers",id),
-    {
-
-      remainingAmount:remaining,
-
-      paidDays:paidDays,
-
-      totalCollected:
-      (customer.totalCollected||0)+amount
-
-    }
-
-  );
-
-  alert("✅ Collection Saved");
-
-  loadCustomers();
-
-}
-
-loadCustomers();
+</html>
