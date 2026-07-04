@@ -1,3 +1,4 @@
+
 import { db } from "./firebase.js";
 
 import {
@@ -8,50 +9,43 @@ import {
 const todayAmount = document.getElementById("todayAmount");
 const todayDate = document.getElementById("todayDate");
 
-/* Today's Date */
+/* Show Today's Date */
 
 if (todayDate) {
-
-  todayDate.innerHTML =
-    new Date().toLocaleDateString("en-IN");
-
+  todayDate.textContent = new Date().toLocaleDateString("en-IN");
 }
 
-/* Today's Collection */
+/* Update Today's Collection */
 
 export async function updateTodayCollection() {
 
   try {
 
-    const snap =
-      await getDocs(collection(db, "collections"));
+    const snap = await getDocs(collection(db, "collections"));
+
+    const today = new Date().toLocaleDateString("en-IN");
 
     let total = 0;
-
-    const today =
-      new Date().toLocaleDateString("en-IN");
 
     snap.forEach((doc) => {
 
       const data = doc.data();
 
-      if (!data.date) return;
-
-      let docDate = "";
+      let collectionDate = "";
 
       if (data.dateString) {
 
-        docDate = data.dateString;
+        collectionDate = data.dateString;
 
-      } else if (data.date.seconds) {
+      } else if (data.date && data.date.seconds) {
 
-        docDate = new Date(
+        collectionDate = new Date(
           data.date.seconds * 1000
         ).toLocaleDateString("en-IN");
 
       }
 
-      if (docDate === today) {
+      if (collectionDate === today) {
 
         total += Number(data.amount || 0);
 
@@ -61,18 +55,18 @@ export async function updateTodayCollection() {
 
     if (todayAmount) {
 
-      todayAmount.innerHTML =
+      todayAmount.textContent =
         "₹" + total.toLocaleString("en-IN");
 
     }
 
   } catch (err) {
 
-    console.error(err);
+    console.error("Today's Collection Error:", err);
 
     if (todayAmount) {
 
-      todayAmount.innerHTML = "₹0";
+      todayAmount.textContent = "₹0";
 
     }
 
@@ -84,26 +78,23 @@ export async function updateTodayCollection() {
 
 window.setAmount = function(id, amount) {
 
-  const box =
-    document.getElementById("amount-" + id);
+  const input = document.getElementById("amount-" + id);
 
-  if (box) {
+  if (!input) return;
 
-    box.value = amount;
+  input.value = amount;
 
-    box.focus();
-
-  }
+  input.focus();
 
 };
 
-/* Auto Refresh Every 20 Seconds */
+/* Auto Refresh */
 
 setInterval(() => {
 
   updateTodayCollection();
 
-}, 20000);
+}, 30000);
 
 /* First Load */
 
