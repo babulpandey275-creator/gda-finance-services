@@ -1,94 +1,60 @@
-import { db } from "./firebase.js";
+import { loadDashboard } from "./dashboard.js";
 
-import {
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+/* ==========================================
+   GDA Finance Services V2
+   app.js
+========================================== */
 
-window.addEventListener("load", () => {
-  loadDashboard();
+window.addEventListener("DOMContentLoaded", () => {
+
+    startApp();
+
 });
 
-async function loadDashboard() {
+async function startApp() {
 
-  if (!document.getElementById("totalCustomers")) return;
+    try {
 
-  const customerSnap = await getDocs(collection(db, "customers"));
-  const collectionSnap = await getDocs(collection(db, "collections"));
+        console.log("🚀 Starting GDA Finance Services...");
 
-  let totalCustomers = customerSnap.size;
-  let totalLoan = 0;
-  let totalCollection = 0;
-  let todayCollection = 0;
-  let totalRemaining = 0;
-  let dueCustomers = 0;
+        await loadDashboard();
 
-  const today = new Date().toISOString().split("T")[0];
+        console.log("✅ Dashboard Loaded");
 
-  // Customer Summary
-  customerSnap.forEach((docSnap) => {
+    } catch (error) {
 
-    const c = docSnap.data();
+        console.error("App Error:", error);
 
-    totalLoan += Number(c.loan || 0);
-    totalRemaining += Number(c.remainingAmount || 0);
-
-    if (c.loanDate && c.days) {
-
-      const loanDate = new Date(c.loanDate);
-
-      const passedDays = Math.floor(
-        (new Date() - loanDate) / (1000 * 60 * 60 * 24)
-      );
-
-      const paidDays = Number(c.paidDays || 0);
-
-      const dueDays = passedDays - paidDays;
-
-      if (dueDays > 0 && Number(c.remainingAmount || 0) > 0) {
-        dueCustomers++;
-      }
-    }
-
-  });
-
-  // Collection Summary
-  collectionSnap.forEach((docSnap) => {
-
-    const data = docSnap.data();
-
-    totalCollection += Number(data.amount || 0);
-
-    if (data.date) {
-
-      let collectionDate = "";
-
-      if (data.date.toDate) {
-        collectionDate = data.date.toDate().toISOString().split("T")[0];
-      } else if (data.date.seconds) {
-        collectionDate = new Date(data.date.seconds * 1000)
-          .toISOString()
-          .split("T")[0];
-      }
-
-      if (collectionDate === today) {
-        todayCollection += Number(data.amount || 0);
-      }
+        alert("⚠️ App Loading Error\n\n" + error.message);
 
     }
-
-  });
-
-  document.getElementById("totalCustomers").textContent = totalCustomers;
-  document.getElementById("totalLoan").textContent = totalLoan;
-  document.getElementById("totalCollection").textContent = totalCollection;
-  document.getElementById("todayCollection").textContent = todayCollection;
-  document.getElementById("totalRemaining").textContent = totalRemaining;
-
-  if (document.getElementById("dueCustomers")) {
-    document.getElementById("dueCustomers").textContent = dueCustomers;
-  }
 
 }
 
-loadDashboard();
+/* Manual Refresh */
+
+window.refreshApp = async function () {
+
+    try {
+
+        await loadDashboard();
+
+        console.log("🔄 Dashboard Refreshed");
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+};
+
+/* Auto Refresh Every 30 Seconds */
+
+setInterval(() => {
+
+    window.refreshApp();
+
+}, 30000);
+
+console.log("✅ GDA Finance Services V2 Ready");
