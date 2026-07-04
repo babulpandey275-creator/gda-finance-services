@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,14 +11,16 @@
 <link rel="stylesheet" href="style.css">
 
 <link rel="manifest" href="manifest.json">
+
 <meta name="theme-color" content="#1565c0">
+
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
 
 <script>
-if(localStorage.getItem("gdaLoggedIn")!="true"){
+if(localStorage.getItem("gdaLoggedIn")!=="true"){
 location.href="login.html";
 }
 </script>
@@ -25,12 +29,19 @@ location.href="login.html";
 
 <body>
 
+<!-- HEADER -->
+
 <header>
+
 <h1>🏦 GDA Finance Services</h1>
+
 <p>Micro Finance Management System</p>
+
 </header>
 
 <div class="container">
+
+<!-- DASHBOARD -->
 
 <div class="card">
 
@@ -39,92 +50,157 @@ location.href="login.html";
 <div class="summary-grid">
 
 <div class="summary-box">
+
 <h3>👥 Customers</h3>
+
 <span id="totalCustomers">0</span>
+
 </div>
 
 <div class="summary-box">
-<h3>💰 Loan</h3>
+
+<h3>💰 Total Loan</h3>
+
 <span>₹<span id="totalLoan">0</span></span>
+
 </div>
 
 <div class="summary-box">
+
 <h3>💵 Collection</h3>
+
 <span>₹<span id="totalCollection">0</span></span>
+
 </div>
 
 <div class="summary-box">
+
 <h3>📅 Today</h3>
+
 <span>₹<span id="todayCollection">0</span></span>
+
 </div>
 
 <div class="summary-box">
+
 <h3>📉 Remaining</h3>
+
 <span>₹<span id="totalRemaining">0</span></span>
+
 </div>
 
 <div class="summary-box">
+
 <h3>🔴 Due</h3>
+
 <span id="dueCustomers">0</span>
-</div>
 
 </div>
 
 </div>
+
+</div>
+
+<!-- QUICK ACTIONS -->
 
 <div class="card">
 
 <h2>⚡ Quick Actions</h2>
 
 <div class="action-grid">
+ <div class="action-card">
 
-<div class="action-card">
 <h3>👤 Customer Registration</h3>
+
 <p>नया ग्राहक जोड़ें</p>
-<button onclick="location.href='register.html'">Open</button>
+
+<button onclick="location.href='register.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>📋 Customer List</h3>
+
 <p>सभी ग्राहकों की सूची</p>
-<button onclick="location.href='customer-list.html'">Open</button>
+
+<button onclick="location.href='customer-list.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>💰 Daily Collection</h3>
+
 <p>आज की किस्त जमा करें</p>
-<button onclick="location.href='daily-collection.html'">Open</button>
+
+<button onclick="location.href='daily-collection.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>📊 Reports</h3>
-<p>Daily और Monthly Report</p>
-<button onclick="location.href='report.html'">Open</button>
+
+<p>Daily एवं Monthly Report</p>
+
+<button onclick="location.href='report.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>📜 Collection History</h3>
-<p>पुरानी Collection देखें</p>
-<button onclick="location.href='history.html'">Open</button>
+
+<p>सभी Collection देखें</p>
+
+<button onclick="location.href='history.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>⚠️ Due Customers</h3>
+
 <p>बकाया ग्राहक</p>
-<button onclick="location.href='due-customers.html'">Open</button>
+
+<button onclick="location.href='due-customers.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>💾 Backup</h3>
+
 <p>Backup एवं Restore</p>
-<button onclick="location.href='backup.html'">Open</button>
+
+<button onclick="location.href='backup.html'">
+Open
+</button>
+
 </div>
 
 <div class="action-card">
+
 <h3>🚪 Logout</h3>
+
 <p>सुरक्षित रूप से बाहर निकलें</p>
-<button onclick="logout()">Logout</button>
-</div>
+
+<button onclick="logout()">
+Logout
+</button>
 
 </div>
 
@@ -132,7 +208,24 @@ location.href="login.html";
 
 </div>
 
-<footer>
+</div>
+
+<!-- Bottom Navigation -->
+
+<nav class="bottom-nav">
+
+<a href="index.html">🏠<br>Dashboard</a>
+
+<a href="customer-list.html">👥<br>Customers</a>
+
+<a href="daily-collection.html">💰<br>Collection</a>
+
+<a href="report.html">📊<br>Reports</a>
+
+<a href="backup.html">⚙️<br>More</a>
+
+</nav>
+ <footer>
 
 © 2026 GDA Finance Services
 
@@ -152,11 +245,25 @@ location.href="login.html";
 
 }
 
+/* Service Worker */
+
 if("serviceWorker" in navigator){
 
-window.addEventListener("load",function(){
+window.addEventListener("load",()=>{
 
-navigator.serviceWorker.register("./service-worker.js");
+navigator.serviceWorker.register("./service-worker.js")
+
+.then(()=>{
+
+console.log("Service Worker Registered");
+
+})
+
+.catch((err)=>{
+
+console.log(err);
+
+});
 
 });
 
@@ -165,4 +272,5 @@ navigator.serviceWorker.register("./service-worker.js");
 </script>
 
 </body>
-</html>
+
+</html> 
