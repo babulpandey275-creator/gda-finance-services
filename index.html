@@ -8,6 +8,11 @@
 
 <link rel="stylesheet" href="style.css">
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1565c0">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
 
@@ -27,19 +32,26 @@ if (localStorage.getItem("gdaLoggedIn") !== "true") {
 </header>
 
 <div class="card">
+
 <h2>📊 Dashboard Summary</h2>
 
-<p><b>👥 Total Customers:</b> <span id="totalCustomers">0</span></p>
+<p><b>👥 Total Customers:</b>
+<span id="totalCustomers">0</span></p>
 
-<p><b>💰 Total Loan:</b> ₹<span id="totalLoan">0</span></p>
+<p><b>💰 Total Loan:</b>
+₹<span id="totalLoan">0</span></p>
 
-<p><b>💵 Total Collection:</b> ₹<span id="totalCollection">0</span></p>
+<p><b>💵 Total Collection:</b>
+₹<span id="totalCollection">0</span></p>
 
-<p><b>💰 Today's Collection:</b><br> ₹<span id="todayCollection">0</span></p>
+<p><b>💰 Today's Collection:</b><br>
+₹<span id="todayCollection">0</span></p>
 
-<p><b>📉 Remaining Amount:</b> ₹<span id="totalRemaining">0</span></p>
+<p><b>📉 Remaining Amount:</b>
+₹<span id="totalRemaining">0</span></p>
 
-<p><b>🔴 Due Customers:</b> <span id="dueCustomers">0</span></p>
+<p><b>🔴 Due Customers:</b>
+<span id="dueCustomers">0</span></p>
 
 </div>
 
@@ -48,69 +60,48 @@ if (localStorage.getItem("gdaLoggedIn") !== "true") {
 <div class="card">
 <h2>👤 Customer Registration</h2>
 <p>नया ग्राहक जोड़ें</p>
-
-<button onclick="location.href='register.html'">
-Open
-</button>
+<button onclick="location.href='register.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>📋 Customer List</h2>
 <p>सभी ग्राहकों की सूची</p>
-
-<button onclick="location.href='customer-list.html'">
-Open
-</button>
+<button onclick="location.href='customer-list.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>💰 Daily Collection</h2>
 <p>आज की किस्त जमा करें</p>
-
-<button onclick="location.href='customer-list.html'">
-Open
-</button>
+<button onclick="location.href='customer-list.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>📊 Reports</h2>
 <p>Daily एवं Monthly Report</p>
-
-<button onclick="location.href='report.html'">
-Open
-</button>
+<button onclick="location.href='report.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>📜 Collection History</h2>
 <p>सभी Collection की हिस्ट्री देखें</p>
-
-<button onclick="location.href='history.html'">
-Open
-</button>
+<button onclick="location.href='history.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>⚠️ Due Customers</h2>
 <p>जिन ग्राहकों की अवधि पूरी हो गई है</p>
-
-<button onclick="location.href='due-customers.html'">
-Open
-</button>
+<button onclick="location.href='due-customers.html'">Open</button>
 </div>
 
 <div class="card">
 <h2>💾 Backup & Restore</h2>
 <p>डेटा का Backup डाउनलोड करें और Restore करें</p>
-
-<button onclick="location.href='backup.html'">
-Open
-</button>
+<button onclick="location.href='backup.html'">Open</button>
 </div>
 
 </div>
 
-<div style="text-align:center; margin:20px;">
+<div style="text-align:center;margin:20px;">
 <button onclick="logout()">🚪 Logout</button>
 </div>
 
@@ -124,6 +115,21 @@ function logout() {
         localStorage.removeItem("gdaLoggedIn");
         window.location.href = "login.html";
     }
+}
+</script>
+
+<!-- PWA Service Worker -->
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./service-worker.js")
+        .then(function () {
+            console.log("Service Worker Registered");
+        })
+        .catch(function (err) {
+            console.log("Service Worker Error:", err);
+        });
+    });
 }
 </script>
 
