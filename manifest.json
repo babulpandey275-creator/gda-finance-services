@@ -1,7 +1,9 @@
 {
   "name": "GDA Finance Services",
   "short_name": "GDA Finance",
-  "start_url": "./index.html",
+  "id": "/gda-finance-services/",
+  "start_url": "/gda-finance-services/",
+  "scope": "/gda-finance-services/",
   "display": "standalone",
   "background_color": "#1565c0",
   "theme_color": "#1565c0",
