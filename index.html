@@ -11,16 +11,14 @@
 <link rel="stylesheet" href="style.css">
 
 <link rel="manifest" href="manifest.json">
-
 <meta name="theme-color" content="#1565c0">
-
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <script type="module" src="firebase.js"></script>
-<script type="module" src="app.js"></script>
+<script type="module" src="dashboard.js"></script>
 
 <script>
-if(localStorage.getItem("gdaLoggedIn")!=="true"){
+if(localStorage.getItem("gdaLoggedIn")!="true"){
 location.href="login.html";
 }
 </script>
@@ -29,88 +27,155 @@ location.href="login.html";
 
 <body>
 
-<!-- HEADER -->
+<header class="top-header">
 
-<header>
+<div class="logo-area">
 
-<h1>🏦 GDA Finance Services</h1>
+<div class="logo-icon">
+🏦
+</div>
+
+<div>
+
+<h1>GDA Finance Services</h1>
 
 <p>Micro Finance Management System</p>
+
+</div>
+
+</div>
 
 </header>
 
 <div class="container">
 
-<!-- DASHBOARD -->
+<!-- Dashboard -->
 
-<div class="card">
+<div class="dashboard-card">
 
-<h2>📊 Dashboard Summary</h2>
+<h2>
+📊 Dashboard Summary
+</h2>
 
 <div class="summary-grid">
 
 <div class="summary-box">
 
-<h3>👥 Customers</h3>
+<div class="summary-icon">
+👥
+</div>
 
-<span id="totalCustomers">0</span>
+<div class="summary-title">
+Customers
+</div>
+
+<div class="summary-value"
+id="totalCustomers">
+0
+</div>
 
 </div>
 
 <div class="summary-box">
 
-<h3>💰 Total Loan</h3>
+<div class="summary-icon">
+💰
+</div>
 
-<span>₹<span id="totalLoan">0</span></span>
+<div class="summary-title">
+Total Loan
+</div>
+
+<div class="summary-value">
+₹<span id="totalLoan">0</span>
+</div>
 
 </div>
 
 <div class="summary-box">
 
-<h3>💵 Collection</h3>
+<div class="summary-icon">
+💵
+</div>
 
-<span>₹<span id="totalCollection">0</span></span>
+<div class="summary-title">
+Collection
+</div>
+
+<div class="summary-value">
+₹<span id="totalCollection">0</span>
+</div>
 
 </div>
 
 <div class="summary-box">
 
-<h3>📅 Today</h3>
+<div class="summary-icon">
+📅
+</div>
 
-<span>₹<span id="todayCollection">0</span></span>
+<div class="summary-title">
+Today
+</div>
+
+<div class="summary-value">
+₹<span id="todayCollection">0</span>
+</div>
 
 </div>
 
 <div class="summary-box">
 
-<h3>📉 Remaining</h3>
+<div class="summary-icon">
+📉
+</div>
 
-<span>₹<span id="totalRemaining">0</span></span>
+<div class="summary-title">
+Remaining
+</div>
+
+<div class="summary-value">
+₹<span id="totalRemaining">0</span>
+</div>
 
 </div>
 
 <div class="summary-box">
 
-<h3>🔴 Due</h3>
+<div class="summary-icon">
+🔴
+</div>
 
-<span id="dueCustomers">0</span>
+<div class="summary-title">
+Due Customers
+</div>
 
+<div class="summary-value"
+id="dueCustomers">
+0
 </div>
 
 </div>
 
 </div>
 
-<!-- QUICK ACTIONS -->
+</div>
 
-<div class="card">
+<!-- Quick Actions Start -->
+<div class="dashboard-card">
 
-<h2>⚡ Quick Actions</h2>
+<h2>
+⚡ Quick Actions
+</h2>
 
 <div class="action-grid">
- <div class="action-card">
+ <!-- Customer Registration -->
 
-<h3>👤 Customer Registration</h3>
+<div class="action-card">
+
+<div class="action-icon">👤</div>
+
+<h3>Customer Registration</h3>
 
 <p>नया ग्राहक जोड़ें</p>
 
@@ -120,9 +185,14 @@ Open
 
 </div>
 
+
+<!-- Customer List -->
+
 <div class="action-card">
 
-<h3>📋 Customer List</h3>
+<div class="action-icon">📋</div>
+
+<h3>Customer List</h3>
 
 <p>सभी ग्राहकों की सूची</p>
 
@@ -132,9 +202,14 @@ Open
 
 </div>
 
+
+<!-- Daily Collection -->
+
 <div class="action-card">
 
-<h3>💰 Daily Collection</h3>
+<div class="action-icon">💰</div>
+
+<h3>Daily Collection</h3>
 
 <p>आज की किस्त जमा करें</p>
 
@@ -144,9 +219,14 @@ Open
 
 </div>
 
+
+<!-- Reports -->
+
 <div class="action-card">
 
-<h3>📊 Reports</h3>
+<div class="action-icon">📊</div>
+
+<h3>Reports</h3>
 
 <p>Daily एवं Monthly Report</p>
 
@@ -156,11 +236,16 @@ Open
 
 </div>
 
+
+<!-- Collection History -->
+
 <div class="action-card">
 
-<h3>📜 Collection History</h3>
+<div class="action-icon">📜</div>
 
-<p>सभी Collection देखें</p>
+<h3>Collection History</h3>
+
+<p>पुरानी Collection देखें</p>
 
 <button onclick="location.href='history.html'">
 Open
@@ -168,9 +253,14 @@ Open
 
 </div>
 
+
+<!-- Due Customers -->
+
 <div class="action-card">
 
-<h3>⚠️ Due Customers</h3>
+<div class="action-icon">⚠️</div>
+
+<h3>Due Customers</h3>
 
 <p>बकाया ग्राहक</p>
 
@@ -180,9 +270,14 @@ Open
 
 </div>
 
+
+<!-- Backup -->
+
 <div class="action-card">
 
-<h3>💾 Backup</h3>
+<div class="action-icon">💾</div>
+
+<h3>Backup</h3>
 
 <p>Backup एवं Restore</p>
 
@@ -192,9 +287,14 @@ Open
 
 </div>
 
+
+<!-- Logout -->
+
 <div class="action-card">
 
-<h3>🚪 Logout</h3>
+<div class="action-icon">🚪</div>
+
+<h3>Logout</h3>
 
 <p>सुरक्षित रूप से बाहर निकलें</p>
 
@@ -208,24 +308,37 @@ Logout
 
 </div>
 
-</div>
-
 <!-- Bottom Navigation -->
 
 <nav class="bottom-nav">
 
-<a href="index.html">🏠<br>Dashboard</a>
+<a href="index.html" class="active">
+🏠
+<span>Home</span>
+</a>
 
-<a href="customer-list.html">👥<br>Customers</a>
+<a href="customer-list.html">
+👥
+<span>Customers</span>
+</a>
 
-<a href="daily-collection.html">💰<br>Collection</a>
+<a href="daily-collection.html">
+💰
+<span>Collection</span>
+</a>
 
-<a href="report.html">📊<br>Reports</a>
+<a href="report.html">
+📊
+<span>Reports</span>
+</a>
 
-<a href="backup.html">⚙️<br>More</a>
+<a href="backup.html">
+⚙️
+<span>More</span>
+</a>
 
 </nav>
- <footer>
+<footer>
 
 © 2026 GDA Finance Services
 
@@ -273,4 +386,4 @@ console.log(err);
 
 </body>
 
-</html> 
+</html>
