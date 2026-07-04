@@ -16,18 +16,18 @@ async function loadCustomers() {
   customers = [];
 
   snap.forEach((doc) => {
-
     customers.push({
       id: doc.id,
       ...doc.data()
     });
-
   });
+
+  // Global बनाओ ताकि saveCollection इसे उपयोग कर सके
+  window.customers = customers;
 
   showCustomers(customers);
 
   updateTodayCollection();
-
 }
 
 function showCustomers(list) {
@@ -55,23 +55,23 @@ function showCustomers(list) {
 
 <p>📱 ${c.mobile}</p>
 
-<p>💰 Loan : ₹${Number(c.loan).toLocaleString()}</p>
+<p>💰 Loan : ₹${Number(c.loan || 0).toLocaleString("en-IN")}</p>
 
-<p>💵 EMI : ₹${Number(c.emi).toLocaleString()}</p>
+<p>💵 Daily EMI : ₹${Number(c.emi || 0).toLocaleString("en-IN")}</p>
 
-<p>✅ Collected : ₹${Number(c.totalCollected || 0).toLocaleString()}</p>
+<p>✅ Total Collected : ₹${Number(c.totalCollected || 0).toLocaleString("en-IN")}</p>
 
-<p><b>📉 Remaining : ₹${Number(c.remainingAmount).toLocaleString()}</b></p>
+<p><b>📉 Remaining : ₹${Number(c.remainingAmount || 0).toLocaleString("en-IN")}</b></p>
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;">
 
-<button onclick="setAmount('${c.id}',100)">₹100</button>
+<button type="button" onclick="setAmount('${c.id}',100)">₹100</button>
 
-<button onclick="setAmount('${c.id}',200)">₹200</button>
+<button type="button" onclick="setAmount('${c.id}',200)">₹200</button>
 
-<button onclick="setAmount('${c.id}',500)">₹500</button>
+<button type="button" onclick="setAmount('${c.id}',500)">₹500</button>
 
-<button onclick="setAmount('${c.id}',1000)">₹1000</button>
+<button type="button" onclick="setAmount('${c.id}',1000)">₹1000</button>
 
 </div>
 
@@ -79,12 +79,13 @@ function showCustomers(list) {
 type="number"
 id="amount-${c.id}"
 class="amountBox"
-value="${c.emi}"
+value="${c.emi || 0}"
 placeholder="Enter Amount">
 
 <button
+type="button"
 class="saveBtn"
-onclick="saveCollection('${c.id}', customers)">
+onclick="saveCollection('${c.id}', window.customers)">
 
 ✅ SAVE COLLECTION
 
@@ -98,27 +99,21 @@ onclick="saveCollection('${c.id}', customers)">
 
 }
 
-window.setAmount = function(id, amount) {
-
-  document.getElementById("amount-" + id).value = amount;
-
-};
-
 search.addEventListener("keyup", () => {
 
   const value = search.value.toLowerCase();
 
   const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(value) ||
-    c.mobile.includes(value)
+    (c.name || "").toLowerCase().includes(value) ||
+    (c.mobile || "").includes(value)
   );
 
   showCustomers(filtered);
 
 });
 
-window.customers = customers;
-
+// Reload Function
 window.reloadCustomers = loadCustomers;
 
+// First Load
 loadCustomers();
