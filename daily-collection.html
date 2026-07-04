@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="hi">
-
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -13,25 +13,71 @@
 
 <body>
 
-<div class="header">
+<div class="topbar">
+
 <h2>💰 Daily Collection</h2>
+
 <p>GDA Finance Services</p>
+
 </div>
+
+<div class="container">
+
+<div class="summary">
+
+<div class="box">
+<h3>📅 Today</h3>
+<p id="todayDate"></p>
+</div>
+
+<div class="box">
+<h3>💵 Today's Collection</h3>
+<p id="todayAmount">₹0</p>
+</div>
+
+</div>
+
+<div class="searchCard">
+
+<h3>🔍 Search Customer</h3>
 
 <input
 type="text"
 id="search"
-class="search"
-placeholder="🔍 Search Customer Name or Mobile">
+placeholder="Enter Customer Name or Mobile">
+
+</div>
+
+<div class="listCard">
+
+<h3>👥 Customer List</h3>
 
 <div id="customerList"></div>
 
-<a href="history.html" class="historyBtn">
-📜 View Collection History
+</div>
+
+<div class="buttons">
+
+<a href="history.html" class="btn">
+📜 Collection History
 </a>
+
+<a href="index.html" class="btn">
+🏠 Dashboard
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+document.getElementById("todayDate").innerHTML=
+new Date().toLocaleDateString("en-IN");
+
+</script>
 
 <script type="module" src="daily-collection.js"></script>
 
 </body>
-
 </html>
