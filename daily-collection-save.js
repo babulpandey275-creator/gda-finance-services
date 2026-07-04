@@ -9,43 +9,50 @@ import {
 
 export async function saveCollection(id, customers) {
 
-  const customer = customers.find(c => c.id === id);
-
-  if (!customer) {
-    alert("Customer not found.");
-    return;
-  }
-
-  const amountBox = document.getElementById("amount-" + id);
-
-  const amount = Number(amountBox.value);
-
-  if (isNaN(amount) || amount <= 0) {
-    alert("⚠ Please enter a valid amount.");
-    amountBox.focus();
-    return;
-  }
-
-  if (amount > Number(customer.remainingAmount)) {
-    alert("⚠ Amount is greater than Remaining Amount.");
-    return;
-  }
-
-  const remaining =
-    Number(customer.remainingAmount) - amount;
-
-  const paidDays =
-    Number(customer.paidDays || 0) +
-    Math.floor(amount / Number(customer.emi));
-
-  const now = new Date();
-
   try {
+
+    const customer = customers.find(c => c.id === id);
+
+    if (!customer) {
+      alert("❌ Customer Not Found");
+      return;
+    }
+
+    const amountInput = document.getElementById("amount-" + id);
+
+    const amount = Number(amountInput.value);
+
+    if (isNaN(amount) || amount <= 0) {
+      alert("⚠ Please Enter Valid Amount");
+      amountInput.focus();
+      return;
+    }
+
+    if (amount > Number(customer.remainingAmount)) {
+      alert("⚠ Amount is greater than Remaining Amount");
+      return;
+    }
+
+    const remaining =
+      Number(customer.remainingAmount) - amount;
+
+    const totalCollected =
+      Number(customer.totalCollected || 0) + amount;
+
+    const paidDays =
+      Number(customer.paidDays || 0) +
+      Math.floor(amount / Number(customer.emi));
+
+    const now = new Date();
+
+    // Save Collection History
 
     await addDoc(collection(db, "collections"), {
 
-      customerId: id,
+      customerId: customer.id,
+
       customerName: customer.name,
+
       mobile: customer.mobile,
 
       loan: Number(customer.loan),
@@ -54,8 +61,7 @@ export async function saveCollection(id, customers) {
 
       amount: amount,
 
-      totalCollected:
-        Number(customer.totalCollected || 0) + amount,
+      totalCollected: totalCollected,
 
       remainingAmount: remaining,
 
@@ -69,14 +75,15 @@ export async function saveCollection(id, customers) {
 
     });
 
-    await updateDoc(doc(db, "customers", id), {
+    // Update Customer
+
+    await updateDoc(doc(db, "customers", customer.id), {
 
       remainingAmount: remaining,
 
-      paidDays: paidDays,
+      totalCollected: totalCollected,
 
-      totalCollected:
-        Number(customer.totalCollected || 0) + amount
+      paidDays: paidDays
 
     });
 
@@ -86,11 +93,13 @@ export async function saveCollection(id, customers) {
       window.reloadCustomers();
     }
 
-  } catch (err) {
+  }
 
-    console.error(err);
+  catch (error) {
 
-    alert("❌ Error Saving Collection");
+    console.error(error);
+
+    alert("❌ " + error.message);
 
   }
 
