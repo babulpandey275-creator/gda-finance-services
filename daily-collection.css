@@ -1,0 +1,105 @@
+body{
+    margin:0;
+    padding:15px;
+    background:#f5f7fb;
+    font-family:Arial,sans-serif;
+}
+
+.header{
+    background:#1565c0;
+    color:#fff;
+    padding:18px;
+    text-align:center;
+    border-radius:0 0 20px 20px;
+    box-shadow:0 3px 10px rgba(0,0,0,.2);
+}
+
+.header h2{
+    margin:0;
+    font-size:24px;
+}
+
+.search{
+    width:100%;
+    padding:14px;
+    margin:18px 0;
+    border:none;
+    border-radius:12px;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+    font-size:16px;
+    box-sizing:border-box;
+}
+
+.card{
+    background:#fff;
+    border-radius:15px;
+    padding:16px;
+    margin-bottom:16px;
+    box-shadow:0 3px 10px rgba(0,0,0,.12);
+}
+
+.card h3{
+    margin:0 0 10px;
+    color:#1565c0;
+}
+
+.card p{
+    margin:6px 0;
+    color:#444;
+    font-size:15px;
+}
+
+.amountBox{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:17px;
+    box-sizing:border-box;
+}
+
+.saveBtn{
+    width:100%;
+    margin-top:12px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#28a745;
+    color:#fff;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.saveBtn:hover{
+    background:#218838;
+}
+
+.historyBtn{
+    width:100%;
+    margin-top:15px;
+    padding:14px;
+    background:#1565c0;
+    color:white;
+    text-align:center;
+    text-decoration:none;
+    border-radius:10px;
+    display:block;
+    font-weight:bold;
+}
+
+@media(max-width:600px){
+    body{
+        padding:10px;
+    }
+
+    .card{
+        padding:14px;
+    }
+
+    .saveBtn{
+        font-size:16px;
+    }
+}
