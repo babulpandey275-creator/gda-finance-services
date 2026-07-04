@@ -25,47 +25,58 @@ saveBtn.addEventListener("click", async () => {
     !address ||
     !loan ||
     !emi ||
+    !days ||
     !loanDate
   ) {
-    alert("कृपया सभी जानकारी भरें");
+    alert("⚠️ कृपया सभी जानकारी भरें");
     return;
   }
 
   try {
 
     const snapshot = await getDocs(collection(db, "customers"));
-    const customerId = "GDA" + String(snapshot.size + 1).padStart(3, "0");
+
+    const customerId =
+      "GDA" + String(snapshot.size + 1).padStart(3, "0");
 
     await addDoc(collection(db, "customers"), {
+
       customerId: customerId,
       name: name,
       mobile: mobile,
       address: address,
+
       loan: loan,
       emi: emi,
       days: days,
+
       loanDate: loanDate,
       status: status,
+
       paidDays: 0,
       totalCollected: 0,
       remainingAmount: loan,
+
       createdAt: new Date()
+
     });
 
     alert("✅ Customer Saved Successfully");
 
-    document.getElementById("customerId").value = customerId;
     document.getElementById("name").value = "";
     document.getElementById("mobile").value = "";
     document.getElementById("address").value = "";
     document.getElementById("loan").value = "";
     document.getElementById("emi").value = "";
     document.getElementById("loanDate").value = "";
+    document.getElementById("days").value = "60";
+    document.getElementById("status").value = "Active";
 
   } catch (error) {
 
     console.error(error);
-    alert("Firebase Error:\n" + error.message);
+
+    alert("❌ Firebase Error\n\n" + error.message);
 
   }
 
