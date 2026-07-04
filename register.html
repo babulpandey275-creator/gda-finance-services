@@ -1,52 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Add Customer</title>
+    <title>Add Customer - GDA Finance Services</title>
 
-<link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="container">
 
-<div class="card">
+    <div class="card">
 
-<h2>➕ Add New Customer</h2>
+        <h2>➕ Add New Customer</h2>
 
-<input type="text" id="name" placeholder="Customer Name">
+        <input type="text"
+               id="name"
+               placeholder="Customer Name">
 
-<input type="text" id="mobile" placeholder="Mobile Number">
+        <input type="text"
+               id="mobile"
+               placeholder="Mobile Number">
 
-<input type="text" id="address" placeholder="Address">
+        <input type="text"
+               id="address"
+               placeholder="Address">
 
-<input type="number" id="loan" placeholder="Loan Amount">
+        <input type="number"
+               id="loan"
+               placeholder="Loan Amount">
 
-<input type="number" id="emi" placeholder="Daily EMI">
+        <input type="number"
+               id="emi"
+               placeholder="Daily EMI">
 
-<label><b>Loan Date</b></label>
-<input type="date" id="loanDate">
+        <label><b>Loan Date</b></label>
 
-<label><b>Loan Duration</b></label>
-<select id="days">
-    <option value="60">60 Days</option>
-    <option value="80">80 Days</option>
-</select>
+        <input type="date"
+               id="loanDate">
 
-<button id="saveBtn">Save Customer</button>
+        <label><b>Loan Duration</b></label>
 
-<br><br>
+        <select id="days">
+            <option value="60">60 Days</option>
+            <option value="80">80 Days</option>
+        </select>
 
-<a href="index.html" class="btn">⬅ Back Home</a>
+        <label><b>Status</b></label>
+
+        <select id="status">
+            <option value="Active" selected>Active</option>
+            <option value="Closed">Closed</option>
+        </select>
+
+        <br><br>
+
+        <button id="saveBtn">
+            💾 Save Customer
+        </button>
+
+        <br><br>
+
+        <a href="index.html" class="btn">
+            ⬅ Back Home
+        </a>
+
+    </div>
 
 </div>
 
-</div>
-
-<script type="module" src="add-customer.js"></script>
+<script type="module" src="register.js"></script>
 
 </body>
 </html>
