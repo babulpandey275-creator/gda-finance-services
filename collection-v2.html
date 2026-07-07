@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDA कलेक्शन</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; }
+        #customerDetails { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>डेली कलेक्शन</h2>
+        
+        <!-- सर्च बार -->
+        <input type="text" id="searchInput" placeholder="मोबाइल नंबर या नाम से खोजें...">
+        <button onclick="searchCustomer()">सर्च करें</button>
+
+        <!-- ग्राहक का डेटा यहाँ दिखेगा -->
+        <div id="customerDetails">
+            <p><strong>नाम:</strong> <span id="displayName">-</span></p>
+            <p><strong>मासिक EMI:</strong> ₹<span id="displayEMI">0</span></p>
+            
+            <label>कलेक्शन राशि (Editable):</label>
+            <input type="number" id="editAmount" value="0">
+            
+            <label>टिप्पणी (Optional):</label>
+            <input type="text" id="remark" placeholder="नोट लिखें...">
+            
+            <button onclick="savePayment()" style="background-color: green; color: white;">पेमेंट कलेक्ट करें</button>
+        </div>
+    </div>
+
+    <script src="collection-logic.js"></script>
+</body>
+</html>
