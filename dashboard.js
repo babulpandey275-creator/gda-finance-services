@@ -1,7 +1,36 @@
 import { db } from "./firebase.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-// 🔓 लॉगआउट के लिए फायरबेस ऑथेंटिकेशन इम्पोर्ट किया गया
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js"; 
+
+/* ========================================= 
+🔓 लाइव लॉगआउट (Logout) व सुरक्षा जांच का लॉजिक 
+========================================= */ 
+window.addEventListener('DOMContentLoaded', () => {
+    // 🛡️ सुरक्षा जांच: अगर कोई बिना लॉगिन किए डायरेक्ट index.html खोले तो उसे वापस लॉगिन पर भेजें
+    if (localStorage.getItem("gdaLoggedIn") !== "true") {
+        window.location.href = "login.html";
+        return; // आगे का कोड न चले
+    }
+
+    // लॉगआउट करने का फंक्शन
+    function handleLogout(e) {
+        e.preventDefault(); 
+        const confirmLogout = confirm("क्या आप सच में लॉगआउट करना चाहते हैं?");
+        if (confirmLogout) {
+            // ब्राउज़र की मेमोरी से लॉगिन डेटा साफ करें
+            localStorage.removeItem("gdaLoggedIn");
+            alert("🔒 आप सफलतापूर्वक लॉगआउट हो गए हैं।");
+            window.location.href = "login.html"; // अब यह बिना अटके लॉगिन पेज पर जाएगा
+        }
+    }
+
+    // साइडबार लॉगआउट बटन एक्टिवेट करें
+    const sidebarLogoutBtn = document.getElementById("sidebarLogout");
+    if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener("click", handleLogout);
+
+    // मोबाइल बॉटम लॉगआउट बटन एक्टिवेट करें
+    const bottomLogoutBtn = document.getElementById("bottomLogout");
+    if (bottomLogoutBtn) bottomLogoutBtn.addEventListener("click", handleLogout);
+});
 
 /* ========================================= 
 GDA Finance Services V3 Dashboard Data Object 
@@ -86,14 +115,14 @@ function checkTodayCollection(item, today) {
     if (!item.date) return; 
     let collectionDate = ""; 
 
-    // यदि तारीख फायरबेस का टाइमस्टैम्प ऑब्जेक्ट है
+    // यदि तारीख फायरबेस का टाइमस्टैम्प ऑब्जेक्ट है 
     if (item.date.toDate) { 
         collectionDate = item.date.toDate().toISOString().split("T")[0]; 
     } else if (item.date.seconds) { 
         collectionDate = new Date( item.date.seconds * 1000 ).toISOString().split("T")[0]; 
-    } else if (typeof item.date === "string") {
-        // यदि बैक-डेट एंट्री से तारीख सीधे स्ट्रिंग (YYYY-MM-DD) के रूप में आई है
-        collectionDate = item.date;
+    } else if (typeof item.date === "string") { 
+        // यदि बैक-डेट एंट्री से तारीख सीधे स्ट्रिंग (YYYY-MM-DD) के रूप में आई है 
+        collectionDate = item.date; 
     } 
 
     if (collectionDate === today) { 
@@ -126,36 +155,6 @@ function updateDashboardUI() {
 window.refreshDashboard = function () { 
     loadDashboard(); 
 }; 
-
-/* ========================================= 
-🔓 लाइव लॉगआउट (Logout) सिस्टम का लॉजिक 
-========================================= */ 
-window.addEventListener('DOMContentLoaded', () => {
-    const auth = getAuth();
-
-    async function handleLogout(e) {
-        e.preventDefault(); 
-        const confirmLogout = confirm("क्या आप सच में लॉगआउट करना चाहते हैं?");
-        if (confirmLogout) {
-            try {
-                await signOut(auth);
-                alert("🔒 आप सफलतापूर्वक लॉगआउट हो गए हैं।");
-                window.location.href = "login.html"; // लॉगआउट के बाद लॉगिन पेज पर ट्रांसफर
-            } catch (error) {
-                console.error("लॉगआउट एरर:", error);
-                alert("लॉगआउट विफल रहा, कृपया फिर से प्रयास करें।");
-            }
-        }
-    }
-
-    // साइडबार लॉगआउट बटन एक्टिवेट करें
-    const sidebarLogoutBtn = document.getElementById("sidebarLogout");
-    if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener("click", handleLogout);
-
-    // मोबाइल बॉटम लॉगआउट बटन एक्टिवेट करें
-    const bottomLogoutBtn = document.getElementById("bottomLogout");
-    if (bottomLogoutBtn) bottomLogoutBtn.addEventListener("click", handleLogout);
-});
 
 // पेज लोड होते ही ऑटोमैटिक डेटा लोड करें 
 loadDashboard();
