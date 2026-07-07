@@ -1,338 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDA Finance - Add Customer</title>
-    <!-- Google Font & Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --primary: #1565C0;
-            --secondary: #0D47A1;
-            --accent: #FFC107;
-            --bg-gradient: linear-gradient(135deg, #eef3f8 0%, #dbeafe 100%);
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            color: var(--text-main);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            perspective: 1000px;
-        }
-
-        /* ग्लासमोर्फिज्म प्रीमियम कार्ड */
-        .premium-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-            transform: translateY(0);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-        }
-
-        .premium-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 35px rgba(21, 101, 192, 0.12);
-        }
-
-        /* हेडर और लोगो */
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .logo-box {
-            display: inline-flex;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
-        }
-
-        .company-name {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--secondary);
-            letter-spacing: 0.5px;
-        }
-
-        .page-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-
-        /* इनपुट फील्ड्स ग्रुप */
-        .input-group {
-            position: relative;
-            margin-bottom: 18px;
-        }
-
-        .input-group .icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 20px;
-            transition: color 0.3s ease;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            font-size: 15px;
-            background: rgba(255, 255, 255, 0.7);
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text-main);
-        }
-
-        .input-field:focus {
-            border-color: var(--primary);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.1);
-        }
-
-        .input-field:focus ~ .icon {
-            color: var(--primary);
-        }
-
-        /* ऑटो-कैलकुलेटेड रीड-ओनली सेक्शन */
-        .calculation-panel {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 1px dashed #cbd5e1;
-            border-radius: 14px;
-            padding: 16px;
-            margin: 22px 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .calc-box {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .calc-box label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            padding-left: 2px;
-        }
-
-        .calc-field {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 15px;
-            font-weight: 600;
-            background: #e2e8f0;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            color: var(--secondary);
-            cursor: not-allowed;
-        }
-
-        .calc-field.highlight {
-            color: #16a34a;
-            background: #dcfce7;
-            border-color: #bbf7d0;
-        }
-
-        /* बटन्स रो */
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .btn {
-            padding: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-reset {
-            background: #f1f5f9;
-            color: var(--text-muted);
-            border: 1.5px solid #e2e8f0;
-        }
-
-        .btn-reset:hover {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.2);
-        }
-
-        .btn-save:hover {
-            box-shadow: 0 6px 16px rgba(21, 101, 192, 0.35);
-            opacity: 0.95;
-        }
-
-        .back-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--primary);
-            text-decoration: none;
-            gap: 4px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        /* इनपुट नंबर एरोज़ को छुपाना */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+        body { margin: 0; padding: 20px; background: #eef3f8; font-family: Arial, sans-serif; }
+        .card { max-width: 450px; margin: auto; background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,.15); }
+        .heading { text-align: center; font-size: 24px; margin-bottom: 20px; color: #1565c0; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; }
+        
+        /* कैमरा और फोटो प्रीव्यू सेक्शन */
+        .camera-box { text-align: center; margin-bottom: 15px; background: #f5f7fb; padding: 10px; border-radius: 10px; border: 1px dashed #1565c0; }
+        #video { width: 100%; max-height: 250px; background: #000; border-radius: 8px; display: block; }
+        #canvas { display: none; width: 100%; border-radius: 8px; }
+        .cam-btn { background: #1565c0; color: white; border: none; padding: 10px 15px; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: bold; }
+        
+        button.save-btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; font-weight: bold; background: #28a745; color: white; }
+        .backBtn { display: block; margin-top: 15px; background: #555; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="premium-card">
-            
-            <div class="header">
-                <div class="logo-box">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
-                </div>
-                <div class="company-name">GDA Finance Services</div>
-                <div class="page-title">New Customer Registration</div>
-            </div>
+    <div class="card">
+        <div class="heading">👤 नया ग्राहक पंजीकरण</div>
 
-            <form id="customerForm" onsubmit="return false;">
-                <!-- ग्राहक का नाम -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">person</span>
-                    <input type="text" id="customerName" class="input-field" placeholder="Full Name" required autocomplete="off">
-                </div>
-
-                <!-- मोबाइल नंबर -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">call</span>
-                    <input type="number" id="mobileNumber" class="input-field" placeholder="Mobile Number" required>
-                </div>
-
-                <!-- पता -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">home_pin</span>
-                    <input type="text" id="address" class="input-field" placeholder="Full Address" required autocomplete="off">
-                </div>
-
-                <!-- आधार नंबर -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">badge</span>
-                    <input type="number" id="aadhaarNumber" class="input-field" placeholder="12 Digit Aadhaar Number" required>
-                </div>
-
-                <!-- लोन राशि -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">currency_rupee</span>
-                    <input type="number" id="loanAmount" class="input-field" placeholder="Enter Loan Amount" required>
-                </div>
-
-                <!-- लोन प्लान अवधि -->
-                <div class="input-group">
-                    <span class="material-symbols-outlined icon">calendar_month</span>
-                    <select id="loanPlan" class="input-field" required>
-                        <option value="" disabled selected>Select Loan Plan</option>
-                        <option value="60">60 Days Plan</option>
-                        <option value="80">80 Days Plan</option>
-                    </select>
-                </div>
-
-                <!-- ऑटोमैटिक कैलकुलेशन बॉक्स (Read-only Fields) -->
-                <div class="calculation-panel">
-                    <div class="calc-box">
-                        <label>Interest (20%)</label>
-                        <input type="text" id="interest" class="calc-field" readonly value="₹0">
-                    </div>
-                    <div class="calc-box">
-                        <label>Total Collection</label>
-                        <input type="text" id="totalCollection" class="calc-field" readonly value="₹0">
-                    </div>
-                    <div class="calc-box">
-                        <label>Daily EMI</label>
-                        <input type="text" id="dailyCollection" class="calc-field highlight" readonly value="₹0">
-                    </div>
-                    <div class="calc-box">
-                        <label>Remaining Balance</label>
-                        <input type="text" id="remainingAmount" class="calc-field" readonly value="₹0">
-                    </div>
-                </div>
-
-                <!-- एक्शन बटन्स -->
-                <div class="btn-group">
-                    <button type="button" id="resetBtn" class="btn btn-reset">
-                        <span class="material-symbols-outlined">restart_alt</span> Reset
-                    </button>
-                    <button type="button" id="saveBtn" class="btn btn-save">
-                        <span class="material-symbols-outlined">verified_user</span> Save Customer
-                    </button>
-                </div>
-            </form>
-
-            <a href="customer-list.html" class="back-link">
-                <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span> Back to Customer List
-            </a>
-
+        <div class="camera-box">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <button type="button" id="captureBtn" class="cam-btn">📸 फोटो खींचें (Capture)</button>
+            <button type="button" id="reTakeBtn" class="cam-btn" style="display:none; background:#dc3545;">🔄 दोबारा खींचें</button>
         </div>
+
+        <form id="registerForm" onsubmit="return false;">
+            <input type="text" id="customerName" placeholder="ग्राहक का नाम (Customer Name)" required>
+            <input type="number" id="mobileNumber" placeholder="मोबाइल नंबर (Mobile Number)" required>
+            <input type="text" id="address" placeholder="पूरा पता (Address)" required>
+            <input type="number" id="aadhaarNumber" placeholder="आधार कार्ड नंबर (Aadhaar Number)" required>
+            
+            <input type="number" id="loanAmount" placeholder="लोन राशि (Loan Amount)" required>
+
+            <select id="loanPlan" required>
+                <option value="60" selected>60 Days Plan</option>
+            </select>
+
+            <label style="font-size: 14px; color: #555; font-weight: bold;">कुल कलेक्शन (Total Collection):</label>
+            <input type="number" id="remainingAmount" placeholder="Total Collection" readonly style="background: #e9ecef; font-weight: bold; color: #1565c0;">
+
+            <label style="font-size: 14px; color: #555; font-weight: bold;">रोजाना किस्त (Daily EMI):</label>
+            <input type="number" id="emi" placeholder="Daily EMI" readonly style="background: #e9ecef; font-weight: bold; color: #28a745;">
+
+            <button type="button" id="saveBtn" class="save-btn">💰 ग्राहक सुरक्षित करें</button>
+            <a href="customer-list.html" class="backBtn">⬅ ग्राहक लिस्ट में वापस जाएं</a>
+        </form>
     </div>
 
-    <!-- मुख्य जावास्क्रिप्ट फाइल -->
     <script type="module" src="register.js"></script>
 </body>
 </html>
