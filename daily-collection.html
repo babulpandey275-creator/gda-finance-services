@@ -1,79 +1,134 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Daily Collection</title>
+<title>Daily Collection | GDA Finance Services</title>
 
 <link rel="stylesheet" href="daily-collection.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 </head>
 
 <body>
 
-<div class="topbar">
+<header class="header">
 
-<h2>💰 Daily Collection</h2>
-
-<p>GDA Finance Services</p>
-
+<div class="logo">
+<h2>GDA Finance Services</h2>
+<p>Daily Collection</p>
 </div>
 
-<div class="container">
-
-<div class="summary">
-
-<div class="box">
-<h3>📅 Today</h3>
-<p id="todayDate"></p>
+<div class="dateBox">
+<span id="todayDate"></span>
 </div>
 
-<div class="box">
-<h3>💵 Today's Collection</h3>
-<p id="todayAmount">₹0</p>
+</header>
+
+
+<section class="dashboardCards">
+
+<div class="card blue">
+<h4>Today's Collection</h4>
+<h2 id="todayAmount">₹0</h2>
 </div>
 
+<div class="card green">
+<h4>Total Customers</h4>
+<h2 id="totalCustomers">0</h2>
 </div>
 
-<div class="searchCard">
+</section>
 
-<h3>🔍 Search Customer</h3>
+
+<section class="searchCard">
+
+<h3><i class="fa-solid fa-magnifying-glass"></i> Search Customer</h3>
 
 <input
 type="text"
 id="search"
-placeholder="Enter Customer Name or Mobile">
+placeholder="Customer Name / Mobile Number">
 
-</div>
+</section>
 
-<div class="listCard">
 
-<h3>👥 Customer List</h3>
+<section class="listCard">
+
+<h3><i class="fa-solid fa-users"></i> Customer List</h3>
 
 <div id="customerList"></div>
 
+</section>
+
+
+<section class="paymentCard">
+
+<h3>Payment Details</h3>
+
+<div class="summaryRow">
+<div>
+<label>EMI</label>
+<h2 id="emiAmount">₹0</h2>
 </div>
+
+<div>
+<label>Remaining</label>
+<h2 id="remainingAmount">₹0</h2>
+</div>
+</div>
+
+<input
+type="number"
+id="paymentAmount"
+placeholder="Enter Collection Amount">
+
+<select id="paymentMode">
+
+<option>Cash</option>
+<option>UPI</option>
+<option>Bank Transfer</option>
+
+</select>
+
+<textarea
+id="note"
+placeholder="Remark (Optional)">
+</textarea>
+
+<button id="collectBtn">
+<i class="fa-solid fa-money-bill-wave"></i>
+Collect Payment
+</button>
+
+</section>
+
 
 <div class="buttons">
 
 <a href="history.html" class="btn">
-📜 Collection History
+<i class="fa-solid fa-clock-rotate-left"></i>
+History
 </a>
 
 <a href="index.html" class="btn">
-🏠 Dashboard
+<i class="fa-solid fa-house"></i>
+Dashboard
 </a>
 
 </div>
 
-</div>
 
 <script>
 
-document.getElementById("todayDate").innerHTML=
-new Date().toLocaleDateString("en-IN");
+document.getElementById("todayDate").innerHTML =
+new Date().toLocaleDateString("en-IN",{
+day:"2-digit",
+month:"long",
+year:"numeric"
+});
 
 </script>
 
