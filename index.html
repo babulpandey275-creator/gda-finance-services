@@ -1,390 +1,197 @@
 <!DOCTYPE html>
 <html lang="hi">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>GDA Finance Services</title>
-
-<link rel="stylesheet" href="style.css">
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1565c0">
-<link rel="apple-touch-icon" href="icon-192.png">
-
-<script type="module" src="firebase.js"></script>
-<script type="module" src="dashboard.js"></script>
-
-<script>
-if(localStorage.getItem("gdaLoggedIn")!="true"){
-location.href="login.html";
-}
-</script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDA Finance Services - Dashboard</title>
+    <!-- मुख्य प्रोफेशनल CSS फ़ाइल -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- आइकन्स के लिए FontAwesome (ताकि पुराने इमोजी की जगह असली आइकन दिखें) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="dashboard.js"></script>
+    <script>
+        if(localStorage.getItem("gdaLoggedIn") != "true"){
+            location.href = "login.html";
+        }
+    </script>
 </head>
-
 <body>
 
-<header class="top-header">
-
-<div class="logo-area">
-
-<div class="logo-icon">
-🏦
-</div>
-
-<div>
-
-<h1>GDA Finance Services</h1>
-
-<p>Micro Finance Management System</p>
-
-</div>
-
-</div>
-
-</header>
-
-<div class="container">
-
-<!-- Dashboard -->
-
-<div class="dashboard-card">
-
-<h2>
-📊 Dashboard Summary
-</h2>
-
-<div class="summary-grid">
-
-<div class="summary-box">
-
-<div class="summary-icon">
-👥
-</div>
-
-<div class="summary-title">
-Customers
-</div>
-
-<div class="summary-value"
-id="totalCustomers">
-0
-</div>
-
-</div>
-
-<div class="summary-box">
-
-<div class="summary-icon">
-💰
-</div>
-
-<div class="summary-title">
-Total Loan
-</div>
-
-<div class="summary-value">
-₹<span id="totalLoan">0</span>
-</div>
-
-</div>
-
-<div class="summary-box">
-
-<div class="summary-icon">
-💵
-</div>
-
-<div class="summary-title">
-Collection
-</div>
-
-<div class="summary-value">
-₹<span id="totalCollection">0</span>
-</div>
-
-</div>
-
-<div class="summary-box">
-
-<div class="summary-icon">
-📅
-</div>
-
-<div class="summary-title">
-Today
-</div>
-
-<div class="summary-value">
-₹<span id="todayCollection">0</span>
-</div>
-
-</div>
-
-<div class="summary-box">
-
-<div class="summary-icon">
-📉
-</div>
-
-<div class="summary-title">
-Remaining
-</div>
-
-<div class="summary-value">
-₹<span id="totalRemaining">0</span>
-</div>
-
-</div>
-
-<div class="summary-box">
-
-<div class="summary-icon">
-🔴
-</div>
-
-<div class="summary-title">
-Due Customers
-</div>
-
-<div class="summary-value"
-id="dueCustomers">
-0
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- Quick Actions Start -->
-<div class="dashboard-card">
-
-<h2>
-⚡ Quick Actions
-</h2>
-
-<div class="action-grid">
- <!-- Customer Registration -->
-
-<div class="action-card">
-
-<div class="action-icon">👤</div>
-
-<h3>Customer Registration</h3>
-
-<p>नया ग्राहक जोड़ें</p>
-
-<button onclick="location.href='register.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Customer List -->
-
-<div class="action-card">
-
-<div class="action-icon">📋</div>
-
-<h3>Customer List</h3>
-
-<p>सभी ग्राहकों की सूची</p>
-
-<button onclick="location.href='customer-list.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Daily Collection -->
-
-<div class="action-card">
-
-<div class="action-icon">💰</div>
-
-<h3>Daily Collection</h3>
-
-<p>आज की किस्त जमा करें</p>
-
-<button onclick="location.href='daily-collection.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Reports -->
-
-<div class="action-card">
-
-<div class="action-icon">📊</div>
-
-<h3>Reports</h3>
-
-<p>Daily एवं Monthly Report</p>
-
-<button onclick="location.href='report.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Collection History -->
-
-<div class="action-card">
-
-<div class="action-icon">📜</div>
-
-<h3>Collection History</h3>
-
-<p>पुरानी Collection देखें</p>
-
-<button onclick="location.href='history.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Due Customers -->
-
-<div class="action-card">
-
-<div class="action-icon">⚠️</div>
-
-<h3>Due Customers</h3>
-
-<p>बकाया ग्राहक</p>
-
-<button onclick="location.href='due-customers.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Backup -->
-
-<div class="action-card">
-
-<div class="action-icon">💾</div>
-
-<h3>Backup</h3>
-
-<p>Backup एवं Restore</p>
-
-<button onclick="location.href='backup.html'">
-Open
-</button>
-
-</div>
-
-
-<!-- Logout -->
-
-<div class="action-card">
-
-<div class="action-icon">🚪</div>
-
-<h3>Logout</h3>
-
-<p>सुरक्षित रूप से बाहर निकलें</p>
-
-<button onclick="logout()">
-Logout
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- Bottom Navigation -->
-
-<nav class="bottom-nav">
-
-<a href="index.html" class="active">
-🏠
-<span>Home</span>
-</a>
-
-<a href="customer-list.html">
-👥
-<span>Customers</span>
-</a>
-
-<a href="daily-collection.html">
-💰
-<span>Collection</span>
-</a>
-
-<a href="report.html">
-📊
-<span>Reports</span>
-</a>
-
-<a href="backup.html">
-⚙️
-<span>More</span>
-</a>
-
-</nav>
-<footer>
-
-© 2026 GDA Finance Services
-
-</footer>
-
-<script>
-
-function logout(){
-
-if(confirm("क्या आप Logout करना चाहते हैं?")){
-
-localStorage.removeItem("gdaLoggedIn");
-
-location.href="login.html";
-
-}
-
-}
-
-/* Service Worker */
-
-if("serviceWorker" in navigator){
-
-window.addEventListener("load",()=>{
-
-navigator.serviceWorker.register("./service-worker.js")
-
-.then(()=>{
-
-console.log("Service Worker Registered");
-
-})
-
-.catch((err)=>{
-
-console.log(err);
-
-});
-
-});
-
-}
-
-</script>
-
+    <!-- 1. बायाँ साइडबार (कंप्यूटर/डेस्कटॉप के लिए हमेशा फिक्स रहेगा) -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-building-columns" style="color: var(--secondary);"></i> GDA Finance
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html" class="active"><i class="fas fa-chart-pie"></i> मुख्य डैशबोर्ड</a></li>
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
+            <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
+            <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
+            <li><a href="due-customers.html"><i class="fas fa-exclamation-triangle"></i> बकाया ग्राहक</a></li>
+            <li><a href="backup.html"><i class="fas fa-database"></i> बैकअप व रीस्टोर</a></li>
+        </ul>
+    </div>
+
+    <!-- 2. मुख्य कंटेंट विंडो -->
+    <div class="main-wrapper">
+        
+        <!-- ऊपरी हेडर पट्टी -->
+        <div class="top-header">
+            <div>
+                <h1>GDA Finance Services</h1>
+                <p><i class="fas fa-laptop-code"></i> Micro Finance Management System</p>
+            </div>
+            <!-- लॉगआउट बटन हेडर में भी शॉर्टकट के रूप में -->
+            <button onclick="logout()" class="btn-danger" style="width: auto; padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+                <i class="fas fa-sign-out-alt"></i> लॉगआउट
+            </button>
+        </div>
+        
+        <!-- मुख्य कंटेनर एरिया -->
+        <div class="container">
+            
+            <!-- डैशबोर्ड समरी सेक्शन (KPI Cards) -->
+            <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-chart-bar" style="color: var(--primary);"></i> Dashboard Summary
+                </h2>
+                
+                <div class="summary-grid">
+                    <!-- ग्राहक कार्ड -->
+                    <div class="summary-card" style="border-left-color: var(--secondary);">
+                        <h3><i class="fas fa-users"></i> Customers</h3>
+                        <h2 id="totalCustomers">0</h2>
+                    </div>
+                    <!-- कुल लोन कार्ड -->
+                    <div class="summary-card" style="border-left-color: var(--primary);">
+                        <h3><i class="fas fa-sack-dollar"></i> Total Loan</h3>
+                        <h2>₹<span id="totalLoan">0</span></h2>
+                    </div>
+                    <!-- कुल कलेक्शन कार्ड -->
+                    <div class="summary-card" style="border-left-color: var(--success);">
+                        <h3><i class="fas fa-money-bill-trend-up"></i> Collection</h3>
+                        <h2>₹<span id="totalCollection">0</span></h2>
+                    </div>
+                    <!-- आज का कलेक्शन कार्ड -->
+                    <div class="summary-card" style="border-left-color: var(--warning);">
+                        <h3><i class="fas fa-calendar-day"></i> Today</h3>
+                        <h2>₹<span id="todayCollection">0</span></h2>
+                    </div>
+                    <!-- शेष राशि कार्ड -->
+                    <div class="summary-card" style="border-left-color: var(--danger);">
+                        <h3><i class="fas fa-comment-dollar"></i> Remaining</h3>
+                        <h2>₹<span id="totalRemaining">0</span></h2>
+                    </div>
+                    <!-- बकाया ग्राहक कार्ड -->
+                    <div class="summary-card" style="border-left-color: #bd1c1c;">
+                        <h3><i class="fas fa-bell"></i> Due Customers</h3>
+                        <h2 id="dueCustomers">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- क्विक एक्शन्स सेक्शन -->
+            <div class="dashboard-card">
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-bolt" style="color: var(--warning);"></i> Quick Actions
+                </h2>
+                
+                <div class="action-grid">
+                    <!-- ग्राहक पंजीकरण -->
+                    <div class="action-card" onclick="location.href='register.html'">
+                        <i class="fas fa-user-plus"></i>
+                        <h3>Customer Registration</h3>
+                        <p>नया ग्राहक जोड़ें</p>
+                    </div>
+                    
+                    <!-- ग्राहक सूची -->
+                    <div class="action-card" onclick="location.href='customer-list.html'">
+                        <i class="fas fa-address-book"></i>
+                        <h3>Customer List</h3>
+                        <p>सभी ग्राहकों की सूची</p>
+                    </div>
+                    
+                    <!-- दैनिक कलेक्शन -->
+                    <div class="action-card" onclick="location.href='daily-collection.html'">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                        <h3>Daily Collection</h3>
+                        <p>आज की किस्त जमा करें</p>
+                    </div>
+                    
+                    <!-- रिपोर्ट -->
+                    <div class="action-card" onclick="location.href='report.html'">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <h3>Reports</h3>
+                        <p>Daily एवं Monthly Report</p>
+                    </div>
+                    
+                    <!-- कलेक्शन इतिहास -->
+                    <div class="action-card" onclick="location.href='history.html'">
+                        <i class="fas fa-history"></i>
+                        <h3>Collection History</h3>
+                        <p>पुरानी Collection देखें</p>
+                    </div>
+                    
+                    <!-- बकाया ग्राहक -->
+                    <div class="action-card" onclick="location.href='due-customers.html'">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                        <h3>Due Customers</h3>
+                        <p>बकाया ग्राहक</p>
+                    </div>
+                    
+                    <!-- बैकअप -->
+                    <div class="action-card" onclick="location.href='backup.html'">
+                        <i class="fas fa-database"></i>
+                        <h3>Backup</h3>
+                        <p>Backup एवं Restore</p>
+                    </div>
+                    
+                    <!-- लॉगआउट -->
+                    <div class="action-card" onclick="logout()" style="border-color: rgba(229, 57, 53, 0.2);">
+                        <i class="fas fa-power-off" style="color: var(--danger);"></i>
+                        <h3>Logout</h3>
+                        <p>सुरक्षित रूप से बाहर निकलें</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- फुटर -->
+        <div class="footer">
+            &copy; 2026 GDA Finance Services | Version 3.0
+        </div>
+    </div>
+
+    <!-- 3. मोबाइल बॉटम बार (जो मोबाइल पर अपने आप काम करेगा) -->
+    <div class="bottom-nav">
+        <a href="index.html" class="active"><i class="fas fa-home"></i><span>होम</span></a>
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
+        <a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a>
+        <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
+    </div>
+
+    <!-- लॉगआउट और सर्विस वर्कर स्क्रिप्ट -->
+    <script>
+        function logout(){
+            if(confirm("क्या आप Logout करना चाहते हैं?")){
+                localStorage.removeItem("gdaLoggedIn");
+                location.href = "login.html";
+            }
+        }
+
+        if("serviceWorker" in navigator){
+            window.addEventListener("load",()=>{
+                navigator.serviceWorker.register("./service-worker.js")
+                .then(()=>{ console.log("Service Worker Registered"); })
+                .catch((err)=>{ console.log(err); });
+            });
+        }
+    </script>
 </body>
-
 </html>
-
