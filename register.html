@@ -1,79 +1,241 @@
 <!DOCTYPE html>
 <html lang="hi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Add Customer - GDA Finance Services</title>
-
+    <title>GDA Finance - Add Customer with Photo</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        /* कैमरा और फोटो प्रिव्यू के लिए विशेष सजावट */
+        .camera-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #video {
+            width: 100%;
+            max-width: 280px;
+            border-radius: 8px;
+            background: #000;
+            display: none;
+            margin: 0 auto 10px;
+        }
+        #photoPreview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            margin: 0 auto 10px;
+            display: block;
+            box-shadow: var(--shadow);
+        }
+        .camera-btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-
-    <div class="card">
-
-        <h2>➕ Add New Customer</h2>
-
-        <input type="text"
-               id="name"
-               placeholder="Customer Name">
-
-        <input type="text"
-               id="mobile"
-               placeholder="Mobile Number">
-
-        <input type="text"
-               id="address"
-               placeholder="Address">
-
-        <input type="number"
-               id="loan"
-               placeholder="Loan Amount">
-
-        <input type="number"
-               id="emi"
-               placeholder="Daily EMI">
-
-        <label><b>Loan Date</b></label>
-
-        <input type="date"
-               id="loanDate">
-
-        <label><b>Loan Duration</b></label>
-
-        <select id="days">
-            <option value="60">60 Days</option>
-            <option value="80">80 Days</option>
-        </select>
-
-        <label><b>Status</b></label>
-
-        <select id="status">
-            <option value="Active" selected>Active</option>
-            <option value="Closed">Closed</option>
-        </select>
-
-        <br><br>
-
-        <button id="saveBtn">
-            💾 Save Customer
-        </button>
-
-        <br><br>
-
-        <a href="index.html" class="btn">
-            ⬅ Back Home
-        </a>
-
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li>
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
+            <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
+            <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
+            <li><a href="history.html"><i class="fas fa-history"></i> पुराना इतिहास</a></li>
+        </ul>
     </div>
 
-</div>
+    <div class="main-wrapper">
+        
+        <div class="top-header">
+            <div>
+                <h1>नया ग्राहक जोड़ें (e-KYC Portal)</h1>
+                <p>ग्राहक की लाइव फोटो और पहचान पत्र के साथ डिजिटल पंजीकरण करें</p>
+            </div>
+        </div>
+        
+        <div class="container" style="max-width: 850px;">
+            
+            <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user-plus" style="color: var(--primary);"></i> डिजिटल केवाईसी पंजीकरण
+                </h2>
+                
+                <div class="camera-container">
+                    <label style="font-weight: 700; font-size: 15px; color: var(--primary-dark); display: block; margin-bottom: 10px;">
+                        <i class="fas fa-camera"></i> ग्राहक की फोटो (KYC Photo)
+                    </label>
+                    
+                    <img id="photoPreview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Preview">
+                    
+                    <video id="video" autoplay playsinline></video>
+                    
+                    <div class="camera-btn-group">
+                        <button type="button" id="startCameraBtn" style="width: auto; background: var(--secondary); padding: 8px 14px; font-size: 13px;">
+                            <i class="fas fa-video"></i> कैमरा चालू करें
+                        </button>
+                        <button type="button" id="captureBtn" style="width: auto; background: var(--success); padding: 8px 14px; font-size: 13px; display: none;">
+                            <i class="fas fa-camera-retro"></i> फोटो खींचें
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-light);">
+                        या गैलरी से चुनें: <input type="file" id="fileInput" accept="image/*" style="width: auto; margin: 0; padding: 5px; font-size: 12px; border: none;">
+                    </div>
+                </div>
 
-<script type="module" src="register.js"></script>
+                <div class="action-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px 20px; box-shadow: none; padding: 0;">
+                    
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-id-card"></i> ग्राहक का नाम</label>
+                        <input type="text" id="name" placeholder="पूरा नाम दर्ज करें">
+                    </div>
 
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-phone"></i> मोबाइल नंबर</label>
+                        <input type="text" id="mobile" placeholder="10 अंकों का नंबर">
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-fingerprint"></i> आधार संख्या (Aadhaar Number)</label>
+                        <input type="text" id="idNumber" placeholder="12 अंकों की आधार संख्या दर्ज करें" maxlength="12">
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-map-marker-alt"></i> स्थायी पता (Address)</label>
+                        <input type="text" id="address" placeholder="पूरा पता दर्ज करें">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-money-check-dollar"></i> लोन राशि (Loan Amount)</label>
+                        <input type="number" id="loan" placeholder="जैसे: 20000">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-coins"></i> दैनिक किस्त (Daily EMI)</label>
+                        <input type="number" id="emi" placeholder="जैसे: 400">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-calendar-alt"></i> लोन देने की तारीख</label>
+                        <input type="date" id="loanDate">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-hourglass-half"></i> लोन की अवधि (Duration)</label>
+                        <select id="days">
+                            <option value="60">60 Days (60 दिन)</option>
+                            <option value="80">80 Days (80 दिन)</option>
+                        </select>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; font-size: 14px; color: var(--text-light);"><i class="fas fa-toggle-on"></i> खाता स्थिति (Status)</label>
+                        <select id="status">
+                            <option value="Active" selected>Active (चालू)</option>
+                            <option value="Closed">Closed (बंद)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px;">
+                    <button id="saveBtn" class="btn-success" style="padding: 14px; font-size: 16px;">
+                        <i class="fas fa-floppy-disk"></i> &nbsp;ग्राहक डेटा सुरक्षित करें (Save Customer)
+                    </button>
+                    
+                    <a href="index.html" class="btn" style="text-decoration: none; background: var(--text-light); padding: 12px; text-align: center;">
+                        <i class="fas fa-arrow-left"></i> &nbsp;होमपेज पर वापस जाएं
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        
+        <div class="footer">
+            &copy; 2026 GDA Finance Services | Securing Digital Identity
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a>
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
+        <a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a>
+        <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const photoPreview = document.getElementById('photoPreview');
+        const startCameraBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const fileInput = document.getElementById('fileInput');
+        let imageBase64 = ""; // यह वेरिएबल फोटो का डेटा जावास्क्रिप्ट के लिए सुरक्षित रखेगा
+
+        // 1. लाइव कैमरा स्ट्रीम शुरू करना
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                photoPreview.style.display = 'none';
+                startCameraBtn.style.display = 'none';
+                captureBtn.style.display = 'block';
+            } catch (err) {
+                alert("कैमरा एक्सेस करने में त्रुटि: कृपया कैमरा अनुमति (Permission) दें।");
+            }
+        });
+
+        // 2. फोटो क्लिक करना (Capture Photo)
+        captureBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // कनवर्ट इमेज डेटा टू Base64 स्ट्रिंग
+            imageBase64 = canvas.toDataURL('image/jpeg');
+            photoPreview.src = imageBase64;
+            
+            // कैमरा बंद करना
+            const stream = video.srcObject;
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+            
+            video.style.display = 'none';
+            photoPreview.style.display = 'block';
+            captureBtn.style.display = 'none';
+            startCameraBtn.style.display = 'block';
+            startCameraBtn.innerHTML = "<i class='fas fa-redo'></i> दोबारा फोटो खींचें";
+        });
+
+        // 3. अगर यूजर गैलरी से फाइल चुनता है
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imageBase64 = event.target.result;
+                    photoPreview.src = imageBase64;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+    <script type="module" src="register.js"></script>
 </body>
 </html>
