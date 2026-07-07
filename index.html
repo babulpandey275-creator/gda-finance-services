@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDA Finance - Premium Dashboard</title>
-    <!-- मुख्य प्रोफेशनल CSS फ़ाइल -->
+    <title>GDA Finance - Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <!-- आधुनिक आइकन्स के लिए FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- 1. बायाँ साइडबार (डेस्कटॉप के लिए फिक्स) -->
     <div class="sidebar">
         <div class="sidebar-logo">
             <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
@@ -26,25 +23,20 @@
         </ul>
     </div>
 
-    <!-- 2. मुख्य कंटेंट विंडो -->
     <div class="main-wrapper">
         
-        <!-- ऊपरी हेडर पट्टी -->
         <div class="top-header">
             <div>
-                <h1>केंद्रीय नियंत्रण कक्ष (Control Panel)</h1>
+                <h1>केंद्रीय नियंत्रण कक्ष (GDA Dashboard)</h1>
                 <p>वास्तविक समय वित्तीय विश्लेषिकी | Real-time Analytics</p>
             </div>
-            <!-- लाइव रिफ्रेश बटन -->
             <button onclick="window.refreshDashboard()" class="btn" style="width: auto; padding: 10px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; background: var(--primary);">
                 <i class="fas fa-sync-alt"></i> डेटा रिफ्रेश करें
             </button>
         </div>
         
-        <!-- मुख्य कंटेनर एरिया -->
         <div class="container">
             
-            <!-- मुख्य वित्तीय कार्ड्स ग्रिड (6 Live Counter Cards) -->
             <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 
                 <div class="metric-card" style="background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6;">
@@ -89,7 +81,7 @@
 
                 <div class="metric-card" style="background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid #ec4899;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--text-light); font-weight: 600; font-size: 14px;">डिफॉल्टर / Due ग्राहक</span>
+                        <span style="color: var(--text-light); font-weight: 600; font-size: 14px;">बकाया / Due ग्राहक</span>
                         <i class="fas fa-user-clock" style="color: #ec4899; font-size: 20px;"></i>
                     </div>
                     <h2 id="dueCustomers" style="margin: 10px 0 0 0; font-size: 28px; color: var(--danger);">0</h2>
@@ -97,8 +89,7 @@
 
             </div>
 
-            <!-- त्वरित नेविगेशन एक्शन ग्रिड -->
-            <h3 style="color: var(--text-dark); margin-bottom: 15px; font-size: 16px;"><i class="fas fa-rocket" style="color: var(--primary);"></i> त्वरित शॉर्टकट्स (Quick Tasks)</h3>
+            <h3 style="color: var(--text-dark); margin-bottom: 15px; font-size: 16px;"><i class="fas fa-rocket" style="color: var(--primary);"></i> त्वरित नेविगेशन (Quick Actions)</h3>
             <div class="action-grid" style="margin-bottom: 30px;">
                 <a href="register.html" class="action-item" style="border-top: 3px solid var(--primary);">
                     <i class="fas fa-user-plus" style="color: var(--primary); font-size: 24px;"></i>
@@ -112,20 +103,33 @@
                 </a>
                 <a href="due-customers.html" class="action-item" style="border-top: 3px solid var(--danger);">
                     <i class="fas fa-exclamation-triangle" style="color: var(--danger); font-size: 24px;"></i>
-                    <h3>रिकवरी / बकाया सूची</h3>
+                    <h3>बकाया ग्राहक सूची</h3>
                     <p>पेंडिंग किस्तों वाले खाते</p>
+                </a>
+                <a href="history.html" class="action-item" style="border-top: 3px solid var(--secondary);">
+                    <i class="fas fa-history" style="color: var(--secondary); font-size: 24px;"></i>
+                    <h3>कलेक्शन इतिहास</h3>
+                    <p>सभी पुरानी प्राप्त किस्तें</p>
+                </a>
+            </div>
+
+            <div class="dashboard-card" style="border-top: 4px solid #64748b; background: #f8fafc; margin-bottom: 35px;">
+                <h4 style="margin: 0 0 10px 0; color: #334155; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-database" style="color: #64748b;"></i> सिस्टम डेटा प्रबंधन (Backup System)
+                </h4>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 15px;">सुरक्षा के लिए अपने फ़ाइनेंस लेज़र का डेटाबेस बैकअप समय-समय पर डाउनलोड करते रहें।</p>
+                <a href="backup.html" class="btn" style="width: auto; background: #64748b; font-size: 13px; text-decoration: none; padding: 10px 18px; display: inline-block;">
+                    <i class="fas fa-download"></i> बैकअप और रिस्टोर सेंटर खोलें
                 </a>
             </div>
 
         </div>
         
-        <!-- फुटर -->
         <div class="footer">
-            &copy; 2026 GDA Finance Services | Enterprise Ledger V3
+            &copy; 2026 GDA Finance Services | Central Enterprise Ledger V3
         </div>
     </div>
 
-    <!-- 3. मोबाइल बॉटम बार -->
     <div class="bottom-nav">
         <a href="index.html" class="active"><i class="fas fa-home"></i><span>होम</span></a>
         <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
@@ -133,7 +137,6 @@
         <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
     </div>
 
-    <!-- बैकएंड स्क्रिप्ट इंटीग्रेशन (आपकी अपनी dashboard.js फ़ाइल) -->
     <script type="module" src="dashboard.js"></script>
 </body>
 </html>
