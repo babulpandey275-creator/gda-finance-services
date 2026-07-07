@@ -1,65 +1,98 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reports</title>
-
-<style>
-body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
-margin:0;
-padding:20px;
-}
-
-h2{
-text-align:center;
-color:#1565c0;
-}
-
-.card{
-background:white;
-padding:20px;
-margin:15px 0;
-border-radius:12px;
-box-shadow:0 2px 8px rgba(0,0,0,.15);
-font-size:20px;
-font-weight:bold;
-text-align:center;
-}
-</style>
-
-<script type="module" src="report.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDA Finance - Business Reports</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
-
 <body>
 
-<h2>📊 Reports</h2>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li>
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
+            <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
+            <li><a href="report.html" class="active"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
+            <li><a href="history.html"><i class="fas fa-history"></i> पुराना इतिहास</a></li>
+        </ul>
+    </div>
 
-<div class="card">
-Total Customers :
-<div id="customers">0</div>
-</div>
+    <div class="main-wrapper">
+        
+        <div class="top-header">
+            <div>
+                <h1>बिजनेस रिपोर्ट (Business Reports)</h1>
+                <p>अपने माइक्रो-फाइनेंस बिजनेस की पूरी कमाई और प्रोग्रेस यहाँ देखें</p>
+            </div>
+        </div>
+        
+        <div class="container">
+            
+            <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-chart-pie" style="color: var(--primary);"></i> वित्तीय सारांश (Financial Summary)
+                </h2>
+                
+                <div class="summary-grid">
+                    <div class="summary-card" style="border-left-color: var(--secondary);">
+                        <h3><i class="fas fa-users"></i> Total Customers</h3>
+                        <h2 id="customers">0</h2>
+                    </div>
 
-<div class="card">
-Today's Collection :
-<div id="today">₹0</div>
-</div>
+                    <div class="summary-card" style="border-left-color: var(--warning);">
+                        <h3><i class="fas fa-calendar-day"></i> Today's Collection</h3>
+                        <h2 id="today">₹0</h2>
+                    </div>
 
-<div class="card">
-Total Collection :
-<div id="total">₹0</div>
-</div>
-<div class="card">
-Total Loan :
-<div id="loan">₹0</div>
-</div>
+                    <div class="summary-card" style="border-left-color: var(--success);">
+                        <h3><i class="fas fa-money-bill-trend-up"></i> Total Collection</h3>
+                        <h2 id="total">₹0</h2>
+                    </div>
 
-<div class="card">
-Remaining Amount :
-<div id="remaining">₹0</div>
-</div>
+                    <div class="summary-card" style="border-left-color: var(--primary);">
+                        <h3><i class="fas fa-sack-dollar"></i> Total Loan</h3>
+                        <h2 id="loan">₹0</h2>
+                    </div>
+
+                    <div class="summary-card" style="border-left-color: var(--danger);">
+                        <h3><i class="fas fa-comment-dollar"></i> Remaining Amount</h3>
+                        <h2 id="remaining">₹0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h2 class="section-title" style="margin-top: 0;"><i class="fas fa-chart-area"></i> कलेक्शन ग्राफ विश्लेषण</h2>
+                <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
+                    यह सेक्शन आपके मासिक और दैनिक बिजनेस की ग्रोथ को विजुअल रूप में ट्रैक करने के लिए तैयार किया गया है।
+                </p>
+                <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; height: 200px; display: flex; align-items: center; justify-content: center; color: var(--text-light);">
+                    <div>
+                        <i class="fas fa-chart-bar" style="font-size: 40px; display: block; text-align: center; margin-bottom: 10px;"></i>
+                        <span>चार्ट और ग्राफ डेटा जल्द ही उपलब्ध होगा</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="footer">
+            &copy; 2026 GDA Finance Services | Analytics Dashboard
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a>
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
+        <a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a>
+        <a href="report.html" class="active"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
+    </div>
+
+    <script type="module" src="report.js"></script>
 </body>
 </html>
