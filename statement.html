@@ -1,180 +1,85 @@
-<!DOCTYPE html> 
-<html lang="hi"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Customer Statement</title> 
-    <link rel="stylesheet" href="style.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <style> 
-        body{ 
-            font-family: Arial, sans-serif; 
-            background: #f4f6f9; 
-            margin: 0; 
-            padding: 15px; 
-        } 
-        .container{ 
-            max-width: 900px; 
-            margin: auto; 
-        } 
-        .card{ 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,.15); 
-            margin-bottom: 20px; 
-        } 
-        h1{ 
-            text-align: center; 
-            color: #1565c0; 
-            margin-bottom: 5px; 
-        } 
-        h3{ 
-            text-align: center; 
-            color: #444; 
-            margin-top: 0; 
-            margin-bottom: 20px; 
-        } 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Statement - GDA Finance</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; padding: 20px; background: #eef3f8; font-family: Arial, sans-serif; }
+        .card { max-width: 450px; margin: auto; background: #fff; border-radius: 15px; padding: 24px; box-shadow: 0 5px 15px rgba(0,0,0,.15); }
+        .heading-box { text-align: center; margin-bottom: 20px; }
+        .company-title { font-size: 28px; color: #1565c0; font-weight: bold; margin-top: 5px; }
+        .sub-title { font-size: 16px; color: #444; font-weight: bold; margin-top: 5px; }
         
-        /* 📸 फोटो फ्रेम और हेडर लेआउट की विशेष सजावट */
-        .statement-header-block {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px dashed #cbd5e1;
-        }
-        #customerPhoto {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #1565c0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        table{ 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 15px; 
-        } 
-        table th, table td{ 
-            border: 1px solid #ccc; 
-            padding: 8px; 
-            text-align: center; 
-            font-size: 15px; 
-        } 
-        table th{ 
-            background: #1565c0; 
-            color: #fff; 
-        } 
-        .info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 10px 20px;
-            margin-bottom: 25px;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .info p{ 
-            margin: 4px 0; 
-            font-size: 15px; 
-            color: #334155;
-        } 
-        .btn{ 
-            width: 100%; 
-            padding: 14px; 
-            margin-top: 12px; 
-            font-size: 17px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            color: #fff; 
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        } 
-        .whatsapp{ background: #25D366; } 
-        .print{ background: #1565c0; } 
-        .back{ background: #444; } 
+        /* 👤 ग्राहक की लाइव फोटो का गोला */
+        .avatar-container { text-align: center; margin: 20px 0; }
+        .customer-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #1565c0; box-shadow: 0 4px 10px rgba(0,0,0,0.15); background: #f0f0f0; }
         
-        @media print{ 
-            button, .btn, .bottom-nav, .sidebar { 
-                display: none !important; 
-            } 
-            body{ 
-                background: white; 
-                padding: 0;
-            } 
-            .card{ 
-                box-shadow: none; 
-                border: 1px solid #000; 
-            } 
-        } 
-    </style> 
-    <script type="module" src="statement.js"></script> 
-</head> 
-<body> 
+        .info-panel { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .info-row { display: flex; margin-bottom: 10px; font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .info-label { font-weight: bold; color: #334155; width: 45%; }
+        .info-value { color: #0f172a; width: 55%; word-break: break-word; }
+        
+        .history-title { text-align: center; font-size: 18px; font-weight: bold; color: #334155; margin-bottom: 12px; }
+        
+        /* टेबल और डिलीट बटन की स्टाइल */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: center; }
+        th { background: #1565c0; color: white; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .delete-btn:hover { background: #dc3545; }
 
-    <div class="container"> 
-        <div class="card"> 
-            
-            <!-- 🏢 कंपनी और ग्राहक प्रोफाइल ब्लॉक -->
-            <div class="statement-header-block">
-                <div>
-                    <h1>🏦 GDA Finance Services</h1> 
-                    <h3>डिजिटल खाता विवरण (Account Statement)</h3> 
-                </div>
-                <!-- ग्राहक की लाइव फोटो यहाँ लोड होगी, डिफ़ॉल्ट रूप से एक यूजर आइकॉन लगा है -->
-                <img id="customerPhoto" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Customer Profile">
-            </div>
+        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: white; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
+    </style>
+</head>
+<body>
 
-            <!-- 📝 ग्राहक की पूरी जानकारी ग्रिड -->
-            <div class="info"> 
-                <p><b><i class="fas fa-user"></i> ग्राहक का नाम :</b> <span id="name"></span></p> 
-                <p><b><i class="fas fa-id-badge"></i> ग्राहक ID :</b> <span id="customerId"></span></p> 
-                <p><b><i class="fas fa-phone"></i> मोबाइल नंबर :</b> <span id="mobile"></span></p> 
-                <p><b><i class="fas fa-fingerprint"></i> आधार संख्या :</b> <span id="idNumber"></span></p> 
-                <p style="grid-column: 1 / -1;"><b><i class="fas fa-map-marker-alt"></i> स्थायी पता :</b> <span id="address"></span></p> 
-                <p><b><i class="fas fa-money-check-dollar"></i> कुल लोन राशि :</b> ₹<span id="loan"></span></p> 
-                <p><b><i class="fas fa-coins"></i> दैनिक EMI किस्त :</b> ₹<span id="emi"></span></p> 
-                <p><b><i class="fas fa-calendar-alt"></i> लोन देने की तारीख :</b> <span id="loanDate"></span></p> 
-                <p><b><i class="fas fa-check-double"></i> कुल प्राप्त दिन (Paid) :</b> <span id="paidDays"></span> दिन</p> 
-                <p><b><i class="fas fa-hand-holding-usd"></i> कुल जमा राशि :</b> ₹<span id="totalCollected"></span></p> 
-                <p style="color: #ef4444; font-weight: bold;"><b><i class="fas fa-money-bill-wave"></i> शेष बकाया राशि :</b> ₹<span id="remaining"></span></p> 
-            </div> 
+    <div class="card">
+        <div class="heading-box">
+            <div class="company-title">🏦 GDA Finance Services</div>
+            <div class="sub-title">डिजिटल खाता विवरण (Account Statement)</div>
+        </div>
 
-            <h3><i class="fas fa-history"></i> किस्त जमा होने का इतिहास (Collection History)</h3> 
-            <table> 
-                <thead> 
-                    <tr> 
-                        <th>क्र.सं.</th> 
-                        <th>तारीख (Date)</th> 
-                        <th>जमा राशि (Amount)</th> 
-                    </tr> 
-                </thead> 
-                <tbody id="historyTable"> 
-                </tbody> 
-            </table> 
+        <div class="avatar-container">
+            <img id="customerPhotoDisplay" class="customer-avatar" src="https://via.placeholder.com/120?text=No+Photo" alt="Customer Photo">
+        </div>
 
-            <!-- ऐक्शन बटन्स -->
-            <button class="btn whatsapp" id="shareBtn"> 
-                <i class="fab fa-whatsapp"></i> व्हाट्सएप पर शेयर करें (Share)
-            </button> 
-            <button class="btn print" onclick="window.print()"> 
-                <i class="fas fa-print"></i> प्रिंट निकालें / PDF बनाएं
-            </button> 
-            <button class="btn back" onclick="history.back()"> 
-                <i class="fas fa-arrow-left"></i> पीछे जाएं (Back)
-            </button> 
-        </div> 
-    </div> 
+        <div class="info-panel">
+            <div class="info-row"><div class="info-label">👤 ग्राहक का नाम :</div><div class="info-value" id="lblName">-</div></div>
+            <div class="info-row"><div class="info-label">🆔 ग्राहक ID :</div><div class="info-value" id="lblId" style="font-size:11px;">-</div></div>
+            <div class="info-row"><div class="info-label">📞 मोबाइल नंबर :</div><div class="info-value" id="lblMobile">-</div></div>
+            <div class="info-row"><div class="info-label">🪪 आधार संख्या :</div><div class="info-value" id="lblAadhaar">-</div></div>
+            <div class="info-row"><div class="info-label">📍 स्थायी पता :</div><div class="info-value" id="lblAddress">-</div></div>
+            <div class="info-row"><div class="info-label">💵 कुल लोन राशि :</div><div class="info-value" id="lblLoan">-</div></div>
+            <div class="info-row"><div class="info-label">📅 प्लान अवधि :</div><div class="info-value" id="lblPlan">-</div></div>
+            <div class="info-row"><div class="info-label">📦 दैनिक EMI किस्त :</div><div class="info-value" id="lblEmi">-</div></div>
+            <div class="info-row"><div class="info-label">🗓️ लोन की तारीख :</div><div class="info-value" id="lblDate">-</div></div>
+            <div class="info-row"><div class="info-label">✅ कुल प्राप्त दिन :</div><div class="info-value" id="lblPaidDays">-</div></div>
+            <div class="info-row"><div class="info-label">💰 कुल जमा राशि :</div><div class="info-value" id="lblTotalCollected">-</div></div>
+            <div class="info-row"><div class="info-label" style="color:#ef4444;">🔻 शेष बकाया राशि :</div><div class="info-value" id="lblRemaining" style="color:#ef4444; font-weight:bold;">-</div></div>
+        </div>
 
-</body> 
+        <div class="history-title">🕒 किस्त जमा होने का इतिहास (Collection History)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>क्र.सं.</th>
+                    <th>तारीख</th>
+                    <th>राशि</th>
+                    <th>एक्शन</th> </tr>
+            </thead>
+            <tbody id="collectionTableBody">
+                <tr><td colspan="4">लोड हो रहा है...</td></tr>
+            </tbody>
+        </table>
+
+        <button id="whatsappBtn" class="btn-action" style="background: #22c55e;">Share on WhatsApp</button>
+        <button id="printBtn" class="btn-action" style="background: #1565c0;">Print Statement / PDF</button>
+        <a href="customer-list.html" class="btn-action" style="background: #475569;">Back to List</a>
+    </div>
+
+    <script type="module" src="statement.js"></script>
+</body>
 </html>
