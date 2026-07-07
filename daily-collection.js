@@ -1,231 +1,74 @@
-import { db } from "./firebase.js";
-import {
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { db } from './firebase.js';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-import { saveCollection } from "./daily-collection-save.js";
-import { updateTodayCollection } from "./daily-collection-ui.js";
+const customerListDiv = document.getElementById("customerList");
+const searchInput = document.getElementById("search");
+let allCustomers = []; // सभी ग्राहकों को रखने के लिए
 
-const customerList = document.getElementById("customerList");
-const search = document.getElementById("search");
-
-let customers = [];
-
-/* Load Customers */
-
+// 1. डेटा लोड करें और लिस्ट दिखाएं
 async function loadCustomers() {
+    const querySnapshot = await getDocs(collection(db, "customers"));
+    allCustomers = [];
+    customerListDiv.innerHTML = "";
 
-  customerList.innerHTML = `
-    <div class="loadingCard">
-      <h3>Loading Customers...</h3>
-    </div>
-  `;
-
-  try {
-
-    const snap = await getDocs(collection(db, "customers"));
-
-    customers = [];
-
-    snap.forEach((doc) => {
-
-      customers.push({
-        id: doc.id,
-        ...doc.data()
-      });
-
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        allCustomers.push({ id: doc.id, ...data });
+        renderCustomer(doc.id, data);
     });
-
-    window.customers = customers;
-
-    showCustomers(customers);
-
-    updateTodayCollection();
-
-    const total = document.getElementById("totalCustomers");
-
-    if(total){
-      total.textContent = customers.length;
-    }
-
-  }
-
-  catch(error){
-
-    console.error(error);
-
-    customerList.innerHTML = `
-      <div class="card">
-        <h3>❌ Customer Load Failed</h3>
-        <p>${error.message}</p>
-      </div>
-    `;
-
-  }
-
 }
 
-/* Search */
+function renderCustomer(id, data) {
+    const div = document.createElement("div");
+    div.className = "customer-item";
+    div.style = "padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between;";
+    div.innerHTML = `<span><strong>${data.name}</strong> <br> <small>${data.mobile}</small></span> <span>₹${data.remainingAmount || 0}</span>`;
+    
+    // क्लिक करने पर विवरण लोड करें
+    div.onclick = () => selectCustomer(id, data);
+    customerListDiv.appendChild(div);
+}
 
-search.addEventListener("keyup",()=>{
-
-  const value = search.value.toLowerCase();
-
-  const filtered = customers.filter(c=>{
-
-    return (
-      (c.name || "").toLowerCase().includes(value) ||
-      (c.mobile || "").includes(value)
-    );
-
-  });
-
-  showCustomers(filtered);
-
-});
-/* ===========================
-   Premium Customer Cards
-=========================== */
-
-function showCustomers(list) {
-
-  customerList.innerHTML = "";
-
-  if (list.length === 0) {
-
-    customerList.innerHTML = `
-      <div class="card">
-        <h3>❌ No Customer Found</h3>
-      </div>
-    `;
-
-    return;
-  }
-
-  list.forEach((c) => {
-
-    const loan = Number(c.loan || 0);
-    const emi = Number(c.emi || 0);
-    const collected = Number(c.totalCollected || 0);
-    const remaining = Number(c.remainingAmount || 0);
-
-    const percent =
-      loan > 0
-        ? Math.min(100, Math.round((collected / loan) * 100))
-        : 0;
-
-    const status =
-      remaining <= 0
-        ? "Completed"
-        : "Active";
-
-    customerList.innerHTML += `
-
-    <div class="card">
-
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-
-        <div>
-
-          <h3>👤 ${c.name}</h3>
-
-          <p>📱 ${c.mobile}</p>
-
-        </div>
-
-        <span class="statusBadge ${status}">
-          ${status}
-        </span>
-
-      </div>
-
-      <p>💰 Loan : ₹${loan.toLocaleString("en-IN")}</p>
-
-      <p>💵 Daily EMI : ₹${emi.toLocaleString("en-IN")}</p>
-
-      <p>✅ Collected : ₹${collected.toLocaleString("en-IN")}</p>
-
-      <p><b>📉 Remaining : ₹${remaining.toLocaleString("en-IN")}</b></p>
-
-      <div class="progressBox">
-
-        <div
-        class="progressBar"
-        style="width:${percent}%">
-        </div>
-
-      </div>
-
-      <p style="margin:8px 0;">
-        Progress : ${percent}%
-      </p>
-
-      <div
-      style="
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      margin:15px 0;
-      ">
-
-      <button
-      onclick="setAmount('${c.id}',100)">
-      ₹100
-      </button>
-
-      <button
-      onclick="setAmount('${c.id}',200)">
-      ₹200
-      </button>
-
-      <button
-      onclick="setAmount('${c.id}',500)">
-      ₹500
-      </button>
-
-      <button
-      onclick="setAmount('${c.id}',1000)">
-      ₹1000
-      </button>
-
-      </div>
-
-      <input
-      type="number"
-      id="amount-${c.id}"
-      class="amountBox"
-      value="${emi}"
-      placeholder="Enter Amount">
-
-      <button
-      class="saveBtn"
-      onclick="saveCollection('${c.id}',window.customers)">
-
-      💰
-     /* ===========================
-   Reload + First Load
-=========================== */
-
-// Reload Function
-window.reloadCustomers = async function () {
-  await loadCustomers();
+// 2. ग्राहक सेलेक्ट करने पर पेमेंट ब्लॉक अपडेट करना
+window.selectCustomer = (id, data) => {
+    document.getElementById("emiAmount").innerText = `₹${data.emiAmount || 0}`;
+    document.getElementById("remainingAmount").innerText = `₹${data.remainingAmount || 0}`;
+    document.getElementById("paymentAmount").value = data.emiAmount || "";
+    // पेमेंट बटन में कस्टमर ID स्टोर करें
+    document.getElementById("collectBtn").dataset.customerId = id;
+    window.scrollTo({ top: document.querySelector('.dashboard-card[style*="var(--primary)"]').offsetTop, behavior: 'smooth' });
 };
 
-// Quick Amount Buttons
-window.setAmount = function (id, amount) {
-  const input = document.getElementById("amount-" + id);
+// 3. पेमेंट कलेक्ट करना
+document.getElementById("collectBtn").onclick = async () => {
+    const customerId = document.getElementById("collectBtn").dataset.customerId;
+    const amount = document.getElementById("paymentAmount").value;
+    const mode = document.getElementById("paymentMode").value;
+    const note = document.getElementById("note").value;
 
-  if (!input) return;
+    if (!customerId) { alert("कृपया पहले एक ग्राहक चुनें!"); return; }
 
-  input.value = amount;
-  input.focus();
+    try {
+        await addDoc(collection(db, "collections"), {
+            customerId: customerId,
+            amount: Number(amount),
+            paymentMode: mode,
+            note: note,
+            date: serverTimestamp()
+        });
+        alert("पेमेंट सफलतापूर्वक दर्ज हो गया!");
+        location.reload(); // पेज रिफ्रेश करें
+    } catch (e) {
+        console.error("Error: ", e);
+    }
 };
 
-// Auto Refresh Today's Collection
-setInterval(() => {
-  updateTodayCollection();
-}, 30000);
+// 4. सर्च फंक्शन
+searchInput.onkeyup = () => {
+    const val = searchInput.value.toLowerCase();
+    customerListDiv.innerHTML = "";
+    allCustomers.filter(c => c.name.toLowerCase().includes(val) || c.mobile.includes(val))
+                .forEach(c => renderCustomer(c.id, c));
+};
 
-// First Load
-loadCustomers(); 
+loadCustomers();
