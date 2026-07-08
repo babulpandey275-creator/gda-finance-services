@@ -1,159 +1,89 @@
 import { db } from "./firebase.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-/* ========================================= 
-🔓 लाइव लॉगआउट (Logout) व सुरक्षा जांच का लॉजिक 
-========================================= */ 
-window.addEventListener('DOMContentLoaded', () => {
-    // 🛡️ सुरक्षा जांच: अगर कोई बिना लॉगिन किए डायरेक्ट index.html खोले तो उसे वापस लॉगिन पर भेजें
+window.addEventListener('DOMContentLoaded', async () => {
+    // 🛡️ सुरक्षा जांच
     if (localStorage.getItem("gdaLoggedIn") !== "true") {
         window.location.href = "login.html";
-        return; // आगे का कोड न चले
+        return;
     }
 
-    // लॉगआउट करने का फंक्शन
-    function handleLogout(e) {
-        e.preventDefault(); 
-        const confirmLogout = confirm("क्या आप सच में लॉगआउट करना चाहते हैं?");
-        if (confirmLogout) {
-            // ब्राउज़र की मेमोरी से लॉगिन डेटा साफ करें
-            localStorage.removeItem("gdaLoggedIn");
-            alert("🔒 आप सफलतापूर्वक लॉगआउट हो गए हैं।");
-            window.location.href = "login.html"; // अब यह बिना अटके लॉगिन पेज पर जाएगा
-        }
-    }
-
-    // index.html में मौजूद बॉटम नैविगेशन बार के लॉगआउट बटन (logoutBtn) को एक्टिवेट करना
     const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
+    if (logoutBtn) {
+        logoutBtn.onclick = (e) => {
+            e.preventDefault();
+            if (confirm("क्या आप सच में लॉगआउट करना चाहते हैं?")) {
+                localStorage.removeItem("gdaLoggedIn");
+                window.location.href = "login.html";
+            }
+        };
+    }
+
+    // लाइव डैशबोर्ड लोड करें
+    await loadDashboardData();
 });
 
-/* ========================================= 
-GDA Finance Services V3 Dashboard Data Object 
-========================================= */ 
-let dashboardData = { 
-    totalCustomers: 0, 
-    totalLoan: 0, 
-    totalCollection: 0, 
-    todayCollection: 0, 
-    totalRemaining: 0, 
-    dueCustomers: 0 
-}; 
-
-// मुख्य फ़ंक्शन जो पूरा लाइव डेटा लोड करेगा 
-export async function loadDashboard() { 
-    try { 
-        // पुराने लोड हुए डेटा को रीसेट करें 
-        resetDashboard(); 
-
-        // फायरबेस से ग्राहकों और कलेक्शन्स का स्नैपशॉट लें 
+async function loadDashboardData() {
+    try {
         const customerSnap = await getDocs(collection(db, "customers")); 
         const collectionSnap = await getDocs(collection(db, "collections")); 
 
-        dashboardData.totalCustomers = customerSnap.size; 
+        const todayStr = new Date().toISOString().split("T")[0]; 
 
-        // आज की तारीख (YYYY-MM-DD फॉर्मेट में स्थानीय समयानुसार) 
-        const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
-        const today = (new Date(Date.now() - tzOffset)).toISOString().split("T")[0]; 
+        let todayCollectionAmount = 0;
+        let dueCustomersCount = 0;
+        let activeAccountsCount = 0;
 
-        // 1. प्रत्येक ग्राहक के डेटा की गणना 
-        customerSnap.forEach((docSnap) => { 
-            const customer = docSnap.data(); 
-            // केवल सक्रिय ग्राहकों का ही हिसाब जोड़ें (क्लोज्ड खातों को छोड़ें) 
-            if(customer.status !== "Closed") { 
-                // ध्यान दें: आपकी रजिस्ट्रेशन फाइल में लोन अमाउंट 'loanAmount' नाम से सेव हो रहा है
-                dashboardData.totalLoan += Number(customer.loanAmount || customer.loan || 0); 
-                dashboardData.totalRemaining += Number(customer.remainingAmount || 0); 
-                calculateDue(customer); 
-            } 
-        }); 
+        // 1. आज की वसूली का हिसाब निकालना
+        collectionSnap.forEach((docSnap) => {
+            const item = docSnap.data();
+            if (item.date === todayStr) {
+                todayCollectionAmount += Number(item.amount || 0);
+            }
+        });
 
-        // 2. प्रत्येक कलेक्शन (किस्त) के डेटा की गणना 
-        collectionSnap.forEach((docSnap) => { 
-            const item = docSnap.data(); 
-            dashboardData.totalCollection += Number(item.amount || 0); 
-            checkTodayCollection(item, today); 
-        }); 
+        // 2. एडवांस्ड ड्यू और सक्रिय खातों का हिसाब निकालना
+        customerSnap.forEach((docSnap) => {
+            const customer = docSnap.data();
+            
+            if (customer.status !== "Closed") {
+                activeAccountsCount++;
 
-        // इंटरफ़ेस (UI) पर नया डेटा दिखाना 
-        updateDashboardUI(); 
-    } catch (err) { 
-        console.error("डैशबोर्ड डेटा लोड करने में समस्या: ", err); 
-    } 
-} 
+                // 🎯 एडवांस्ड ड्यू लॉजिक
+                if (customer.loanDate) {
+                    const loanDate = new Date(customer.loanDate);
+                    const today = new Date();
+                    
+                    // लोन लिए कितने दिन बीत चुके हैं
+                    const passedDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
+                    const paidDays = Number(customer.paidDays || 0);
+                    const loanPlan = Number(customer.loanPlan || 60);
 
-/* डेटा रीसेट फ़ंक्शन */ 
-function resetDashboard(){ 
-    dashboardData.totalCustomers = 0; 
-    dashboardData.totalLoan = 0; 
-    dashboardData.totalCollection = 0; 
-    dashboardData.todayCollection = 0; 
-    dashboardData.totalRemaining = 0; 
-    dashboardData.dueCustomers = 0; 
-} 
+                    // स्थिति A: अगर लोन की मियाद (60/80 दिन) पार हो चुकी है
+                    if (passedDays > loanPlan && Number(customer.remainingAmount || 0) > 0) {
+                        dueCustomersCount++;
+                    } 
+                    // स्थिति B: मियाद के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है
+                    else {
+                        const missedDays = passedDays - paidDays;
+                        if (missedDays >= 3 && Number(customer.remainingAmount || 0) > 0) {
+                            dueCustomersCount++;
+                        }
+                    }
+                }
+            }
+        });
 
-/* बकाया ग्राहकों (Due Customers) की गणना */ 
-function calculateDue(customer) { 
-    if (!customer.loanDate) return; 
-    const loanDate = new Date(customer.loanDate); 
-    const today = new Date(); 
-    const passedDays = Math.floor( (today - loanDate) / (1000 * 60 * 60 * 24) ); 
-    const paidDays = Number(customer.paidDays || 0); 
-    const dueDays = passedDays - paidDays; 
+        // 🖥️ छोटे लाइव डिब्बों में डेटा प्रिंट करना
+        document.getElementById("miniTodayCollection").textContent = `₹${todayCollectionAmount}`;
+        document.getElementById("miniDueCustomers").textContent = dueCustomersCount;
+        document.getElementById("miniActiveAccounts").textContent = activeAccountsCount;
+        
+        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज अपडेट करना
+        const badgeDue = document.getElementById("badgeDue");
+        if (badgeDue) badgeDue.textContent = dueCustomersCount;
 
-    // यदि दिन बकाया हैं और शेष राशि अभी बची है 
-    if ( dueDays > 0 && Number(customer.remainingAmount || 0) > 0 ) { 
-        dashboardData.dueCustomers++; 
-    } 
-} 
-
-/* आज के कलेक्शन की जांच */ 
-function checkTodayCollection(item, today) { 
-    if (!item.date) return; 
-    let collectionDate = ""; 
-
-    if (item.date.toDate) { 
-        collectionDate = item.date.toDate().toISOString().split("T")[0]; 
-    } else if (item.date.seconds) { 
-        collectionDate = new Date( item.date.seconds * 1000 ).toISOString().split("T")[0]; 
-    } else if (typeof item.date === "string") { 
-        collectionDate = item.date; 
-    } 
-
-    if (collectionDate === today) { 
-        dashboardData.todayCollection += Number(item.amount || 0); 
-    } 
-} 
-
-/* भारतीय मुद्रा नंबर फ़ॉर्मेटर */ 
-function formatNumber(value) { 
-    return Number(value || 0).toLocaleString("en-IN"); 
-} 
-
-/* UI पर लाइव वैल्यू अपडेट करना (index.html की असली ID के साथ सिंक किया गया) */ 
-function updateDashboardUI() { 
-    const setText = (id, value) => { 
-        const el = document.getElementById(id); 
-        if (el) { 
-            el.textContent = value; 
-        } 
-    }; 
-    
-    // 🎯 यहाँ आपकी index.html की सही IDs मैप कर दी गई हैं:
-    setText("customers", dashboardData.totalCustomers); 
-    setText("loan", "₹" + formatNumber(dashboardData.totalLoan)); 
-    setText("total", "₹" + formatNumber(dashboardData.totalCollection)); 
-    setText("today", "₹" + formatNumber(dashboardData.todayCollection)); 
-    setText("remaining", "₹" + formatNumber(dashboardData.totalRemaining)); 
-    
-    // यदि आप भविष्य में HTML में बकाया ग्राहकों की संख्या दिखाने के लिए id="dueCustomers" जोड़ते हैं:
-    setText("dueCustomers", dashboardData.dueCustomers); 
-} 
-
-/* मैनुअल रिफ्रेश फ़ंक्शन */ 
-window.refreshDashboard = function () { 
-    loadDashboard(); 
-}; 
-
-// पेज लोड होते ही ऑटोमैटिक डेटा लोड करें 
-loadDashboard();
+    } catch (err) {
+        console.error("डैशबोर्ड लाइव डेटा लोड करने में त्रुटि:", err);
+    }
+}
