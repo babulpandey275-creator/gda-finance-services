@@ -36,7 +36,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         } 
     } 
 
-    /* ========================================= 📸 1. बैक कैमरा लॉजिक ========================================= */ 
+    /* ========================================= 📸 1. बैक कामना लॉजिक ========================================= */ 
     if (video) { 
         const constraints = { video: { facingMode: { exact: "environment" } }, audio: false }; 
         navigator.mediaDevices.getUserMedia(constraints) 
@@ -104,13 +104,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         const name = document.getElementById("customerName").value.trim(); 
         const mobile = document.getElementById("mobileNumber").value.trim(); 
         const address = document.getElementById("address").value.trim(); 
-        const aadhaar = document.getElementById("aadhaarNumber").value.trim(); // FIXED: Aadhaar Number fetch kiya
+        const aadhaar = document.getElementById("aadhaarNumber").value.trim(); 
         const loanAmount = Number(loanAmountInput.value); 
         const selectedPlan = Number(loanPlanSelect.value); 
         const totalCollection = Number(totalCollectionInput.value); 
         const emi = Number(emiInput.value); 
 
-        // Validation checking including Aadhaar
         if (!name || !mobile || !address || !aadhaar || !loanAmount) { 
             alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, आधार कार्ड, लोन राशि) दर्ज करें!"); 
             return; 
@@ -127,14 +126,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             const todayDate = new Date().toISOString().split('T')[0]; 
 
-            // 'customers' collection mein data properly save ho raha hai
+            // Data payload strictly mapped to match final ratio configurations
             await addDoc(collection(db, "customers"), { 
                 member_id: idObj.member_id, 
                 member_no: idObj.member_no, 
                 name: name, 
                 mobile: mobile, 
                 address: address, 
-                aadhaarNumber: aadhaar, // FIXED: Aadhaar Number field added to Database
+                aadhaarNumber: aadhaar, 
                 loanAmount: loanAmount, 
                 loanPlan: selectedPlan, 
                 totalCollection: totalCollection, 
