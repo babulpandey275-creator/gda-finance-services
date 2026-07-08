@@ -53,8 +53,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
             const dynamicRemaining = totalPayableWithInterest - totalCollected;
 
-            // UI Elements Rendering
-            lblLoan.textContent = `₹${loanAmount}`; 
+            // UI Elements Rendering - Yahan humne Loan + Interest text add kiya hai taaki user confuse na ho
+            lblLoan.textContent = `₹${loanAmount} (+20% ब्याज = ₹${totalPayableWithInterest})`; 
             lblPlan.textContent = `${customer.loanPlan || 0} Days`; 
             lblEmi.textContent = `₹${customer.emi || 0}`; 
             lblDate.textContent = customer.loanDate || "-"; 
@@ -64,9 +64,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             // Dynamic Remaining Amount set karne ka perfect logic
             lblRemaining.textContent = `₹${Math.max(0, Math.round(dynamicRemaining))}`; 
 
-            // FIXED: Fetching field using matching database identity schema
+            // FIXED: Ab Aadhaar Redacted nahi dikhega, asli number seedhe database se display hoga
             if (customer.aadhaarNumber && customer.aadhaarNumber !== "-") { 
-                lblAadhaar.textContent = "[Aadhaar Redacted]"; 
+                lblAadhaar.textContent = customer.aadhaarNumber; 
             } else { 
                 lblAadhaar.textContent = "दर्ज नहीं है";
             } 
