@@ -1,190 +1,160 @@
 import { db } from "./firebase.js"; 
 import { collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-window.addEventListener('DOMContentLoaded', async () => {
-
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const reTakeBtn = document.getElementById("reTakeBtn");
+window.addEventListener('DOMContentLoaded', async () => { 
+    const video = document.getElementById("video"); 
+    const canvas = document.getElementById("canvas"); 
+    const captureBtn = document.getElementById("captureBtn"); 
+    const reTakeBtn = document.getElementById("reTakeBtn"); 
     let capturedImageData = null; 
 
-    const loanAmountInput = document.getElementById("loanAmount");
-    const loanPlanSelect = document.getElementById("loanPlan");
-    const totalCollectionInput = document.getElementById("remainingAmount");
-    const emiInput = document.getElementById("emi");
-    const saveBtn = document.getElementById("saveBtn");
+    const loanAmountInput = document.getElementById("loanAmount"); 
+    const loanPlanSelect = document.getElementById("loanPlan"); 
+    const totalCollectionInput = document.getElementById("remainingAmount"); 
+    const emiInput = document.getElementById("emi"); 
+    const saveBtn = document.getElementById("saveBtn"); 
 
-    /* ========================================= 
-    🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक (Fullproof System)
-    ========================================= */ 
-    async function generateNextGdaId() {
-        try {
-            // 'member_no' (नंबर) के हिसाब से सबसे बड़ा नंबर ढूंढेंगे ताकि स्ट्रिंग सॉर्टिंग की गड़बड़ी न हो
-            const q = query(collection(db, "customers"), orderBy("member_no", "desc"), limit(1));
-            const querySnapshot = await getDocs(q);
-            
-            let nextNumber = 1; // डिफ़ॉल्ट 1 (अगर डेटाबेस बिल्कुल खाली है)
+    /* ========================================= 🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक ========================================= */ 
+    async function generateNextGdaId() { 
+        try { 
+            const q = query(collection(db, "customers"), orderBy("member_no", "desc"), limit(1)); 
+            const querySnapshot = await getDocs(q); 
+            let nextNumber = 1; 
 
-            if (!querySnapshot.empty) {
-                const lastCustomer = querySnapshot.docs[0].data();
-                // अगर पुराना नंबर मौजूद है, तो उसमें +1 कर देंगे
-                if (lastCustomer.member_no !== undefined) {
-                    nextNumber = parseInt(lastCustomer.member_no, 10) + 1;
-                }
-            }
+            if (!querySnapshot.empty) { 
+                const lastCustomer = querySnapshot.docs[0].data(); 
+                if (lastCustomer.member_no !== undefined) { 
+                    nextNumber = parseInt(lastCustomer.member_no, 10) + 1; 
+                } 
+            } 
+            const formattedNumber = String(nextNumber).padStart(3, '0'); 
+            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber }; 
+        } catch (error) { 
+            console.error("Error generating GDA ID:", error); 
+            alert("⚠️ फायरबेस इंडेक्स सेट हो रहा है या कोई गड़बड़ी है।"); 
+            return null; 
+        } 
+    } 
 
-            // नंबर को 3 डिजिट में बदलेंगे (जैसे: 1 को 001, 12 को 012)
-            const formattedNumber = String(nextNumber).padStart(3, '0');
-            
-            return {
-                member_id: `GDA${formattedNumber}`,
-                member_no: nextNumber
-            };
-        } catch (error) {
-            console.error("Error generating GDA ID:", error);
-            alert("⚠️ फायरबेस इंडेक्स सेट हो रहा है या कोई गड़बड़ी है। कृपया कंसोल चेक करें।");
-            return null;
-        }
-    }
+    /* ========================================= 📸 1. बैक कैमरा लॉजिक ========================================= */ 
+    if (video) { 
+        const constraints = { video: { facingMode: { exact: "environment" } }, audio: false }; 
+        navigator.mediaDevices.getUserMedia(constraints) 
+            .then((stream) => { video.srcObject = stream; }) 
+            .catch((err) => { 
+                console.warn("Exact back camera failed, trying normal environment...", err); 
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }) 
+                    .then((stream) => { video.srcObject = stream; }) 
+                    .catch((e) => { 
+                        navigator.mediaDevices.getUserMedia({ video: true, audio: false }) 
+                            .then(stream => { video.srcObject = stream; }) 
+                            .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2)); 
+                    }); 
+            }); 
+    } 
 
-    /* ========================================= 
-    📸 1. वीवो और एंड्रॉयड के लिए बैक कैमरा (Strict Rule)
-    ========================================= */ 
-    if (video) {
-        const constraints = {
-            video: { facingMode: { exact: "environment" } },
-            audio: false
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            video.srcObject = stream;
-        })
-        .catch((err) => {
-            console.warn("Exact back camera failed, trying normal environment...", err);
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((e) => {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                .then(stream => { video.srcObject = stream; })
-                .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
-            });
-        });
-    }
-
-    // फोटो कैप्चर बटन लॉजिक
-    if (captureBtn) {
-        captureBtn.onclick = () => {
-            const context = canvas.getContext("2d");
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
+    if (captureBtn) { 
+        captureBtn.onclick = () => { 
+            const context = canvas.getContext("2d"); 
+            canvas.width = video.videoWidth || 640; 
+            canvas.height = video.videoHeight || 480; 
+            context.drawImage(video, 0, 0, canvas.width, canvas.height); 
             capturedImageData = canvas.toDataURL("image/jpeg"); 
-            
-            video.style.display = "none";
-            canvas.style.display = "block";
-            captureBtn.style.display = "none";
-            reTakeBtn.style.display = "block";
-        };
-    }
+            video.style.display = "none"; 
+            canvas.style.display = "block"; 
+            captureBtn.style.display = "none"; 
+            reTakeBtn.style.display = "block"; 
+        }; 
+    } 
 
-    // दोबारा फोटो खींचने का लॉजिक
-    if (reTakeBtn) {
-        reTakeBtn.onclick = () => {
-            capturedImageData = null;
-            canvas.style.display = "none";
-            video.style.display = "block";
-            reTakeBtn.style.display = "none";
-            captureBtn.style.display = "block";
-        };
-    }
+    if (reTakeBtn) { 
+        reTakeBtn.onclick = () => { 
+            capturedImageData = null; 
+            canvas.style.display = "none"; 
+            video.style.display = "block"; 
+            reTakeBtn.style.display = "none"; 
+            captureBtn.style.display = "block"; 
+        }; 
+    } 
 
-    /* ========================================= 
-    🎯 2. लाइव ऑटो-कैलकुलेशन (60 और 80 दिन)
-    ========================================= */ 
-    function doCalculation() {
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value); // 60 या 80 दिन
+    /* ========================================= 🎯 2. लाइव ऑटो-कैलकुलेशन (20% Interest Ratio) ========================================= */ 
+    function doCalculation() { 
+        const loanAmount = Number(loanAmountInput.value); 
+        const selectedPlan = Number(loanPlanSelect.value); 
+        
+        if (!loanAmount || loanAmount <= 0) { 
+            totalCollectionInput.value = ""; 
+            emiInput.value = ""; 
+            return; 
+        } 
+        
+        // 10000 -> 12000 | 15000 -> 18000 | 20000 -> 24000 (20% Fixed Ratio)
+        const totalCollection = loanAmount + (loanAmount * 0.20); 
+        const dailyEmi = totalCollection / selectedPlan; 
+        
+        totalCollectionInput.value = Math.round(totalCollection); 
+        emiInput.value = Math.round(dailyEmi); 
+    } 
 
-        if (!loanAmount || loanAmount <= 0) {
-            totalCollectionInput.value = "";
-            emiInput.value = "";
-            return;
-        }
+    if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation); 
+    if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation); 
 
-        const totalCollection = loanAmount + (loanAmount * 0.20); // 20% ब्याज
-        const dailyEmi = totalCollection / selectedPlan;
+    /* ========================================= 💾 3. फ़ायरबेस में डेटा सेव करने का लॉजिक ========================================= */ 
+    saveBtn.onclick = async () => { 
+        const name = document.getElementById("customerName").value.trim(); 
+        const mobile = document.getElementById("mobileNumber").value.trim(); 
+        const address = document.getElementById("address").value.trim(); 
+        const aadhaar = document.getElementById("aadhaarNumber").value.trim(); // FIXED: Aadhaar Number fetch kiya
+        const loanAmount = Number(loanAmountInput.value); 
+        const selectedPlan = Number(loanPlanSelect.value); 
+        const totalCollection = Number(totalCollectionInput.value); 
+        const emi = Number(emiInput.value); 
 
-        totalCollectionInput.value = Math.round(totalCollection);
-        emiInput.value = Math.round(dailyEmi);
-    }
+        // Validation checking including Aadhaar
+        if (!name || !mobile || !address || !aadhaar || !loanAmount) { 
+            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, आधार कार्ड, लोन राशि) दर्ज करें!"); 
+            return; 
+        } 
 
-    if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation);
-    if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation);
+        try { 
+            saveBtn.disabled = true; 
+            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है..."; 
 
-    /* ========================================= 
-    💾 3. फ़ायरबेस में डेटा सेव करने का लॉजिक 
-    ========================================= */ 
-    saveBtn.onclick = async () => {
-        const name = document.getElementById("customerName").value.trim();
-        const mobile = document.getElementById("mobileNumber").value.trim();
-        const address = document.getElementById("address").value.trim();
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value);
-        const totalCollection = Number(totalCollectionInput.value);
-        const emi = Number(emiInput.value);
+            const idObj = await generateNextGdaId(); 
+            if (!idObj) { 
+                throw new Error("GDA ID जेनरेट नहीं हो सकी।"); 
+            } 
 
-        // बेसिक डेटा वैलिडेशन
-        if (!name || !mobile || !address || !loanAmount) {
-            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, लोन राशि) दर्ज करें!");
-            return;
-        }
+            const todayDate = new Date().toISOString().split('T')[0]; 
 
-        try {
-            saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है...";
+            // 'customers' collection mein data properly save ho raha hai
+            await addDoc(collection(db, "customers"), { 
+                member_id: idObj.member_id, 
+                member_no: idObj.member_no, 
+                name: name, 
+                mobile: mobile, 
+                address: address, 
+                aadhaarNumber: aadhaar, // FIXED: Aadhaar Number field added to Database
+                loanAmount: loanAmount, 
+                loanPlan: selectedPlan, 
+                totalCollection: totalCollection, 
+                remainingAmount: totalCollection, 
+                totalCollected: 0, 
+                emi: emi, 
+                paidDays: 0, 
+                status: "Active", 
+                customerPhoto: capturedImageData || null, 
+                loanDate: todayDate, 
+                createdAt: new Date().toISOString() 
+            }); 
 
-            // आईडी जेनरेट करने वाले ऑब्जेक्ट को मंगाए
-            const idObj = await generateNextGdaId();
-            if (!idObj) {
-                throw new Error("GDA ID जेनरेट नहीं हो सकी।");
-            }
-
-            // 📅 तारीख का जादू: फॉर्म में डिब्बा न होने पर भी आज की करंट तारीख ऑटोमैटिक निकालने के लिए लॉजिक
-            const todayDate = new Date().toISOString().split('T')[0];
-
-            // 'customers' कलेक्शन में डेटा सेव करना
-            await addDoc(collection(db, "customers"), {
-                member_id: idObj.member_id, // "GDA001", "GDA002" आदि सीरीज यहाँ सेव होगी
-                member_no: idObj.member_no, // सॉर्टिंग के लिए प्योर नंबर (जैसे 1, 2, 3)
-                name: name,
-                mobile: mobile,
-                address: address,
-                loanAmount: loanAmount,
-                loanPlan: selectedPlan,
-                totalCollection: totalCollection,
-                remainingAmount: totalCollection, // शुरुआत में बकाया पूरा कलेक्शन होगा
-                totalCollected: 0,
-                emi: emi,
-                paidDays: 0,
-                status: "Active",
-                customerPhoto: capturedImageData || null, // खींची हुई फोटो बेस64 फॉर्मेट में
-                loanDate: todayDate, // 📅 यह बिना डिब्बे के भी आज की तारीख को डेटाबेस में सीधे सेव कर देगा!
-                createdAt: new Date().toISOString()
-            });
-
-            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`);
-            window.location.href = "customer-list.html"; // वापस कस्टमर लिस्ट पर भेजें
-
-        } catch (error) {
-            console.error("कस्टमर सेव करने में तकनीकी एरर:", error);
-            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।");
-            saveBtn.disabled = false;
-            saveBtn.innerText = "💾 ग्राहक सुरक्षित करें";
-        }
-    };
+            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`); 
+            window.location.href = "customer-list.html"; 
+        } catch (error) { 
+            console.error("कस्टमर सेव करने में तकनीकी एरर:", error); 
+            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।"); 
+            saveBtn.disabled = false; 
+            saveBtn.innerText = "💰 ग्राहक सुरक्षित करें"; 
+        } 
+    }; 
 });
