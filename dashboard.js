@@ -23,13 +23,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // साइडबार लॉगआउट बटन एक्टिवेट करें
-    const sidebarLogoutBtn = document.getElementById("sidebarLogout");
-    if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener("click", handleLogout);
-
-    // मोबाइल बॉटम लॉगआउट बटन एक्टिवेट करें
-    const bottomLogoutBtn = document.getElementById("bottomLogout");
-    if (bottomLogoutBtn) bottomLogoutBtn.addEventListener("click", handleLogout);
+    // index.html में मौजूद बॉटम नैविगेशन बार के लॉगआउट बटन (logoutBtn) को एक्टिवेट करना
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
 });
 
 /* ========================================= 
@@ -65,7 +61,8 @@ export async function loadDashboard() {
             const customer = docSnap.data(); 
             // केवल सक्रिय ग्राहकों का ही हिसाब जोड़ें (क्लोज्ड खातों को छोड़ें) 
             if(customer.status !== "Closed") { 
-                dashboardData.totalLoan += Number(customer.loan || 0); 
+                // ध्यान दें: आपकी रजिस्ट्रेशन फाइल में लोन अमाउंट 'loanAmount' नाम से सेव हो रहा है
+                dashboardData.totalLoan += Number(customer.loanAmount || customer.loan || 0); 
                 dashboardData.totalRemaining += Number(customer.remainingAmount || 0); 
                 calculateDue(customer); 
             } 
@@ -110,18 +107,16 @@ function calculateDue(customer) {
     } 
 } 
 
-/* आज के कलेक्शन की जांच (बैक-डेट के हिसाब से सुधरा हुआ लॉजिक) */ 
+/* आज के कलेक्शन की जांच */ 
 function checkTodayCollection(item, today) { 
     if (!item.date) return; 
     let collectionDate = ""; 
 
-    // यदि तारीख फायरबेस का टाइमस्टैम्प ऑब्जेक्ट है 
     if (item.date.toDate) { 
         collectionDate = item.date.toDate().toISOString().split("T")[0]; 
     } else if (item.date.seconds) { 
         collectionDate = new Date( item.date.seconds * 1000 ).toISOString().split("T")[0]; 
     } else if (typeof item.date === "string") { 
-        // यदि बैक-डेट एंट्री से तारीख सीधे स्ट्रिंग (YYYY-MM-DD) के रूप में आई है 
         collectionDate = item.date; 
     } 
 
@@ -130,12 +125,12 @@ function checkTodayCollection(item, today) {
     } 
 } 
 
-/* भारतीय मुद्रा नंबर फ़ॉर्मेटर (जैसे: 150000 -> 1,50,000) */ 
+/* भारतीय मुद्रा नंबर फ़ॉर्मेटर */ 
 function formatNumber(value) { 
     return Number(value || 0).toLocaleString("en-IN"); 
 } 
 
-/* UI पर लाइव वैल्यू अपडेट करना */ 
+/* UI पर लाइव वैल्यू अपडेट करना (index.html की असली ID के साथ सिंक किया गया) */ 
 function updateDashboardUI() { 
     const setText = (id, value) => { 
         const el = document.getElementById(id); 
@@ -143,11 +138,15 @@ function updateDashboardUI() {
             el.textContent = value; 
         } 
     }; 
-    setText("totalCustomers", dashboardData.totalCustomers); 
-    setText("totalLoan", formatNumber(dashboardData.totalLoan)); 
-    setText("totalCollection", formatNumber(dashboardData.totalCollection)); 
-    setText("todayCollection", formatNumber(dashboardData.todayCollection)); 
-    setText("totalRemaining", formatNumber(dashboardData.totalRemaining)); 
+    
+    // 🎯 यहाँ आपकी index.html की सही IDs मैप कर दी गई हैं:
+    setText("customers", dashboardData.totalCustomers); 
+    setText("loan", "₹" + formatNumber(dashboardData.totalLoan)); 
+    setText("total", "₹" + formatNumber(dashboardData.totalCollection)); 
+    setText("today", "₹" + formatNumber(dashboardData.todayCollection)); 
+    setText("remaining", "₹" + formatNumber(dashboardData.totalRemaining)); 
+    
+    // यदि आप भविष्य में HTML में बकाया ग्राहकों की संख्या दिखाने के लिए id="dueCustomers" जोड़ते हैं:
     setText("dueCustomers", dashboardData.dueCustomers); 
 } 
 
