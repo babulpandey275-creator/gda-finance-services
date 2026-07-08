@@ -1,5 +1,5 @@
 import { db } from "./firebase.js"; 
-import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, getDocs, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
 
@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtEmi = document.getElementById("txtEmi");
     const txtRemaining = document.getElementById("txtRemaining");
     const txtPaidDays = document.getElementById("txtPaidDays");
-    
+
     const collectAmountInput = document.getElementById("collectAmount");
     const collectionDateInput = document.getElementById("collectionDate");
     const submitBtn = document.getElementById("submitCollectionBtn");
@@ -26,7 +26,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             const snap = await getDocs(collection(db, "customers"));
             customerSelect.innerHTML = `<option value="" disabled selected>-- ग्राहक चुनें --</option>`;
-            
+
             if (snap.empty) {
                 customerSelect.innerHTML = `<option value="" disabled>कोई सक्रिय ग्राहक नहीं मिला</option>`;
                 return;
@@ -34,18 +34,23 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             snap.forEach((docSnap) => {
                 const customer = docSnap.data();
+                
                 // सिर्फ उन्हीं को दिखाओ जिनका खाता बंद (Closed) नहीं हुआ है
                 if (customer.status !== "Closed") {
                     allCustomersMap[docSnap.id] = customer;
-                    
+
+                    // ग्राहक की ID अगर GDA001 फॉर्मेट में है तो वही दिखाएं, अन्यथा पुरानी ID का छोटा रूप
+                    const displayId = customer.member_id || `ID: ${docSnap.id.substring(0, 5)}...`;
+
                     const option = document.createElement("option");
                     option.value = docSnap.id;
-                    option.textContent = `${customer.name} (ID: ${docSnap.id.substring(0, 5)}...)`;
+                    option.textContent = `${customer.name} (${displayId})`;
                     customerSelect.appendChild(option);
                 }
             });
         } catch (error) {
             console.error("ग्राहक लिस्ट लोड करने में समस्या:", error);
+            alert("⚠️ ग्राहक सूची लोड करने में समस्या आई। कृपया नेटवर्क चेक करें।");
         }
     }
 
@@ -57,17 +62,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         const customer = allCustomersMap[custId];
 
         if (customer) {
-            const emi = customer.emi || 0;
-            const remaining = customer.remainingAmount ?? (customer.totalCollection || 0);
-            const paidDays = customer.paidDays || 0;
+            const emi = Number(customer.emi || 0);
+            const remaining = Number(customer.remainingAmount ?? (customer.totalCollection || 0));
+            const paidDays = parseInt(customer.paidDays || 0, 10);
 
-            txtEmi.textContent = `₹${emi}`;
-            txtRemaining.textContent = `₹${remaining}`;
+            // वित्तीय डेटा को हमेशा सुंदर और सटीक फॉर्मेट (जैसे ₹100.00 या ₹100) में दिखाना
+            txtEmi.textContent = `₹${emi.toFixed(2)}`;
+            txtRemaining.textContent = `₹${remaining.toFixed(2)}`;
             txtPaidDays.textContent = `${paidDays} दिन`;
 
             // डिफ़ॉल्ट रूप से उसकी रोज़ की किस्त की राशि इनपुट बॉक्स में खुद भर जाए
             collectAmountInput.value = emi;
-            
+
             // जानकारी का बॉक्स दिखाएं
             detailsBox.style.display = "block";
         } else {
@@ -87,8 +93,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!");
             return;
         }
-        if (!amount || amount <= 0) {
-            alert("⚠️ कृपया वैध जमा राशि दर्ज करें!");
+        if (isNaN(amount) || amount <= 0) {
+            alert("⚠️ कृपया एक सही और वैध जमा राशि दर्ज करें!");
             return;
         }
         if (!selectDate) {
@@ -97,20 +103,22 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
 
         const customer = allCustomersMap[custId];
-        const currentRemaining = customer.remainingAmount ?? (customer.totalCollection || 0);
+        const currentRemaining = Number(customer.remainingAmount ?? (customer.totalCollection || 0));
 
         if (amount > currentRemaining) {
-            alert(`⚠️ चेतावनी: जमा राशि बकाया राशि (₹${currentRemaining}) से ज़्यादा नहीं हो सकती!`);
+            alert(`⚠️ चेतावनी: जमा राशि बकाया राशि (₹${currentRemaining.toFixed(2)}) से ज़्यादा नहीं हो सकती!`);
             return;
         }
 
         try {
+            // डबल सबमिशन रोकने के लिए बटन को तुरंत डिसेबल करें
             submitBtn.disabled = true;
-            submitBtn.innerText = "किस्त जमा की जा रही है...";
+            submitBtn.innerText = "⏳ किस्त जमा की जा रही है...";
 
             // A. 'collections' कलेक्शन में नया रिकॉर्ड जोड़ना
             await addDoc(collection(db, "collections"), {
                 customerId: custId,
+                memberId: customer.member_id || "", // GDA ID रिकॉर्ड ट्रैकिंग के लिए यहाँ भी स्टोर कर रहे हैं
                 customerName: customer.name,
                 amount: amount,
                 date: selectDate,
@@ -118,10 +126,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             });
 
             // B. 'customers' कलेक्शन में ग्राहक का बैलेंस अपडेट करना
-            const newRemaining = currentRemaining - amount;
-            const newTotalCollected = (customer.totalCollected || 0) + amount;
-            const newPaidDays = (customer.paidDays || 0) + 1;
-            
+            const newRemaining = Number((currentRemaining - amount).toFixed(2));
+            const newTotalCollected = Number(((customer.totalCollected || 0) + amount).toFixed(2));
+            const newPaidDays = parseInt(customer.paidDays || 0, 10) + 1;
+
             // अगर पूरा पैसा वसूल हो गया तो स्टेटस खुद Closed हो जाए
             const newStatus = newRemaining <= 0 ? "Closed" : "Active";
 
@@ -138,7 +146,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error("किस्त जमा करने में तकनीकी एरर:", error);
-            alert("डेटाबेस में किस्त सुरक्षित नहीं हो सकी।");
+            alert("⚠️ नेटवर्क या डेटाबेस समस्या के कारण किस्त सुरक्षित नहीं हो सकी। कृपया दोबारा प्रयास करें।");
+            
+            // एरर आने पर बटन को वापस ठीक करें ताकि यूजर दोबारा ट्राई कर सके
             submitBtn.disabled = false;
             submitBtn.innerText = "💸 किस्त जमा करें";
         }
