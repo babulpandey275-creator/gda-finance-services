@@ -1,86 +1,70 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDA Finance - Collection History</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head>
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li>
-            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
-            <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
-            <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
-            <li><a href="history.html" class="active"><i class="fas fa-history"></i> पुराना इतिहास</a></li>
-        </ul>
-    </div>
-
-    <div class="main-wrapper">
-        
-        <div class="top-header">
-            <div>
-                <h1>कलेक्शन का इतिहास (Collection History)</h1>
-                <p>सभी पुराने लेन-देन और जमा की गई किस्तों का विवरण</p>
-            </div>
-        </div>
-        
-        <div class="container">
-            
-            <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
-                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-list-check" style="color: var(--primary);"></i> हालिया लेन-देन (Recent Transactions)
-                </h2>
-                
-                <div class="table-responsive">
-                    <table id="historyTable">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-calendar-alt"></i> तारीख / समय</th>
-                                <th><i class="fas fa-user"></i> ग्राहक का नाम</th>
-                                <th><i class="fas fa-phone"></i> मोबाइल नंबर</th>
-                                <th><i class="fas fa-indian-rupee-sign"></i> कलेक्ट राशि</th>
-                                <th><i class="fas fa-credit-card"></i> माध्यम (Mode)</th>
-                                <th><i class="fas fa-comment-dots"></i> टिप्पणी</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyList">
-                            <tr>
-                                <td colspan="6" class="loading" style="text-align: center; padding: 30px; color: var(--text-light);">
-                                    <i class="fas fa-spinner fa-spin"></i> डेटा लोड हो रहा है (Loading)...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div style="margin-top: 20px;">
-                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);">
-                    <i class="fas fa-arrow-left"></i> डैशबोर्ड पर वापस जाएं
-                </a>
-            </div>
-
-        </div>
-        
-        <div class="footer">
-            &copy; 2026 GDA Finance Services | Transaction Ledger
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a>
-        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
-        <a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a>
-        <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
-    </div>
-
-    <script type="module" src="history.js"></script>
-</body>
+<!DOCTYPE html> 
+<html lang="hi"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>GDA Finance - Collection History</title> 
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> 
+</head> 
+<body> 
+    <div class="sidebar"> 
+        <div class="sidebar-logo"> 
+            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance 
+        </div> 
+        <ul class="sidebar-menu"> 
+            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li> 
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li> 
+            <li><a href="collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li> <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li> 
+            <li><a href="history.html" class="active"><i class="fas fa-history"></i> पुराना इतिहास</a></li> 
+        </ul> 
+    </div> 
+    <div class="main-wrapper"> 
+        <div class="top-header"> 
+            <div> 
+                <h1>कलेक्शन का इतिहास (Collection History)</h1> 
+                <p>सभी पुराने लेन-देन और जमा की गई किस्तों का विवरण</p> 
+            </div> 
+        </div> 
+        <div class="container"> 
+            <div class="dashboard-card" style="border-top: 4px solid var(--primary);"> 
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;"> 
+                    <i class="fas fa-list-check" style="color: var(--primary);"></i> हालिया लेन-देन (Recent Transactions) </h2> 
+                <div class="table-responsive"> 
+                    <table id="historyTable"> 
+                        <thead> 
+                            <tr> 
+                                <th><i class="fas fa-calendar-alt"></i> तारीख / समय</th> 
+                                <th><i class="fas fa-user"></i> ग्राहक का नाम</th> 
+                                <th><i class="fas fa-phone"></i> मोबाइल नंबर</th> 
+                                <th><i class="fas fa-indian-rupee-sign"></i> कलेक्ट राशि</th> 
+                                <th><i class="fas fa-credit-card"></i> माध्यम (Mode)</th> 
+                                <th><i class="fas fa-comment-dots"></i> टिप्पणी</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody id="historyList"> 
+                            <tr> 
+                                <td colspan="6" class="loading" style="text-align: center; padding: 30px; color: var(--text-light);"> 
+                                    <i class="fas fa-spinner fa-spin"></i> डेटा लोड हो रहा है (Loading)... 
+                                </td> 
+                            </tr> 
+                        </tbody> 
+                    </table> 
+                </div> 
+            </div> 
+            <div style="margin-top: 20px;"> 
+                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);"> 
+                    <i class="fas fa-arrow-left"></i> डैशबोर्ड पर वापस जाएं 
+                </a> 
+            </div> 
+        </div> 
+        <div class="footer"> &copy; 2026 GDA Finance Services | Transaction Ledger </div> 
+    </div> 
+    <div class="bottom-nav"> 
+        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a> 
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a> 
+        <a href="collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a> <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a> 
+    </div> 
+    <script type="module" src="history.js"></script> 
+</body> 
 </html>
