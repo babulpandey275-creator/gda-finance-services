@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        /* खर्चे के फॉर्म के लिए साधारण और सुंदर स्टाइल */
+        /* खर्चे के फॉर्म के लिए प्रीमियम स्टाइल */
         .expense-form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -48,6 +48,24 @@
         .expense-btn:disabled {
             background: #94a3b8;
         }
+        
+        /* छोटे लाइव बॉक्स (Mini Cards) की स्टाइल */
+        .live-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mini-box {
+            background: white;
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 3px solid #1565c0;
+        }
+        .mini-box p { font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin: 0; }
+        .mini-box h3 { font-size: 14px; margin: 4px 0 0 0; color: #0f172a; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -57,7 +75,7 @@
             <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
         </div>
         <ul class="sidebar-menu">
-            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशलोग</a></li>
             <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
             <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
             <li><a href="report.html" class="active"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
@@ -69,13 +87,30 @@
         
         <div class="top-header">
             <div>
-                <h1>बिजनेस रिपोर्ट व अकाउंट्स (Business Reports)</h1>
-                <p>अपने माइक्रो-फाइनेंस बिजनेस की पूरी कमाई, खर्चे और शुद्ध लाभ यहाँ देखें</p>
+                <h1>बिजनेस रिपोर्ट (Business Reports)</h1>
+                <p>अपने माइक्रो-फाइनेंस बिजनेस की पूरी कमाई, खर्चे और प्रोग्रेस यहाँ देखें</p>
             </div>
         </div>
         
         <div class="container">
+
+            <!-- 📊 मुख्य डैशबोर्ड की तरह यहाँ भी आज के लाइव कलेक्शन के छोटे बॉक्स (Mini Indicators) -->
+            <div class="live-mini-grid">
+                <div class="mini-box" style="border-top-color: #2e7d32;">
+                    <p>आज वसूली</p>
+                    <h3 id="today">₹0</h3>
+                </div>
+                <div class="mini-box" style="border-top-color: #ef4444;">
+                    <p>आज का खर्च</p>
+                    <h3 id="lblTodayExpense">₹0</h3>
+                </div>
+                <div class="mini-box" style="border-top-color: #1565c0;">
+                    <p>आज का मुनाफा</p>
+                    <h3 id="lblTodayNet">₹0</h3>
+                </div>
+            </div>
             
+            <!-- 🏢 सेक्शन 1: वित्तीय सारांश -->
             <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
                 <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-chart-pie" style="color: var(--primary);"></i> वित्तीय सारांश (Financial Summary)
@@ -93,22 +128,9 @@
                     </div>
 
                     <div class="summary-card" style="border-left-color: var(--danger);">
-                        <h3><i class="fas fa-comment-dollar"></i> Total Remaining</h3>
+                        <h3><i class="fas fa-comment-dollar"></i> Remaining Amount</h3>
                         <h2 id="remaining">₹0</h2>
                     </div>
-
-                    <div class="summary-card" style="border-left-color: var(--warning);">
-                        <h3><i class="fas fa-calendar-day"></i> Today's Collection</h3>
-                        <h2 id="today">₹0</h2>
-                    </div>
-
-                    <div class="summary-card" style="border-left-color: #ef4444;">
-                        <h3><i class="fas fa-arrow-trend-down"></i> Today's Expenses</h3>
-                        <h2 id="lblTodayExpense">₹0</h2> </div>
-
-                    <div class="summary-card" style="border-left-color: #22c55e;">
-                        <h3><i class="fas fa-hand-holding-dollar"></i> Today's Net Profit</h3>
-                        <h2 id="lblTodayNet">₹0</h2> </div>
 
                     <div class="summary-card" style="border-left-color: var(--success);">
                         <h3><i class="fas fa-money-bill-trend-up"></i> Monthly Collection</h3>
@@ -117,17 +139,20 @@
 
                     <div class="summary-card" style="border-left-color: #b91c1c;">
                         <h3><i class="fas fa-money-bill-transfer"></i> Monthly Expenses</h3>
-                        <h2 id="lblMonthExpense">₹0</h2> </div>
+                        <h2 id="lblMonthExpense">₹0</h2>
+                    </div>
 
                     <div class="summary-card" style="border-left-color: #15803d;">
                         <h3><i class="fas fa-wallet"></i> Monthly Net Profit</h3>
-                        <h2 id="lblMonthNet">₹0</h2> </div>
+                        <h2 id="lblMonthNet">₹0</h2>
+                    </div>
                 </div>
             </div>
 
+            <!-- 📉 सेक्शन 2: खर्च दर्ज करने का फॉर्म (Expense Tracker) -->
             <div class="dashboard-card" style="border-top: 4px solid #ef4444;">
                 <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-calculator" style="color: #ef4444;"></i> नया खर्च दर्ज करें (Add Business Expense)
+                    <i class="fas fa-calculator" style="color: #ef4444;"></i> नया खर्च दर्ज करें (Add Expense)
                 </h2>
                 
                 <div class="expense-form-grid">
@@ -138,9 +163,9 @@
                     <div class="expense-input-group">
                         <label>खर्च का प्रकार (Type):</label>
                         <select id="expenseType">
-                            <option value="Daily">Daily Expense (चाय, यात्रा आदि)</option>
-                            <option value="Monthly">Monthly Expense (रेंट, सैलरी आदि)</option>
-                            <option value="Quarterly">Quarterly Expense (अन्य खर्चे)</option>
+                            <option value="Daily">Daily Expense (चाय, ईंधन आदि)</option>
+                            <option value="Monthly">Monthly Expense (ऑफिस रेंट, सैलरी आदि)</option>
+                            <option value="Quarterly">Quarterly Expense (अन्य त्रैमासिक खर्चे)</option>
                         </select>
                     </div>
                     <div class="expense-input-group">
@@ -157,6 +182,7 @@
                 </div>
             </div>
 
+            <!-- 📊 सेक्शन 3: ग्राफ बॉक्स -->
             <div class="dashboard-card">
                 <h2 class="section-title" style="margin-top: 0;"><i class="fas fa-chart-area"></i> कलेक्शन ग्राफ विश्लेषण</h2>
                 <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
