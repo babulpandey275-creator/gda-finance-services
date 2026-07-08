@@ -1,187 +1,139 @@
 import { db } from "./firebase.js"; 
-import { collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { doc, getDoc, collection, query, where, getDocs, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
 
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const reTakeBtn = document.getElementById("reTakeBtn");
-    let capturedImageData = null; 
+    // 🔗 URL से कस्टमर (डॉक्यूमेंट) ID निकालना
+    const urlParams = new URLSearchParams(window.location.search);
+    const custId = urlParams.get('id');
 
-    const loanAmountInput = document.getElementById("loanAmount");
-    const loanPlanSelect = document.getElementById("loanPlan");
-    const totalCollectionInput = document.getElementById("remainingAmount");
-    const emiInput = document.getElementById("emi");
-    const saveBtn = document.getElementById("saveBtn");
+    if (!custId) {
+        alert("⚠️ कोई ग्राहक ID नहीं मिली!");
+        window.location.href = "customer-list.html";
+        return;
+    }
+
+    // 📺 HTML एलिमेंट्स को जोड़ना
+    const lblName = document.getElementById("lblName");
+    const lblId = document.getElementById("lblId");
+    const lblMobile = document.getElementById("lblMobile");
+    const lblAadhaar = document.getElementById("lblAadhaar");
+    const lblAddress = document.getElementById("lblAddress");
+    const lblLoan = document.getElementById("lblLoan");
+    const lblPlan = document.getElementById("lblPlan");
+    const lblEmi = document.getElementById("lblEmi");
+    const lblDate = document.getElementById("lblDate");
+    const lblPaidDays = document.getElementById("lblPaidDays");
+    const lblTotalCollected = document.getElementById("lblTotalCollected");
+    const lblRemaining = document.getElementById("lblRemaining");
+    const customerPhotoDisplay = document.getElementById("customerPhotoDisplay");
+    const collectionTableBody = document.getElementById("collectionTableBody");
 
     /* ========================================= 
-    🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक (Fullproof System)
+    👤 1. ग्राहक का डेटा लोड करना और स्क्रीन पर दिखाना
     ========================================= */ 
-    async function generateNextGdaId() {
+    async function loadCustomerStatement() {
         try {
-            // 'member_no' (नंबर) के हिसाब से सबसे बड़ा नंबर ढूंढेंगे ताकि स्ट्रिंग सॉर्टिंग की गड़बड़ी न हो
-            const q = query(collection(db, "customers"), orderBy("member_no", "desc"), limit(1));
+            const docRef = doc(db, "customers", custId);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                alert("⚠️ ग्राहक का रिकॉर्ड नहीं मिला!");
+                window.location.href = "customer-list.html";
+                return;
+            }
+
+            const customer = docSnap.data();
+
+            // 🎯 सुधार 1: लंबी रैंडम ID की जगह नई जेनरेटेड member_id (जैसे GDA002) दिखाना
+            lblId.textContent = customer.member_id || `ID: ${custId.substring(0, 5)}...`;
+
+            // बाकी का सारा डेटा स्क्रीन पर सेट करना
+            lblName.textContent = customer.name || "-";
+            lblMobile.textContent = customer.mobile || "-";
+            
+            // सुरक्षा और गोपनीयता के लिए आधार संख्या फ़ॉर्मेट को सुरक्षित रूप से दिखाना
+            lblAadhaar.textContent = customer.aadhaar ? "[Aadhaar Redacted]" : "-";
+            
+            lblAddress.textContent = customer.address || "-";
+            lblLoan.textContent = `₹${customer.loanAmount || 0}`;
+            lblPlan.textContent = `${customer.loanPlan || 0} Days`;
+            lblEmi.textContent = `₹${customer.emi || 0}`;
+            
+            // 🎯 सुधार 2: लोन वितरण की तारीख (loanDate) को स्क्रीन पर दिखाना
+            lblDate.textContent = customer.loanDate || "-"; 
+            
+            lblPaidDays.textContent = `${customer.paidDays || 0} दिन`;
+            lblTotalCollected.textContent = `₹${customer.totalCollected || 0}`;
+            lblRemaining.textContent = `₹${customer.remainingAmount || 0}`;
+
+            // अगर कस्टमर की लाइव फोटो मौजूद है, तो उसे दिखाएं
+            if (customer.customerPhoto) {
+                customerPhotoDisplay.src = customer.customerPhoto;
+            }
+
+            // इस ग्राहक का कलेक्शन इतिहास लोड करें
+            await loadCollectionHistory();
+
+        } catch (error) {
+            console.error("स्टेटमेंट लोड करने में एरर:", error);
+            alert("डेटा लोड करने में तकनीकी समस्या आई है।");
+        }
+    }
+
+    /* ========================================= 
+    🕒 2. किस्त जमा होने का इतिहास (Collection History) लोड करना
+    ========================================= */ 
+    async function loadCollectionHistory() {
+        try {
+            const q = query(
+                collection(db, "collections"), 
+                where("customerId", "==", custId),
+                orderBy("createdAt", "desc")
+            );
             const querySnapshot = await getDocs(q);
-            
-            let nextNumber = 1; // डिफ़ॉल्ट 1 (अगर डेटाबेस बिल्कुल खाली है)
 
-            if (!querySnapshot.empty) {
-                const lastCustomer = querySnapshot.docs[0].data();
-                // अगर पुराना नंबर मौजूद है, तो उसमें +1 कर देंगे
-                if (lastCustomer.member_no !== undefined) {
-                    nextNumber = parseInt(lastCustomer.member_no, 10) + 1;
-                }
+            collectionTableBody.innerHTML = "";
+
+            if (querySnapshot.empty) {
+                collectionTableBody.innerHTML = `<tr><td colspan="4">अभी तक कोई किस्त जमा नहीं हुई है।</td></tr>`;
+                return;
             }
 
-            // नंबर को 3 डिजिट में बदलेंगे (जैसे: 5 को 005)
-            const formattedNumber = String(nextNumber).padStart(3, '0');
-            
-            return {
-                member_id: `GDA${formattedNumber}`,
-                member_no: nextNumber
-            };
-        } catch (error) {
-            console.error("Error generating GDA ID:", error);
-            alert("⚠️ फायरबेस इंडेक्स बन रहा है या कोई गड़बड़ी है। कृपया कंसोल एरर चेक करें या दोबारा दबाएं।");
-            return null;
-        }
-    }
+            let index = 1;
+            querySnapshot.forEach((docSnap) => {
+                const collect = docSnap.data();
+                const tr = document.createElement("tr");
 
-    /* ========================================= 
-    📸 1. कैमरा लॉजिक
-    ========================================= */ 
-    if (video) {
-        const constraints = {
-            video: { facingMode: { exact: "environment" } },
-            audio: false
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            video.srcObject = stream;
-        })
-        .catch((err) => {
-            console.warn("Exact back camera failed, trying normal environment...", err);
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((e) => {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                .then(stream => { video.srcObject = stream; })
-                .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
-            });
-        });
-    }
-
-    if (captureBtn) {
-        captureBtn.onclick = () => {
-            const context = canvas.getContext("2d");
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            capturedImageData = canvas.toDataURL("image/jpeg"); 
-            
-            video.style.display = "none";
-            canvas.style.display = "block";
-            captureBtn.style.display = "none";
-            reTakeBtn.style.display = "block";
-        };
-    }
-
-    if (reTakeBtn) {
-        reTakeBtn.onclick = () => {
-            capturedImageData = null;
-            canvas.style.display = "none";
-            video.style.display = "block";
-            reTakeBtn.style.display = "none";
-            captureBtn.style.display = "block";
-        };
-    }
-
-    /* ========================================= 
-    🎯 2. लाइव ऑटो-कैलकुलेशन 
-    ========================================= */ 
-    function doCalculation() {
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value);
-
-        if (!loanAmount || loanAmount <= 0) {
-            totalCollectionInput.value = "";
-            emiInput.value = "";
-            return;
-        }
-
-        const totalCollection = loanAmount + (loanAmount * 0.20); 
-        const dailyEmi = totalCollection / selectedPlan;
-
-        totalCollectionInput.value = Math.round(totalCollection);
-        emiInput.value = Math.round(dailyEmi);
-    }
-
-    if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation);
-    if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation);
-
-    /* ========================================= 
-    💾 3. फ़ायरबेस में डेटा सेव करने का लॉजिक 
-    ========================================= */ 
-    saveBtn.onclick = async () => {
-        const name = document.getElementById("customerName").value.trim();
-        const mobile = document.getElementById("mobileNumber").value.trim();
-        const address = document.getElementById("address").value.trim();
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value);
-        const totalCollection = Number(ttalCollectionInput.value);
-        const emi = Number(emiInput.value);
-
-        if (!name || !mobile || !address || !loanAmount) {
-            alert("⚠️ कृपया सभी जरूरी जानकारी दर्ज करें!");
-            return;
-        }
-
-        try {
-            saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है...";
-
-            // आईडी जेनरेट करने वाले ऑब्जेक्ट को मंगाए
-            const idObj = await generateNextGdaId();
-            if (!idObj) {
-                throw new Error("GDA ID जेनरेट नहीं हो सकी।");
-            }
-
-            // 📅 आज की तारीख 'YYYY-MM-DD' फॉर्मेट में ऑटोमैटिक जनरेट करने के लिए
-            const todayDate = new Date().toISOString().split('T')[0];
-
-            // 'customers' कलेक्शन में डेटा सेव करना
-            await addDoc(collection(db, "customers"), {
-                member_id: idObj.member_id, // "GDA001", "GDA002" आदि
-                member_no: idObj.member_no, // सॉर्टिंग नंबर
-                name: name,
-                mobile: mobile,
-                address: address,
-                loanAmount: loanAmount,
-                loanPlan: selectedPlan,
-                totalCollection: totalCollection,
-                remainingAmount: totalCollection, 
-                totalCollected: 0,
-                emi: emi,
-                paidDays: 0,
-                status: "Active",
-                customerPhoto: capturedImageData || null, 
-                loanDate: todayDate, // 📅 यह लोन की तारीख को डेटाबेस में सेव करेगा
-                createdAt: new Date().toISOString()
+                tr.innerHTML = `
+                    <td>${index++}</td>
+                    <td>${collect.date || "-"}</td>
+                    <td><strong>₹${collect.amount || 0}</strong></td>
+                    <td><button class="delete-btn" data-id="${docSnap.id}">❌</button></td>
+                `;
+                collectionTableBody.appendChild(tr);
             });
 
-            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`);
-            window.location.href = "customer-list.html"; 
-
         } catch (error) {
-            console.error("कस्टमर सेव करने में तकनीकी एरर:", error);
-            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका।");
-            saveBtn.disabled = false;
-            saveBtn.innerText = "💾 ग्राहक सुरक्षित करें";
+            console.error("कलेशन हिस्ट्री लोड करने में एरर:", error);
+            collectionTableBody.innerHTML = `<tr><td colspan="4" style="color:red;">इतिहास लोड करने में समस्या आई।</td></tr>`;
         }
-    };
+    }
+
+    // प्रिंट और व्हाट्सएप शेयर के बटन्स
+    const printBtn = document.getElementById("printBtn");
+    if (printBtn) {
+        printBtn.onclick = () => window.print();
+    }
+
+    const whatsappBtn = document.getElementById("whatsappBtn");
+    if (whatsappBtn) {
+        whatsappBtn.onclick = () => {
+            const text = `🏦 *GDA Finance Services*\n*Statement*\n\n👤 नाम: ${lblName.textContent}\n🆔 ID: ${lblId.textContent}\n🗓️ लोन तारीख: ${lblDate.textContent}\n💰 शेष बकाया: ${lblRemaining.textContent}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        };
+    }
+
+    // रन करें
+    await loadCustomerStatement();
 });
