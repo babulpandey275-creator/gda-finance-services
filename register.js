@@ -16,42 +16,40 @@ window.addEventListener('DOMContentLoaded', async () => {
     const saveBtn = document.getElementById("saveBtn");
 
     /* ========================================= 
-    🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक
+    🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक (Fullproof System)
     ========================================= */ 
     async function generateNextGdaId() {
         try {
-            // 'customers' कलेक्शन से सबसे बड़ी member_id वाली आखिरी एंट्री उठाएं
-            const q = query(collection(db, "customers"), orderBy("member_id", "desc"), limit(1));
+            // 'member_no' (नंबर) के हिसाब से सबसे बड़ा नंबर ढूंढेंगे ताकि स्ट्रिंग सॉर्टिंग की गड़बड़ी न हो
+            const q = query(collection(db, "customers"), orderBy("member_no", "desc"), limit(1));
             const querySnapshot = await getDocs(q);
             
-            let nextNumber = 1; // अगर डेटाबेस खाली है, तो 001 से शुरू होगा
+            let nextNumber = 1; // डिफ़ॉल्ट 1 (अगर डेटाबेस बिल्कुल खाली है)
 
             if (!querySnapshot.empty) {
                 const lastCustomer = querySnapshot.docs[0].data();
-                const lastId = lastCustomer.member_id; // उदाहरण के लिए: "GDA045"
-                
-                if (lastId && lastId.startsWith("GDA")) {
-                    // "GDA" को हटाकर सिर्फ नंबर निकालेंगे
-                    const lastNumberStr = lastId.replace("GDA", "");
-                    const lastNumber = parseInt(lastNumberStr, 10);
-                    
-                    if (!isNaN(lastNumber)) {
-                        nextNumber = lastNumber + 1; // पिछले नंबर में +1 करेंगे
-                    }
+                // अगर पुराना नंबर मौजूद है, तो उसमें +1 कर देंगे
+                if (lastCustomer.member_no !== undefined) {
+                    nextNumber = parseInt(lastCustomer.member_no, 10) + 1;
                 }
             }
 
-            // नंबर को 3 डिजिट के फॉर्मेट में बदलेंगे (जैसे: 1 को 001, 12 को 012)
+            // नंबर को 3 डिजिट में बदलेंगे (जैसे: 1 को 001, 12 को 012)
             const formattedNumber = String(nextNumber).padStart(3, '0');
-            return `GDA${formattedNumber}`; // आउटपुट: GDA001, GDA002 आदि
+            
+            return {
+                member_id: `GDA${formattedNumber}`,
+                member_no: nextNumber
+            };
         } catch (error) {
             console.error("Error generating GDA ID:", error);
+            alert("⚠️ फायरबेस इंडेक्स सेट हो रहा है या कोई गड़बड़ी है। कृपया कंसोल चेक करें।");
             return null;
         }
     }
 
     /* ========================================= 
-    📸 1. वीवो और एंड्रॉयड के लिए बैक कामना (Strict Rule)
+    📸 1. वीवो और एंड्रॉयड के लिए बैक कैमरा (Strict Rule)
     ========================================= */ 
     if (video) {
         const constraints = {
@@ -150,15 +148,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             saveBtn.disabled = true;
             saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है...";
 
-            // ऑटो-ID जेनरेट करें (जैसे: GDA001)
-            const newMemberId = await generateNextGdaId();
-            if (!newMemberId) {
+            // आईडी जेनरेट करने वाले ऑब्जेक्ट को मंगाए
+            const idObj = await generateNextGdaId();
+            if (!idObj) {
                 throw new Error("GDA ID जेनरेट नहीं हो सकी।");
             }
 
+            // 📅 तारीख का जादू: फॉर्म में डिब्बा न होने पर भी आज की करंट तारीख ऑटोमैटिक निकालने के लिए लॉजिक
+            const todayDate = new Date().toISOString().split('T')[0];
+
             // 'customers' कलेक्शन में डेटा सेव करना
             await addDoc(collection(db, "customers"), {
-                member_id: newMemberId, // आपकी नई सीरीज GDA001 यहाँ सेव होगी
+                member_id: idObj.member_id, // "GDA001", "GDA002" आदि सीरीज यहाँ सेव होगी
+                member_no: idObj.member_no, // सॉर्टिंग के लिए प्योर नंबर (जैसे 1, 2, 3)
                 name: name,
                 mobile: mobile,
                 address: address,
@@ -171,10 +173,11 @@ window.addEventListener('DOMContentLoaded', async () => {
                 paidDays: 0,
                 status: "Active",
                 customerPhoto: capturedImageData || null, // खींची हुई फोटो बेस64 फॉर्मेट में
+                loanDate: todayDate, // 📅 यह बिना डिब्बे के भी आज की तारीख को डेटाबेस में सीधे सेव कर देगा!
                 createdAt: new Date().toISOString()
             });
 
-            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${newMemberId}`);
+            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`);
             window.location.href = "customer-list.html"; // वापस कस्टमर लिस्ट पर भेजें
 
         } catch (error) {
