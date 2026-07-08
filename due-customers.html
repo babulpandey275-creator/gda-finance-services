@@ -1,89 +1,74 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDA Finance - Due Customers</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head>
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li>
-            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li>
-            <li><a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li>
-            <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li>
-            <li><a href="due-customers.html" class="active"><i class="fas fa-exclamation-triangle"></i> बकाया ग्राहक</a></li>
-            <li><a href="history.html"><i class="fas fa-history"></i> पुराना इतिहास</a></li>
-        </ul>
-    </div>
-
-    <div class="main-wrapper">
-        
-        <div class="top-header">
-            <div>
-                <h1>बकाया ग्राहक सूची (Due Customers)</h1>
-                <p>उन ग्राहकों की सूची जिनकी किस्तें लंबित (Pending) हैं</p>
-            </div>
-            <div class="badge badge-danger" style="padding: 10px 18px; font-size: 14px; border-radius: 10px;">
-                <i class="fas fa-bell-exclamation"></i> &nbsp;रिकवरी मोड एक्टिव
-            </div>
-        </div>
-        
-        <div class="container">
-            
-            <div class="dashboard-card" style="border-top: 4px solid var(--danger);">
-                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--danger);">
-                    <i class="fas fa-user-clock"></i> डिफ़ॉल्टर / लेट किस्त वाले ग्राहक
-                </h2>
-                
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-id-badge"></i> ग्राहक ID / नाम</th>
-                                <th><i class="fas fa-phone"></i> मोबाइल नंबर</th>
-                                <th><i class="fas fa-coins"></i> दैनिक EMI</th>
-                                <th><i class="fas fa-hand-holding-dollar"></i> कुल बकाया (Remaining)</th>
-                                <th><i class="fas fa-calendar-times"></i> लोन की अवधि</th>
-                                <th><i class="fas fa-bolt"></i> त्वरित कार्रवाई</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dueList">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-light);">
-                                    <i class="fas fa-spinner fa-spin"></i> बकायेदारों की सूची लोड हो रही है...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div style="margin-top: 20px;">
-                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);">
-                    <i class="fas fa-arrow-left"></i> डैशबोर्ड पर वापस जाएं
-                </a>
-            </div>
-
-        </div>
-        
-        <div class="footer">
-            &copy; 2026 GDA Finance Services | Recovery Ledger
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a>
-        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a>
-        <a href="daily-collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a>
-        <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a>
-    </div>
-
-</body>
+<!DOCTYPE html> 
+<html lang="hi"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>GDA Finance - Due Customers</title> 
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> 
+</head> 
+<body> 
+    <div class="sidebar"> 
+        <div class="sidebar-logo"> 
+            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance 
+        </div> 
+        <ul class="sidebar-menu"> 
+            <li><a href="index.html"><i class="fas fa-home"></i> मुख्य डैशबोर्ड</a></li> 
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> ग्राहक लिस्ट</a></li> 
+            <li><a href="collection.html"><i class="fas fa-hand-holding-usd"></i> कलेक्शन करें</a></li> <li><a href="report.html"><i class="fas fa-chart-line"></i> रिपोर्ट व कमाई</a></li> 
+            <li><a href="due-customers.html" class="active"><i class="fas fa-exclamation-triangle"></i> बकाया ग्राहक</a></li> 
+            <li><a href="history.html"><i class="fas fa-history"></i> पुराना इतिहास</a></li> 
+        </ul> 
+    </div> 
+    <div class="main-wrapper"> 
+        <div class="top-header"> 
+            <div> 
+                <h1>बकाया ग्राहक सूची (Due Customers)</h1> 
+                <p>उन ग्राहकों की सूची जिनकी किस्तें लंबित (Pending) हैं</p> 
+            </div> 
+            <div class="badge badge-danger" style="padding: 10px 18px; font-size: 14px; border-radius: 10px;"> 
+                <i class="fas fa-bell-exclamation"></i> &nbsp;रिकवरी मोड एक्टिव </div> 
+        </div> 
+        <div class="container"> 
+            <div class="dashboard-card" style="border-top: 4px solid var(--danger);"> 
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--danger);"> 
+                    <i class="fas fa-user-clock"></i> डिफ़ॉल्टर / लेट किस्त वाले ग्राहक </h2> 
+                <div class="table-responsive"> 
+                    <table> 
+                        <thead> 
+                            <tr> 
+                                <th><i class="fas fa-id-badge"></i> ग्राहक ID / नाम</th> 
+                                <th><i class="fas fa-phone"></i> मोबाइल नंबर</th> 
+                                <th><i class="fas fa-coins"></i> दैनिक EMI</th> 
+                                <th><i class="fas fa-hand-holding-dollar"></i> कुल बकाया (Remaining)</th> 
+                                <th><i class="fas fa-calendar-times"></i> लोन की अवधि</th> 
+                                <th><i class="fas fa-bolt"></i> त्वरित कार्रवाई</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody id="dueList"> 
+                            <tr> 
+                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-light);"> 
+                                    <i class="fas fa-spinner fa-spin"></i> बकायेदारों की सूची लोड हो रही है... 
+                                </td> 
+                            </tr> 
+                        </tbody> 
+                    </table> 
+                </div> 
+            </div> 
+            <div style="margin-top: 20px;"> 
+                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);"> 
+                    <i class="fas fa-arrow-left"></i> डैशबोर्ड पर वापस जाएं 
+                </a> 
+            </div> 
+        </div> 
+        <div class="footer"> &copy; 2026 GDA Finance Services | Recovery Ledger </div> 
+    </div> 
+    <div class="bottom-nav"> 
+        <a href="index.html"><i class="fas fa-home"></i><span>होम</span></a> 
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>ग्राहक</span></a> 
+        <a href="collection.html"><i class="fas fa-hand-holding-usd"></i><span>कलेक्शन</span></a> <a href="report.html"><i class="fas fa-chart-line"></i><span>रिपोर्ट</span></a> 
+    </div> 
+    
+    <script type="module" src="due-customers.js"></script>
+</body> 
 </html>
