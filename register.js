@@ -10,28 +10,42 @@ window.addEventListener('DOMContentLoaded', async () => {
     let capturedImageData = null; 
 
     const loanAmountInput = document.getElementById("loanAmount");
-    const loanPlanSelect = document.getElementById("loanPlan"); // प्लान ड्रॉपडाउन
+    const loanPlanSelect = document.getElementById("loanPlan");
     const totalCollectionInput = document.getElementById("remainingAmount");
     const emiInput = document.getElementById("emi");
     const saveBtn = document.getElementById("saveBtn");
 
     /* ========================================= 
-    📸 1. लाइव कैमरा सेटअप (सुरक्षित लॉजिक)
+    📸 1. वीवो और एंड्रॉयड के लिए बैक कैमरा (Strict Rule)
     ========================================= */ 
     if (video) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+        // ब्राउज़र को मजबूर करना कि वो सिर्फ पीछे का ही कैमरा खोले
+        const constraints = {
+            video: { facingMode: { exact: "environment" } },
+            audio: false
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
             video.srcObject = stream;
         })
         .catch((err) => {
-            console.error("कैमरा एक्सेस एरर: ", err);
-            // मोबाइल ब्राउज़र सपोर्ट के लिए अल्टरनेटिव
-            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(stream => { video.srcObject = stream; })
-            .catch(e => console.log("कैमरा पूरी तरह ब्लॉक है।"));
+            console.warn("Exact back camera failed, trying normal environment...", err);
+            // Fallback 1: सामान्य एनवायरनमेंट ट्राई करें
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((e) => {
+                // Fallback 2: कोई भी कैमरा मिले उसे चालू कर दो
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
+            });
         });
     }
 
+    // फोटो कैप्चर बटन लॉजिक
     if (captureBtn) {
         captureBtn.onclick = () => {
             const context = canvas.getContext("2d");
@@ -48,6 +62,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    // दोबारा फोटो खींचने का लॉजिक
     if (reTakeBtn) {
         reTakeBtn.onclick = () => {
             capturedImageData = null;
@@ -59,11 +74,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     /* ========================================= 
-    🎯 2. ऑटोमैटिक कैलकुलेशन (60 दिन और 80 दिन दोनों के लिए)
+    🎯 2. लाइव ऑटो-कैलकुलेशन (60 और 80 दिन)
     ========================================= */ 
     function doCalculation() {
         const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value); // या तो 60 या 80 आएगा
+        const selectedPlan = Number(loanPlanSelect.value); // 60 या 80 दिन
 
         if (!loanAmount || loanAmount <= 0) {
             totalCollectionInput.value = "";
@@ -71,23 +86,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // सीधा नियम: 20% ब्याज जोड़ना (जैसे 10000 का 12000 बनाना)
+        // सीधा नियम: 20% ब्याज जोड़ना (जैसे 10000 का 12000)
         const totalCollection = loanAmount + (loanAmount * 0.20);
         
-        // चुने हुए प्लान के दिनों से भाग देकर डेली EMI निकालना (Total / 60 या Total / 80)
+        // प्लान के हिसाब से रोजाना की किस्त भाग देना (EMI)
         const dailyEmi = totalCollection / selectedPlan;
 
-        // इनपुट बॉक्स में वैल्यू सेट करना
+        // वैल्यू इनपुट बॉक्स में डालना
         totalCollectionInput.value = Math.round(totalCollection);
         emiInput.value = Math.round(dailyEmi);
     }
 
-    // जब अमाउंट टाइप करें या प्लान बदलें, दोनों समय कैलकुलेशन चले
     if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation);
     if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation);
 
     /* ========================================= 
-    💾 3. डेटाबेस में सुरक्षित करने का लॉजिक 
+    💾 3. फ़ायरबेस में डेटा सेव करने का लॉजिक 
     ========================================= */ 
     saveBtn.onclick = async () => {
         const name = document.getElementById("customerName").value.trim();
@@ -115,7 +129,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 address: address,
                 aadhaar: aadhaar,
                 loan: loanAmount,
-                planDays: planDays, // 60 या 80 दिन डेटाबेस में जाएगा
+                planDays: planDays,
                 emi: dailyEmi,
                 remainingAmount: totalCollection, 
                 customerPhoto: capturedImageData || "", 
