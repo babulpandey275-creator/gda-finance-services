@@ -1,5 +1,5 @@
 import { db } from "./firebase.js"; 
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
     const urlParams = new URLSearchParams(window.location.search); 
@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const lblMobile = document.getElementById("lblMobile"); 
     const lblAadhaar = document.getElementById("lblAadhaar"); 
     const lblAddress = document.getElementById("lblAddress"); 
-    const lblLoan = document.getElementById("lblLoan"); 
+    const lblLoan = document.getElementById("loan") || document.getElementById("lblLoan"); 
     const lblPlan = document.getElementById("lblPlan"); 
     const lblEmi = document.getElementById("lblEmi"); 
     const lblDate = document.getElementById("lblDate"); 
@@ -39,32 +39,31 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             const customer = docSnap.data(); 
 
-            // Basic details setting
             lblId.textContent = customer.member_id || `ID: ${custId.substring(0, 5)}...`; 
             lblName.textContent = customer.name || "-"; 
             lblMobile.textContent = customer.mobile || "-"; 
             lblAddress.textContent = customer.address || "-"; 
 
-            // Core Amounts Extraction
             const loanAmount = Number(customer.loanAmount || 0);
             const totalCollected = Number(customer.totalCollected || 0);
 
-            // Business Logic Calculations (10k -> 12k | 15k -> 18k)
+            // 20% Interest dynamic logic definition (15000 -> 18000)
             const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
             const dynamicRemaining = totalPayableWithInterest - totalCollected;
 
-            // UI Elements Rendering - Yahan humne Loan + Interest text add kiya hai taaki user confuse na ho
-            lblLoan.textContent = `₹${loanAmount} (+20% ब्याज = ₹${totalPayableWithInterest})`; 
+            // FIXED: Yahan ab direct total payable interest calculation (₹18000) show hoga
+            if (lblLoan) {
+                lblLoan.textContent = `₹${totalPayableWithInterest}`; 
+            }
+            
             lblPlan.textContent = `${customer.loanPlan || 0} Days`; 
             lblEmi.textContent = `₹${customer.emi || 0}`; 
             lblDate.textContent = customer.loanDate || "-"; 
             lblPaidDays.textContent = `${customer.paidDays || 0} दिन`; 
             lblTotalCollected.textContent = `₹${totalCollected}`; 
             
-            // Dynamic Remaining Amount set karne ka perfect logic
             lblRemaining.textContent = `₹${Math.max(0, Math.round(dynamicRemaining))}`; 
 
-            // FIXED: Ab Aadhaar Redacted nahi dikhega, asli number seedhe database se display hoga
             if (customer.aadhaarNumber && customer.aadhaarNumber !== "-") { 
                 lblAadhaar.textContent = customer.aadhaarNumber; 
             } else { 
@@ -77,7 +76,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             await loadCollectionHistory(); 
         } catch (error) { 
-            console.error("Error loading statement details:", error);
+            console.error("Error loading statement:", error);
             alert("डेटा लोड करने में तकनीकी समस्या आई है।"); 
         } 
     } 
@@ -121,17 +120,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { 
             collectionTableBody.innerHTML = `<tr><td colspan="4" style="color:red;">इतिहास लोड करने में समस्या आई।</td></tr>`; 
         } 
-    } 
-
-    const printBtn = document.getElementById("printBtn"); 
-    if (printBtn) printBtn.onclick = () => window.print(); 
-
-    const whatsappBtn = document.getElementById("whatsappBtn"); 
-    if (whatsappBtn) { 
-        whatsappBtn.onclick = () => { 
-            const text = `🏦 *GDA Finance Services*\n*Statement*\n\n👤 नाम: ${lblName.textContent}\n🆔 ID: ${lblId.textContent}\n🗓️ लोन तारीख: ${lblDate.textContent}\n💰 शेष बकाया: ${lblRemaining.textContent}`; 
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank'); 
-        }; 
     } 
 
     await loadCustomerStatement(); 
