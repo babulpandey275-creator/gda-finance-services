@@ -1,5 +1,5 @@
 import { db } from "./firebase.js"; 
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
 
@@ -16,10 +16,44 @@ window.addEventListener('DOMContentLoaded', async () => {
     const saveBtn = document.getElementById("saveBtn");
 
     /* ========================================= 
-    📸 1. वीवो और एंड्रॉयड के लिए बैक कैमरा (Strict Rule)
+    🆔 0. ऑटोमैटिक GDA ID जेनरेट करने का लॉजिक
+    ========================================= */ 
+    async function generateNextGdaId() {
+        try {
+            // 'customers' कलेक्शन से सबसे बड़ी member_id वाली आखिरी एंट्री उठाएं
+            const q = query(collection(db, "customers"), orderBy("member_id", "desc"), limit(1));
+            const querySnapshot = await getDocs(q);
+            
+            let nextNumber = 1; // अगर डेटाबेस खाली है, तो 001 से शुरू होगा
+
+            if (!querySnapshot.empty) {
+                const lastCustomer = querySnapshot.docs[0].data();
+                const lastId = lastCustomer.member_id; // उदाहरण के लिए: "GDA045"
+                
+                if (lastId && lastId.startsWith("GDA")) {
+                    // "GDA" को हटाकर सिर्फ नंबर निकालेंगे
+                    const lastNumberStr = lastId.replace("GDA", "");
+                    const lastNumber = parseInt(lastNumberStr, 10);
+                    
+                    if (!isNaN(lastNumber)) {
+                        nextNumber = lastNumber + 1; // पिछले नंबर में +1 करेंगे
+                    }
+                }
+            }
+
+            // नंबर को 3 डिजिट के फॉर्मेट में बदलेंगे (जैसे: 1 को 001, 12 को 012)
+            const formattedNumber = String(nextNumber).padStart(3, '0');
+            return `GDA${formattedNumber}`; // आउटपुट: GDA001, GDA002 आदि
+        } catch (error) {
+            console.error("Error generating GDA ID:", error);
+            return null;
+        }
+    }
+
+    /* ========================================= 
+    📸 1. वीवो और एंड्रॉयड के लिए बैक कामना (Strict Rule)
     ========================================= */ 
     if (video) {
-        // ब्राउज़र को मजबूर करना कि वो सिर्फ पीछे का ही कैमरा खोले
         const constraints = {
             video: { facingMode: { exact: "environment" } },
             audio: false
@@ -31,13 +65,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         })
         .catch((err) => {
             console.warn("Exact back camera failed, trying normal environment...", err);
-            // Fallback 1: सामान्य एनवायरनमेंट ट्राई करें
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
             .then((stream) => {
                 video.srcObject = stream;
             })
             .catch((e) => {
-                // Fallback 2: कोई भी कैमरा मिले उसे चालू कर दो
                 navigator.mediaDevices.getUserMedia({ video: true, audio: false })
                 .then(stream => { video.srcObject = stream; })
                 .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
@@ -86,13 +118,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // सीधा नियम: 20% ब्याज जोड़ना (जैसे 10000 का 12000)
-        const totalCollection = loanAmount + (loanAmount * 0.20);
-        
-        // प्लान के हिसाब से रोजाना की किस्त भाग देना (EMI)
+        const totalCollection = loanAmount + (loanAmount * 0.20); // 20% ब्याज
         const dailyEmi = totalCollection / selectedPlan;
 
-        // वैल्यू इनपुट बॉक्स में डालना
         totalCollectionInput.value = Math.round(totalCollection);
         emiInput.value = Math.round(dailyEmi);
     }
@@ -107,46 +135,53 @@ window.addEventListener('DOMContentLoaded', async () => {
         const name = document.getElementById("customerName").value.trim();
         const mobile = document.getElementById("mobileNumber").value.trim();
         const address = document.getElementById("address").value.trim();
-        const aadhaar = document.getElementById("aadhaarNumber").value.trim();
         const loanAmount = Number(loanAmountInput.value);
-        const planDays = Number(loanPlanSelect.value);
+        const selectedPlan = Number(loanPlanSelect.value);
+        const totalCollection = Number(totalCollectionInput.value);
+        const emi = Number(emiInput.value);
 
-        if (!name || !mobile || !address || !aadhaar || !loanAmount) {
-            alert("⚠️ कृपया सभी कॉलम सही-सही भरें!");
+        // बेसिक डेटा वैलिडेशन
+        if (!name || !mobile || !address || !loanAmount) {
+            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, लोन राशि) दर्ज करें!");
             return;
         }
 
-        const totalCollection = Math.round(loanAmount + (loanAmount * 0.20));
-        const dailyEmi = Math.round(totalCollection / planDays);
-
         try {
             saveBtn.disabled = true;
-            saveBtn.innerText = "सुरक्षित किया जा रहा है...";
+            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है...";
 
+            // ऑटो-ID जेनरेट करें (जैसे: GDA001)
+            const newMemberId = await generateNextGdaId();
+            if (!newMemberId) {
+                throw new Error("GDA ID जेनरेट नहीं हो सकी।");
+            }
+
+            // 'customers' कलेक्शन में डेटा सेव करना
             await addDoc(collection(db, "customers"), {
+                member_id: newMemberId, // आपकी नई सीरीज GDA001 यहाँ सेव होगी
                 name: name,
                 mobile: mobile,
                 address: address,
-                aadhaar: aadhaar,
-                loan: loanAmount,
-                planDays: planDays,
-                emi: dailyEmi,
-                remainingAmount: totalCollection, 
-                customerPhoto: capturedImageData || "", 
-                paidDays: 0,
+                loanAmount: loanAmount,
+                loanPlan: selectedPlan,
+                totalCollection: totalCollection,
+                remainingAmount: totalCollection, // शुरुआत में बकाया पूरा कलेक्शन होगा
                 totalCollected: 0,
+                emi: emi,
+                paidDays: 0,
                 status: "Active",
-                loanDate: new Date().toISOString().split('T')[0] 
+                customerPhoto: capturedImageData || null, // खींची हुई फोटो बेस64 फॉर्मेट में
+                createdAt: new Date().toISOString()
             });
 
-            alert("✅ ग्राहक का खाता सफलतापुर्वक खुल गया है!");
-            window.location.href = "customer-list.html";
+            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${newMemberId}`);
+            window.location.href = "customer-list.html"; // वापस कस्टमर लिस्ट पर भेजें
 
         } catch (error) {
-            console.error("सेव करने में एरर: ", error);
-            alert("डेटाबेस एरर: सुरक्षित नहीं हो सका।");
+            console.error("कस्टमर सेव करने में तकनीकी एरर:", error);
+            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।");
             saveBtn.disabled = false;
-            saveBtn.innerText = "💰 ग्राहक सुरक्षित करें";
+            saveBtn.innerText = "💾 ग्राहक सुरक्षित करें";
         }
     };
 });
