@@ -133,7 +133,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const address = document.getElementById("address").value.trim();
         const loanAmount = Number(loanAmountInput.value);
         const selectedPlan = Number(loanPlanSelect.value);
-        const totalCollection = Number(totalCollectionInput.value);
+        const totalCollection = Number(ttalCollectionInput.value);
         const emi = Number(emiInput.value);
 
         if (!name || !mobile || !address || !loanAmount) {
