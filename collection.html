@@ -1,52 +1,56 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Daily Collection</title> 
-    <style> 
-        body{ margin:0; padding:20px; background:#eef3f8; font-family:Arial,sans-serif; } 
-        .card{ max-width:450px; margin:auto; background:#fff; border-radius:15px; padding:20px; box-shadow:0 5px 15px rgba(0,0,0,.15); } 
-        .logo{ text-align:center; font-size:45px; } 
-        .company{ text-align:center; font-size:30px; color:#1565c0; font-weight:bold; } 
-        .heading{ text-align:center; font-size:22px; margin-bottom:20px; color:#333; } 
-        .info{ background:#f5f7fb; padding:12px; border-radius:10px; margin-bottom:10px; font-size:17px; } 
-        .info b{ color:#1565c0; } 
-        .emibox{ background:#e8f5e9; border:2px solid #28a745; color:#0b7a25; font-size:24px; text-align:center; padding:15px; border-radius:12px; font-weight:bold; margin:20px 0; } 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Collection - GDA Finance</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; padding: 20px; background: #eef3f8; font-family: Arial, sans-serif; }
+        .card { max-width: 450px; margin: auto; background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,.15); }
+        .heading { text-align: center; font-size: 24px; margin-bottom: 20px; color: #1565c0; font-weight: bold; }
+        label { font-size: 14px; font-weight: bold; color: #444; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; background: #f9f9f9; }
         
-        /* तारीख वाले लेबल के लिए स्टाइल */
-        .date-label { display: block; font-size: 15px; font-weight: bold; color: #555; margin-bottom: 5px; padding-left: 5px; }
+        .customer-info-box { background: #f0f4f8; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #1565c0; display: none; }
+        .info-p { margin: 5px 0; font-size: 14px; color: #333; }
         
-        input{ width:100%; padding:14px; font-size:18px; border-radius:10px; border:1px solid #ccc; margin-bottom:15px; box-sizing:border-box; } 
-        button{ width:100%; padding:15px; border:none; border-radius:10px; font-size:18px; cursor:pointer; font-weight:bold; } 
-        #saveBtn{ background:#28a745; color:white; } 
-        .statementBtn{ display:block; margin-top:15px; background:#1565c0; color:white; text-decoration:none; text-align:center; padding:15px; border-radius:10px; font-weight:bold; } 
-        .backBtn{ display:block; margin-top:15px; background:#555; color:white; text-decoration:none; text-align:center; padding:15px; border-radius:10px; font-weight:bold; } 
-    </style> 
-</head> 
-<body> 
-    <div class="card"> 
-        <div class="logo">🏦</div> 
-        <div class="company"> GDA Finance Services </div> 
-        <div class="heading"> Daily Collection </div> 
-        
-        <div class="info"> <b>Customer Name :</b> <span id="name"></span> </div> 
-        <div class="info"> <b>Loan Amount :</b> ₹<span id="loan"></span> </div> 
-        <div class="info"> <b>Remaining Amount :</b> ₹<span id="remaining"></span> </div> 
-        
-        <div class="emibox"> Today's EMI : ₹<span id="emi"></span> </div> 
-        
-        <label class="date-label" for="paymentDate">📅 कलेक्शन की तारीख (Collection Date):</label>
-        <input type="date" id="paymentDate">
-        
-        <input type="number" id="amount" placeholder="Enter Collection Amount"> 
-        
-        <button id="saveBtn"> 💰 Save Collection </button> 
-        
-        <a id="statementBtn" class="statementBtn" href="#"> 📄 View Statement </a> 
-        <a href="customer-list.html" class="backBtn"> ⬅ Back To Customer List </a> 
-    </div> 
+        button.collect-btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; font-weight: bold; background: #1565c0; color: white; }
+        .backBtn { display: block; margin-top: 15px; background: #555; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
 
-    <script type="module" src="collection.js"></script> 
-</body> 
+    <div class="card">
+        <div class="heading">💰 दैनिक किस्त कलेक्शन</div>
+
+        <form id="collectionForm" onsubmit="return false;">
+            <!-- 👤 एक्टिव ग्राहक चुनने की ड्रापडाउन लिस्ट -->
+            <label>ग्राहक चुनें (Select Customer):</label>
+            <select id="customerSelect" required>
+                <option value="" disabled selected>लोड हो रहा है, कृपया रुकें...</option>
+            </select>
+
+            <!-- 📊 चुने हुए ग्राहक की लाइव जानकारी यहाँ दिखेगी -->
+            <div id="customerDetailsBox" class="customer-info-box">
+                <p class="info-p"><strong>📦 रोज़ाना किस्त (EMI):</strong> <span id="txtEmi" style="color:#28a745; font-weight:bold;">₹0</span></p>
+                <p class="info-p"><strong>🔻 शेष बकाया राशि:</strong> <span id="txtRemaining" style="color:#dc3545; font-weight:bold;">₹0</span></p>
+                <p class="info-p"><strong>🗓️ कुल जमा दिन:</strong> <span id="txtPaidDays">0 दिन</span></p>
+            </div>
+
+            <!-- किस्त जमा करने की राशि -->
+            <label>जमा राशि (Amount to Collect):</label>
+            <input type="number" id="collectAmount" placeholder="किस्त राशि दर्ज करें" required>
+
+            <!-- कलेक्शन की तारीख (आज की तारीख डिफ़ॉल्ट रहेगी, पर बदल भी सकते हैं) -->
+            <label>कलेक्शन की तारीख (Date):</label>
+            <input type="date" id="collectionDate" required>
+
+            <button type="button" id="submitCollectionBtn" class="collect-btn">💸 किस्त जमा करें</button>
+            <a href="index.html" class="backBtn">⬅ डैशबोर्ड पर वापस जाएं</a>
+        </form>
+    </div>
+
+    <script type="module" src="collection.js"></script>
+</body>
 </html>
