@@ -2,7 +2,7 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
-    // 🛡️ सुरक्षा जांच 
+    // 🛡️ सुरक्षा जांच (लॉगिन चेक)
     if (localStorage.getItem("gdaLoggedIn") !== "true") { 
         window.location.href = "login.html"; 
         return; 
@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }; 
     } 
 
-    // लाइव डैशबोर्ड लोड करें 
+    // लाइव डैशबोर्ड डेटा लोड करें
     await loadDashboardData(); 
 }); 
 
@@ -27,15 +27,15 @@ async function loadDashboardData() {
     try { 
         const customerSnap = await getDocs(collection(db, "customers")); 
         const collectionSnap = await getDocs(collection(db, "collections")); 
-        
-        // Dynamic ISO format splitting to ensure synchronous server time matching
-        const todayStr = new Date().toISOString().split("T")[0]; 
-        
+
+        // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख (Format: YYYY-MM-DD)
+        const todayStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }); 
+
         let todayCollectionAmount = 0; 
         let dueCustomersCount = 0; 
         let activeAccountsCount = 0; 
 
-        // 1. आज की वसूली का हिसाब निकालना 
+        // 1. आज की वसूली का हिसाब (भारतीय समय के अनुसार)
         collectionSnap.forEach((docSnap) => { 
             const item = docSnap.data(); 
             if (item.date === todayStr) { 
@@ -43,35 +43,33 @@ async function loadDashboardData() {
             } 
         }); 
 
-        // 2. एडवांस्ड ड्यू और सक्रिय खातों का हिसाब निकालना (Fixed with 20% Interest Ratio Logic)
+        // 2. ड्यू लिस्ट और सक्रिय खातों का सटीक वित्तीय गणित
         customerSnap.forEach((docSnap) => { 
             const customer = docSnap.data(); 
-            
             if (customer.status !== "Closed") { 
                 activeAccountsCount++; 
 
                 if (customer.loanDate) { 
-                    const loanAmount = Number(customer.loanAmount || 0);
-                    const totalCollected = Number(customer.totalCollected || 0);
+                    const loanAmount = Number(customer.loanAmount || 0); 
+                    const totalCollected = Number(customer.totalCollected || 0); 
 
-                    // 10000 -> 12000 | 15000 -> 18000 dynamic validation matrix
-                    const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
-                    const dynamicRemaining = totalPayableWithInterest - totalCollected;
+                    // 20% ब्याज दर का गणित (₹10,000 -> ₹12,000)
+                    const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
+                    const dynamicRemaining = totalPayableWithInterest - totalCollected; 
 
                     const loanDate = new Date(customer.loanDate); 
                     const today = new Date(); 
-                    
-                    // लोन लिए कितने दिन बीत चुके हैं 
+
+                    // लोन लिए कितने दिन बीत चुके हैं
                     const passedDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)); 
                     const paidDays = Number(customer.paidDays || 0); 
                     const loanPlan = Number(customer.loanPlan || 60); 
 
-                    // FIXED: Using matching operational formula condition filters
-                    // स्थिति A: अगर लोन की अवधि (60/80 दिन) पार हो चुकी है 
+                    // स्थिति A: अगर प्लान अवधि (60 दिन) पार हो चुकी है और बैलेंस बाकी है
                     if (passedDays > loanPlan && dynamicRemaining > 0) { 
                         dueCustomersCount++; 
                     } 
-                    // स्थिति B: अवधि के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है 
+                    // स्थिति B: अवधि के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है
                     else { 
                         const missedDays = passedDays - paidDays; 
                         if (missedDays >= 3 && dynamicRemaining > 0) { 
@@ -82,14 +80,22 @@ async function loadDashboardData() {
             } 
         }); 
 
-        // 🖥️ छोटे लाइव डिब्बों में डेटा प्रिंट करना 
-        document.getElementById("miniTodayCollection").textContent = `₹${todayCollectionAmount}`; 
-        document.getElementById("miniDueCustomers").textContent = dueCustomersCount; 
-        document.getElementById("miniActiveAccounts").textContent = activeAccountsCount; 
+        // 🖥️ स्क्रीन के समरी कार्ड्स में डेटा दिखाना
+        if (document.getElementById("miniTodayCollection")) { 
+            document.getElementById("miniTodayCollection").textContent = `₹${todayCollectionAmount}`; 
+        } 
+        if (document.getElementById("miniDueCustomers")) { 
+            document.getElementById("miniDueCustomers").textContent = dueCustomersCount; 
+        } 
+        if (document.getElementById("miniActiveAccounts")) { 
+            document.getElementById("miniActiveAccounts").textContent = activeAccountsCount; 
+        } 
 
-        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज अपडेट करना 
+        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज (Badge) अपडेट करना
         const badgeDue = document.getElementById("badgeDue"); 
-        if (badgeDue) badgeDue.textContent = dueCustomersCount; 
+        if (badgeDue) {
+            badgeDue.textContent = dueCustomersCount; 
+        }
 
     } catch (err) { 
         console.error("डैशबोर्ड लाइव डेटा लोड करने में त्रुटि:", err); 
