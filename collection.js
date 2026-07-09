@@ -1,155 +1,146 @@
-import { db } from "./firebase.js"; 
-import { collection, getDocs, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { db } from "./firebase.js";
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-window.addEventListener('DOMContentLoaded', async () => { 
-    const customerSelect = document.getElementById("customerSelect"); 
-    const detailsBox = document.getElementById("customerDetailsBox"); 
-    const txtEmi = document.getElementById("txtEmi"); 
-    const txtRemaining = document.getElementById("txtRemaining"); 
-    const txtPaidDays = document.getElementById("txtPaidDays"); 
-    const collectAmountInput = document.getElementById("collectAmount"); 
-    const collectionDateInput = document.getElementById("collectionDate"); 
-    const submitBtn = document.getElementById("submitCollectionBtn"); 
-    
-    let allCustomersMap = {}; // सारे ग्राहकों का डेटा याद रखने के लिए अस्थायी तिजोरी 
+window.addEventListener('DOMContentLoaded', async () => {
+    const customerSelect = document.getElementById("customerSelect");
+    const customerDetailsBox = document.getElementById("customerDetailsBox");
+    const txtEmi = document.getElementById("txtEmi");
+    const txtRemaining = document.getElementById("txtRemaining");
+    const txtPaidDays = document.getElementById("txtPaidDays");
+    const collectAmount = document.getElementById("collectAmount");
+    const collectionDate = document.getElementById("collectionDate");
+    const submitCollectionBtn = document.getElementById("submitCollectionBtn");
 
-    // 📅 तारीख सेट करना (आज की तारीख ऑटोमैटिक इनपुट में आ जाएगी) 
-    const today = new Date().toISOString().split('T')[0]; 
-    collectionDateInput.value = today; 
+    // 1. डिफ़ॉल्ट रूप से आज की शुद्ध भारतीय तारीख (IST) सेट करना (YYYY-MM-DD)
+    const todayIST = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
+    if (collectionDate) collectionDate.value = todayIST;
 
-    /* ========================================= 👤 1. फ़ायरबेस से सभी एक्टिव ग्राहक लोड करना ========================================= */ 
-    async function loadActiveCustomers() { 
-        try { 
-            const snap = await getDocs(collection(db, "customers")); 
-            customerSelect.innerHTML = `<option value="" disabled selected>-- ग्राहक चुनें --</option>`; 
+    // URL से ग्राहक की ID निकालना (अगर लिस्ट से क्लिक करके आया हो)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCustId = urlParams.get('id');
+
+    let allCustomers = {};
+
+    // 2. डेटाबेस से सभी एक्टिव ग्राहकों को ड्रापडाउन में लोड करना
+    async function loadCustomersDropdown() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "customers"));
+            customerSelect.innerHTML = '<option value="" disabled selected>--- ग्राहक चुनें ---</option>';
             
-            if (snap.empty) { 
-                customerSelect.innerHTML = `<option value="" disabled>कोई सक्रिय ग्राहक नहीं मिला</option>`; 
-                return; 
-            } 
-            
-            snap.forEach((docSnap) => { 
-                const customer = docSnap.data(); 
-                // सिर्फ उन्हीं को दिखाओ जिनका खाता बंद (Closed) नहीं हुआ है 
-                if (customer.status !== "Closed") { 
-                    allCustomersMap[docSnap.id] = customer; 
-                    
-                    // ग्राहक की ID अगर GDA001 फॉर्मेट में है तो वही दिखाएं
-                    const displayId = customer.member_id || `ID: ${docSnap.id.substring(0, 5)}...`; 
-                    const option = document.createElement("option"); 
-                    option.value = docSnap.id; 
-                    option.textContent = `${customer.name} (${displayId})`; 
-                    customerSelect.appendChild(option); 
-                } 
-            }); 
-        } catch (error) { 
-            console.error("ग्राहक लिस्ट लोड करने में समस्या:", error); 
-            alert("⚠️ ग्राहक सूची लोड करने में समस्या आई। कृपया नेटवर्क चेक करें।"); 
-        } 
-    } 
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.status !== "Closed") {
+                    allCustomers[docSnap.id] = data;
+                    const option = document.createElement("option");
+                    option.value = docSnap.id;
+                    option.textContent = `${data.name} (${data.mobile || ''})`;
+                    customerSelect.appendChild(option);
+                }
+            });
 
-    /* ========================================= 📊 2. ग्राहक चुनते ही उसकी जानकारी स्क्रीन पर दिखाना ========================================= */ 
-    customerSelect.addEventListener("change", (e) => { 
-        const custId = e.target.value; 
-        const customer = allCustomersMap[custId]; 
+            // 3. अगर लिस्ट से ID आई है, तो उसे ऑटो-सिलेक्ट करना
+            if (urlCustId && allCustomers[urlCustId]) {
+                customerSelect.value = urlCustId;
+                showCustomerDetails(urlCustId);
+            }
+
+        } catch (err) {
+            console.error("कस्टमर लोड एरर:", err);
+            customerSelect.innerHTML = '<option value="" disabled>⚠️ डेटा लोड करने में एरर</option>';
+        }
+    }
+
+    // 4. चुने हुए ग्राहक की लाइव जानकारी स्क्रीन पर दिखाना
+    function showCustomerDetails(id) {
+        const cust = allCustomers[id];
+        if (!cust) return;
+
+        const baseLoan = Number(cust.loanAmount || 0);
+        const totalCollected = Number(cust.totalCollected || 0);
         
-        if (customer) { 
-            const emi = Number(customer.emi || 0); 
+        // 20% ब्याज दर का सही वित्तीय गणित
+        const totalPayable = baseLoan + (baseLoan * 0.20);
+        const remaining = totalPayable - totalCollected;
+
+        txtEmi.textContent = `₹${cust.dailyEmi || cust.emi || 0}`;
+        txtRemaining.textContent = `₹${remaining}`;
+        txtPaidDays.textContent = `${cust.paidDays || 0} दिन`;
+        
+        // ऑटो-फ़िल किस्त राशि (ताकि बार-बार टाइप न करना पड़े)
+        collectAmount.value = cust.dailyEmi || cust.emi || "";
+        
+        customerDetailsBox.style.display = "block";
+    }
+
+    // ड्रापडाउन चेंज होने पर डेटा बदलना
+    customerSelect.onchange = (e) => {
+        showCustomerDetails(e.target.value);
+    };
+
+    // 5. किस्त जमा करने का बटन क्लिक एक्शन
+    submitCollectionBtn.onclick = async (e) => {
+        e.preventDefault();
+        const selectedId = customerSelect.value;
+        const amount = Number(collectAmount.value);
+        const dateVal = collectionDate.value;
+
+        if (!selectedId) {
+            alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!");
+            return;
+        }
+        if (!amount || amount <= 0) {
+            alert("⚠️ कृपया सही किस्त राशि दर्ज करें!");
+            return;
+        }
+        if (!dateVal) {
+            alert("⚠️ कृपया कलेक्शन की तारीख चुनें!");
+            return;
+        }
+
+        try {
+            submitCollectionBtn.disabled = true;
+            submitCollectionBtn.innerText = "⏳ जमा हो रहा है...";
+
+            // A. कलेक्शन कलेक्शन टेबल में नई एंट्री जोड़ना
+            await addDoc(collection(db, "collections"), {
+                customerId: selectedId,
+                amount: amount,
+                date: dateVal,
+                note: "EMI Received",
+                timestamp: new Date()
+            });
+
+            // B. कस्टमर के खाते में कुल जमा, बकाया और दिन अपडेट करना
+            const custDocRef = doc(db, "customers", selectedId);
+            const custSnap = await getDoc(custDocRef);
             
-            // Dynamic check: 20% ratio system to ensure exact payable amount logic matches statement layout
-            const loanAmount = Number(customer.loanAmount || 0);
-            const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
-            const totalCollected = Number(customer.totalCollected || 0);
-            const remaining = totalPayableWithInterest - totalCollected;
-            
-            const paidDays = parseInt(customer.paidDays || 0, 10); 
+            if (custSnap.exists()) {
+                const custData = custSnap.data();
+                const newTotalCollected = Number(custData.totalCollected || 0) + amount;
+                const newPaidDays = Number(custData.paidDays || 0) + 1;
+                
+                const baseLoan = Number(custData.loanAmount || 0);
+                const totalPayable = baseLoan + (baseLoan * 0.20);
+                const newRemaining = totalPayable - newTotalCollected;
 
-            // वित्तीय डेटा को सुंदर और सटीक फॉर्मेट में दिखाना 
-            txtEmi.textContent = `₹${emi.toFixed(2)}`; 
-            txtRemaining.textContent = `₹${Math.max(0, remaining).toFixed(2)}`; 
-            txtPaidDays.textContent = `${paidDays} दिन`; 
+                await updateDoc(custDocRef, {
+                    totalCollected: newTotalCollected,
+                    remainingAmount: newRemaining,
+                    paidDays: newPaidDays
+                });
+            }
 
-            // डिफ़ॉल्ट रूप से उसकी रोज़ की किस्त की राशि इनपुट बॉक्स में खुद भर जाए 
-            collectAmountInput.value = emi; 
-            // जानकारी का बॉक्स दिखाएं 
-            detailsBox.style.display = "block"; 
-        } else { 
-            detailsBox.style.display = "none"; 
-        } 
-    }); 
+            alert("🎉 किस्त सफलतापूर्वक जमा हो गई है!");
+            window.location.href = "customer-list.html";
 
-    /* ========================================= 💸 3. किस्त जमा करने और फ़ायरबेस अपडेट करने का लॉजिक ========================================= */ 
-    submitBtn.onclick = async () => { 
-        const custId = customerSelect.value; 
-        const amount = Number(collectAmountInput.value); 
-        const selectDate = collectionDateInput.value; 
+        } catch (err) {
+            console.error("किस्त जमा एरर:", err);
+            alert("⚠️ किस्त जमा करने में तकनीकी समस्या आई।");
+            submitCollectionBtn.disabled = false;
+            submitCollectionBtn.innerText = "💸 किस्त जमा करें";
+        }
+    };
 
-        if (!custId) { 
-            alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!"); 
-            return; 
-        } 
-        if (isNaN(amount) || amount <= 0) { 
-            alert("⚠️ कृपया एक सही और वैध जमा राशि दर्ज करें!"); 
-            return; 
-        } 
-        if (!selectDate) { 
-            alert("⚠️ कृपया कलेक्शन की तारीख चुनें!"); 
-            return; 
-        } 
-
-        const customer = allCustomersMap[custId]; 
-        const loanAmount = Number(customer.loanAmount || 0);
-        const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
-        const totalCollected = Number(customer.totalCollected || 0);
-        const currentRemaining = totalPayableWithInterest - totalCollected;
-
-        if (amount > currentRemaining) { 
-            alert(`⚠️ चेतावनी: जमा राशि बकाया राशि (₹${currentRemaining.toFixed(2)}) से ज़्यादा नहीं हो सकती!`); 
-            return; 
-        } 
-
-        try { 
-            submitBtn.disabled = true; 
-            submitBtn.innerText = "⏳ किस्त जमा की जा रही है..."; 
-
-            // A. 'collections' कलेक्शन में नया रिकॉर्ड जोड़ना
-            // FIXED: Added customer mobile field to ensure layout mapping contains data rows correctly
-            await addDoc(collection(db, "collections"), { 
-                customerId: custId, 
-                memberId: customer.member_id || "", 
-                customerName: customer.name, 
-                customerMobile: customer.mobile || "-", // FIXED: Added to remove empty hyphens from logs
-                amount: amount, 
-                date: selectDate, 
-                createdAt: new Date().toISOString() 
-            }); 
-
-            // B. 'customers' कलेक्शन में ग्राहक का बैलेंस अपडेट करना 
-            const newTotalCollected = Number((totalCollected + amount).toFixed(2)); 
-            const newRemaining = Number((totalPayableWithInterest - newTotalCollected).toFixed(2)); 
-            const newPaidDays = parseInt(customer.paidDays || 0, 10) + 1; 
-
-            // अगर पूरा पैसा वसूल हो गया तो स्टेटस खुद Closed हो जाए 
-            const newStatus = newRemaining <= 0 ? "Closed" : "Active"; 
-            const custDocRef = doc(db, "customers", custId); 
-            
-            await updateDoc(custDocRef, { 
-                remainingAmount: newRemaining, 
-                totalCollected: newTotalCollected, 
-                paidDays: newPaidDays, 
-                status: newStatus 
-            }); 
-
-            alert(`🎉 ${customer.name} की ₹${amount} की किस्त सफलतापूर्वक जमा हो गई है!`); 
-            window.location.href = `statement.html?id=${custId}`; 
-        } catch (error) { 
-            console.error("किस्त जमा करने में तकनीकी एरर:", error); 
-            alert("⚠️ नेटवर्क या डेटाबेस समस्या के कारण किस्त सुरक्षित नहीं हो सकी। कृपया दोबारा प्रयास करें।"); 
-            submitBtn.disabled = false; 
-            submitBtn.innerText = "💸 किस्त जमा करें"; 
-        } 
-    }; 
-
-    // पेज लोड होते ही रन करें 
-    await loadActiveCustomers(); 
+    // रन करें
+    await loadCustomersDropdown();
 });
