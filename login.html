@@ -1,70 +1,150 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - GDA Finance Services</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body{
-            background:#f5f7fb;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-            margin:0;
-            font-family:Arial,sans-serif;
-        }
-        .login-box{
-            background:#fff;
-            width:340px;
-            padding:25px;
-            border-radius:12px;
-            box-shadow:0 5px 20px rgba(0,0,0,.15);
-        }
-        h2{
-            text-align:center;
-            color:#0b57d0;
-        }
-        input{
-            width:100%;
-            padding:12px;
-            margin:10px 0;
-            border:1px solid #ccc;
-            border-radius:8px;
-            box-sizing:border-box;
-        }
-        button{
-            width:100%;
-            padding:12px;
-            border:none;
-            border-radius:8px;
-            background:#0b57d0;
-            color:#fff;
-            font-size:16px;
-            cursor:pointer;
-        }
-        button:hover{
-            background:#0847a6;
-        }
-        #error{
-            color:red;
-            text-align:center;
-            margin-top:10px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="login-box">
-        <h2>🔐 Admin Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
+<!DOCTYPE html> 
+<html lang="hi"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Admin Login - GDA Finance Services</title> 
+    <link rel="stylesheet" href="style.css"> 
+    <style> 
+        * { box-sizing: border-box; }
         
-        <button id="loginBtn">Login</button>
-        <p id="error"></p>
-    </div>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            /* 🌌 प्रीमियम गहरा फ़ाइनेंस 8K ग्रेडिएंट बैकग्राउंड */
+            background: linear-gradient(135deg, #090d16 0%, #0f172a 40%, #1e3a8a 100%); 
+            overflow: hidden; 
+            position: relative; 
+            font-family: Arial, sans-serif;
+        } 
 
-    <script type="module" src="login.js"></script>
-</body>
+        /* बैकग्राउंड में तैरते हुए दो सुंदर 3D ग्लोइंग इफेक्ट्स */
+        body::before, body::after {
+            content: "";
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        body::before { background: linear-gradient(45deg, #1e40af, #0d9488); top: -10%; left: -10%; opacity: 0.4; filter: blur(80px); }
+        body::after { background: linear-gradient(45deg, #b45309, #1e3a8a); bottom: -10%; right: -10%; opacity: 0.3; filter: blur(90px); }
+
+        .login-box { 
+            position: relative;
+            z-index: 2;
+            /* ✨ लक्ज़री कांच जैसा चमकदार (Glassmorphism) कार्ड */
+            background: rgba(255, 255, 255, 0.07); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            width: 350px; 
+            padding: 35px 25px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); 
+            text-align: center;
+        } 
+
+        .app-logo {
+            font-size: 36px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        h2 { 
+            margin: 0 0 5px 0;
+            color: #ffffff; 
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        } 
+
+        .sub-title {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        /* 👤 🔑 इनपुट बॉक्स स्टाइल */
+        input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            margin: 12px 0; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 10px; 
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        } 
+
+        /* इनपुट बॉक्स पर क्लिक करने पर ग्लो इफेक्ट */
+        input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        /* 🔥 शानदार वीआईपी ब्लू-गोल्डन ग्लोइंग बटन */
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 10px; 
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); 
+            color: #fff; 
+            font-size: 16px; 
+            font-weight: bold;
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        } 
+
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
+        } 
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #error { 
+            color: #f87171; 
+            text-align: center; 
+            margin-top: 15px; 
+            font-size: 14px;
+            font-weight: 600;
+        } 
+    </style> 
+</head> 
+<body> 
+
+    <div class="login-box"> 
+        <div class="app-logo">🏦</div>
+        <h2>GDA Finance</h2> 
+        <div class="sub-title">🔒 Admin Control Panel</div>
+        
+        <input type="text" id="username" placeholder="Username" required autocomplete="off"> 
+        <input type="password" id="password" placeholder="Password" required> 
+        
+        <button id="loginBtn">Secure Login</button> 
+        <p id="error"></p> 
+    </div> 
+
+    <script type="module" src="login.js"></script> 
+</body> 
 </html>
