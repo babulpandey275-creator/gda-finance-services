@@ -9,6 +9,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         return; 
     } 
 
+    // 🇮🇳 टाइमज़ोन से बचने के लिए भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD)
+    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+    const yyyy = todayParts.find(p => p.type === 'year').value;
+    const mm = todayParts.find(p => p.type === 'month').value;
+    const dd = todayParts.find(p => p.type === 'day').value;
+    const todayIST = `${yyyy}-${mm}-${dd}`;
+
     async function loadFullStatement() { 
         try { 
             const custDoc = await getDoc(doc(db, "customers", custId)); 
@@ -17,30 +25,39 @@ window.addEventListener('DOMContentLoaded', async () => {
                 return; 
             } 
             const cust = custDoc.data(); 
+            
             document.getElementById("lblName").innerText = cust.name || "-"; 
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase(); 
             document.getElementById("lblMobile").innerText = cust.mobile || "-"; 
             
-            // आधार फ़ील्ड डिस्प्ले मास्क/सुरक्षित रेंडरिंग
+            // आधार फ़ील्ड सुरक्षित रेंडरिंग (बिना डिजिट्स को दोहराए)
             const rawAadhar = cust.aadharCard || cust.aadhar || "-"; 
-            document.getElementById("lblAadhar").innerText = rawAadhar; 
-            
+            const aadharElem = document.getElementById("lblAadhar");
+            if (aadharElem) aadharElem.innerText = rawAadhar; 
+
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-"; 
             document.getElementById("lblAddress").innerText = cust.address || "-"; 
+            
             const baseLoan = Number(cust.loanAmount) || 0; 
             document.getElementById("lblLoanAmount").innerText = `₹${baseLoan}`; 
+            
             const rawDuration = cust.planDuration || cust.duration || "60"; 
             document.getElementById("lblPlan").innerText = rawDuration.toString().includes("Days") ? rawDuration : `${rawDuration} Days`; 
-            document.getElementById("lblEmi").innerText = `₹${cust.dailyEmi || cust.emi || 0}`; 
+            
+            const emi = Number(cust.dailyEmi || cust.emi || 0);
+            document.getElementById("lblEmi").innerText = `₹${emi}`; 
             document.getElementById("lblLoanDate").innerText = cust.loanDate || "-"; 
+            
             if (cust.customerPhoto) document.getElementById("custPhoto").src = cust.customerPhoto; 
 
+            // कलेक्शन हिस्ट्री लोड करना
             let totalCollected = 0; 
             let rowsHtml = ""; 
             const colRef = collection(db, "collections"); 
             const q = query(colRef, where("customerId", "==", custId)); 
             const querySnapshot = await getDocs(q); 
             let logs = []; 
+            
             querySnapshot.forEach(d => logs.push({ colId: d.id, ...d.data() })); 
             logs.sort((a,b) => new Date(b.date) - new Date(a.date)); 
 
@@ -57,70 +74,56 @@ window.addEventListener('DOMContentLoaded', async () => {
             const paidDaysCount = logs.length; 
             document.getElementById("lblPaidDays").innerText = `${paidDaysCount} दिन`; 
             document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`; 
+
             const totalWithInterest = baseLoan + (baseLoan * 0.20); 
-            const finalRemain = totalWithInterest - totalCollected; 
-            document.getElementById("lblRemaining").innerText = `₹${finalRemain}`; 
+            const dynamicRemaining = totalWithInterest - totalCollected; 
+
+            // 🧮 1. गैप दिन (लंबित दिन) और लेट फाइन (Penalty) का लाइव गणित
+            let gapDays = 0;
+            let penaltyAmount = 0;
+
+            if ((cust.status || "Active") === "Active" && cust.loanDate && cust.loanDate < todayIST) {
+                const date1 = new Date(todayIST);
+                const date2 = new Date(cust.loanDate);
+                const diffTime = Math.abs(date1 - date2);
+                const totalDaysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                gapDays = totalDaysPassed - paidDaysCount;
+                if (gapDays < 0) gapDays = 0;
+
+                // प्रतिशत नियम: 60-80 दिन पर 10% रोज, 80+ दिन पर 15% रोज
+                if (gapDays > 60 && gapDays <= 80) {
+                    penaltyAmount = (gapDays - 60) * (emi * 0.10);
+                } else if (gapDays > 80) {
+                    penaltyAmount = (20 * (emi * 0.10)) + ((gapDays - 80) * (emi * 0.15));
+                }
+            }
+
+            const finalPayableNow = dynamicRemaining + penaltyAmount;
+
+            // स्क्रीन पर कुल देय राशि और गैप दिन रेंडर करना
+            document.getElementById("lblRemaining").innerText = `₹${Math.round(finalPayableNow)}`;
+
+            // यदि एचटीएमएल में गैप दिन या फाइन के एलिमेंट्स नहीं भी हैं, तो उन्हें ढूंढकर सेट करना या बनाना
+            let gapRow = document.getElementById("lblGapDaysRow");
+            if (!gapRow) {
+                const summaryDiv = document.getElementById("lblRemaining").parentElement.parentElement;
+                gapRow = document.createElement("div");
+                gapRow.id = "lblGapDaysRow";
+                gapRow.style = "display:flex; flex-direction:column; gap:4px; margin-top:8px; font-size:13px; font-weight:500; color:#d32f2f;";
+                summaryDiv.appendChild(gapRow);
+            }
+            
+            if (penaltyAmount > 0) {
+                gapRow.innerHTML = `<span>⚠️ कुल बकाया (गैप) दिन: <b>${gapDays} दिन</b></span>
+                                    <span>🔥 कुल शामिल लेट फाइन: <b>₹${Math.round(penaltyAmount)}</b></span>`;
+            } else {
+                gapRow.innerHTML = `<span style="color:#2e7d32;">✅ कुल बकाया (गैप) दिन: <b>${gapDays} दिन</b></span>`;
+            }
+
             document.getElementById("historyRows").innerHTML = rowsHtml; 
 
-            // 🎯 [सुधार]: यहाँ अब डिलीट करने पर तीनों वैल्यूज़ (Remaining, Total Collected, Paid Days) ऑटो-अपडेट होंगी
+            // 🗑️ किस्त लॉग डिलीट करने का सिस्टम
             document.querySelectorAll(".btn-row-del").forEach(btn => { 
                 btn.onclick = async (e) => { 
-                    e.stopPropagation(); 
-                    const colId = e.currentTarget.getAttribute("data-colid"); 
-                    const amt = Number(e.currentTarget.getAttribute("data-amount")); 
-                    const adminPassword = prompt("🔐 सुरक्षा लॉक: एंट्री डिलीट करने के लिए एडमिन पासवर्ड डालें:"); 
-                    
-                    if (adminPassword === "GDA@2026") { 
-                        if (confirm(`⚠️ क्या आप सच में ₹${amt} की यह किस्त डिलीट करना चाहते हैं?`)) { 
-                            try { 
-                                // 1. कलेक्शन लॉग से डिलीट करें
-                                await deleteDoc(doc(db, "collections", colId)); 
-
-                                // 2. नए सही हिसाब की गणना करें
-                                const updatedCollected = totalCollected - amt; 
-                                const newRemaining = totalWithInterest - updatedCollected; 
-                                const newPaidDays = paidDaysCount - 1; // 1 दिन कम करें
-
-                                // 3. कस्टमर के मास्टर रिकॉर्ड में तीनों वैल्यू एक साथ अपडेट करें
-                                await updateDoc(doc(db, "customers", custId), { 
-                                    remainingAmount: newRemaining,
-                                    totalCollected: updatedCollected,
-                                    paidDays: newPaidDays >= 0 ? newPaidDays : 0
-                                }); 
-
-                                alert("🗑️ किस्त डिलीट हो गई और ग्राहक का खाता अपडेट कर दिया गया है!"); 
-                                loadFullStatement(); 
-                            } catch (err) { 
-                                alert("⚠️ एरर आया।"); 
-                            } 
-                        } 
-                    } else if (adminPassword !== null) { 
-                        alert("❌ गलत पासवर्ड!"); 
-                    } 
-                }; 
-            }); 
-
-            document.getElementById("btnPdf").onclick = () => { 
-                window.print(); 
-            }; 
-
-            document.getElementById("btnWhatsapp").onclick = () => { 
-                let historyText = ""; 
-                if (logs.length > 0) { 
-                    logs.forEach((log, index) => { 
-                        const displayIndex = logs.length - index; 
-                        historyText += `\n${displayIndex}. 🗓️ ${log.date} ➡️ ₹${log.amount}`; 
-                    }); 
-                } else { 
-                    historyText = "\nकोई किस्त विवरण नहीं है।"; 
-                } 
-                const msg = encodeURIComponent(`🏦 *GDA Finance Services*\n*Account Statement*\n\n👤 *नाम:* ${cust.name}\n🆔 *ID:* ${cust.customerCode || 'GDA'}\n🗓️ *लोन तारीख:* ${cust.loanDate || '-'}\n💵 *कुल लोन राशि:* ₹${baseLoan}\n✅ *कुल प्राप्त दिन:* ${paidDaysCount} दिन\n💰 *कुल जमा राशि:* ₹${totalCollected}\n🔻 *शेष बकाया:* ₹${finalRemain}\n\n📊 *किस्त जमा इतिहास (History):*${historyText}`); 
-                window.open(`https://api.whatsapp.com/send?phone=91${cust.mobile}&text=${msg}`); 
-            }; 
-        } catch (err) { 
-            console.error(err); 
-            document.getElementById("historyRows").innerHTML = "<tr><td colspan='4'>डेटा लोड एरर!</td></tr>"; 
-        } 
-    } 
-    loadFullStatement(); 
-});
+                    e.stopPropagation();
