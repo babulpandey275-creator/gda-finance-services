@@ -9,9 +9,13 @@ async function loadDueCustomers() {
         const snapshot = await getDocs(collection(db, "customers")); 
         list.innerHTML = ""; 
         
-        // 🗓️ आज की तारीख की शुरुआत (00:00:00) सेट की ताकि समय का अंतर बाधा न बने
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // 🇮🇳 टाइमज़ोन बग से बचने के लिए भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD फॉर्मेट)
+        const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+        const yyyy = todayParts.find(p => p.type === 'year').value;
+        const mm = todayParts.find(p => p.type === 'month').value;
+        const dd = todayParts.find(p => p.type === 'day').value;
+        const todayIST = `${yyyy}-${mm}-${dd}`;
         
         let hasDueCustomers = false; 
 
@@ -19,28 +23,26 @@ async function loadDueCustomers() {
             const c = docSnap.data(); 
             if (!c.loanDate || c.status === "Closed") return; 
 
-            // लोन की तारीख को पढ़ें और उसका समय भी 00:00:00 करें
-            const loanDate = new Date(c.loanDate); 
-            loanDate.setHours(0, 0, 0, 0); 
-
-            // 🚨 मुख्य सुधार: अगर आपने डेट आगे बढ़ाकर आज की या भविष्य की कर दी है, 
-            // तो इसका मतलब आज उसका पहला दिन है या अभी लोन शुरू नहीं हुआ है, इसलिए वह ड्यू लिस्ट में नहीं आएगा।
-            if (loanDate >= today) {
-                return; // इस ग्राहक को छोड़ दो, यह ड्यू नहीं है
+            // 🚨 नियम 1: अगर लोन की तारीख आज की है या आगे की है, तो वह आज ड्यू नहीं हो सकता (लिस्ट से तुरंत बाहर)
+            if (c.loanDate >= todayIST) {
+                return; 
             }
+
+            // 🚨 नियम 2: टाइमज़ोन के लूपहोल से बचने के लिए सीधा तारीखों का शुद्ध अंतर (Miliseconds में)
+            const date1 = new Date(todayIST);
+            const date2 = new Date(c.loanDate);
+            const diffTime = Math.abs(date1 - date2);
+            const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            const paidDays = Number(c.paidDays || 0);
+            const dueDays = totalDays - paidDays; 
 
             const loanAmount = Number(c.loanAmount || 0); 
             const totalCollected = Number(c.totalCollected || 0); 
             const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
             const dynamicRemaining = totalPayableWithInterest - totalCollected; 
 
-            // बीते दिनों का सही अंतर
-            const diffTime = today - loanDate; 
-            const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-            const paidDays = Number(c.paidDays || 0); 
-            const dueDays = totalDays - paidDays; 
-
-            // यदि सच में दिन बकाया हैं और बैलेंस बाकी है, तभी लिस्ट में दिखेगा
+            // यदि सचमुच दिन बकाया हैं और बैलेंस बाकी है, तभी लिस्ट में दिखेगा
             if (dueDays > 0 && dynamicRemaining > 0) { 
                 hasDueCustomers = true; 
                 const emi = Number(c.emi || 0); 
