@@ -32,19 +32,19 @@ async function loadDashboardData() {
         const collectionSnap = await getDocs(collection(db, "collections")); 
 
         // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख (Format: YYYY-MM-DD) 
-        const todayStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }); 
+        const todayStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }).trim(); 
         
         let todayCollectionAmount = 0; 
         let dueCustomersCount = 0; 
         let activeAccountsCount = 0; 
 
-        // 1. आज की वसूली का हिसाब (मजबूत तारीख मिलान लॉजिक के साथ) 
+        // 1. आज की वसूली का हिसाब (सुपर मजबूत तारीख मिलान) 
         collectionSnap.forEach((docSnap) => { 
             const item = docSnap.data(); 
             let colDateStr = "";
 
             if (item.date) {
-                // अगर तारीख Firebase Timestamp है
+                // अगर तारीख Firebase Timestamp ऑब्जेक्ट है
                 if (item.date.toDate) {
                     colDateStr = item.date.toDate().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
                 } 
@@ -52,14 +52,19 @@ async function loadDashboardData() {
                 else if (item.date.seconds) {
                     colDateStr = new Date(item.date.seconds * 1000).toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
                 } 
-                // अगर तारीख सीधा टेक्स्ट (String) है, तो समय का हिस्सा हटाकर सिर्फ YYYY-MM-DD लें
+                // अगर तारीख टेक्स्ट (String) है, तो उसमें से केवल YYYY-MM-DD वाला हिस्सा छांट कर निकालें
                 else {
-                    colDateStr = String(item.date).split(" ")[0].split("T")[0];
+                    const match = String(item.date).match(/\d{4}-\d{2}-\d{2}/);
+                    if (match) {
+                        colDateStr = match[0];
+                    } else {
+                        colDateStr = String(item.date).trim();
+                    }
                 }
             }
 
-            // 🎯 अब शुद्ध तारीख को आज की तारीख से मैच करें
-            if (colDateStr === todayStr) { 
+            // दोनों तरफ के एक्स्ट्रा स्पेस हटाकर पक्का मिलान करें
+            if (colDateStr.trim() === todayStr) { 
                 todayCollectionAmount += Number(item.amount || 0); 
             } 
         }); 
@@ -123,7 +128,6 @@ async function loadDashboardData() {
 
 // ⚙️ खुद से मोबाइल द्वारा पासवर्ड बदलने का जादुई फंक्शन
 function initPasswordChangeLogic() {
-    // अगर स्क्रीन पर बटन नहीं है, तो हम नीचे एक सुंदर बटन खुद ही जोड़ देते हैं
     if (!document.getElementById("btnOpenPassChange")) {
         const btnContainer = document.createElement("div");
         btnContainer.style.cssText = "text-align: center; margin: 30px 0; padding: 0 15px;";
@@ -134,16 +138,13 @@ function initPasswordChangeLogic() {
         changePassBtn.style.cssText = "background: linear-gradient(135deg, #475569 0%, #334155 100%); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: all 0.3s;";
         
         btnContainer.appendChild(changePassBtn);
-        // इसे पेज के मुख्य कंटेनर या बॉडी में सबसे नीचे जोड़ें
         document.body.appendChild(btnContainer);
     }
 
     document.getElementById("btnOpenPassChange").onclick = function() {
-        // 1. सुरक्षा के लिए पुराना पासवर्ड मांगना
         const oldPass = prompt("सुरक्षा जांच: अपना मौजूदा (पुराना) पासवर्ड डालें:");
         if (!oldPass) return;
 
-        // डिफ़ॉल्ट पासवर्ड जो भी आपकी login.js में था (जैसे 'gda123')
         const currentSavedPass = localStorage.getItem("appPassword") || "gda123"; 
 
         if (oldPass !== currentSavedPass) {
@@ -151,15 +152,11 @@ function initPasswordChangeLogic() {
             return;
         }
 
-        // 2. नया यूज़रनेम पूछना
         const currentSavedUser = localStorage.getItem("appUsername") || "admin";
         const newUser = prompt("नया यूज़रनेम डालें (पुराना रखने के लिए इसे ऐसे ही छोड़ दें):", currentSavedUser);
-        
-        // 3. नया पासवर्ड पूछना
         const newPass = prompt("अब अपना नया सीक्रेट पासवर्ड दर्ज करें:");
 
         if (newUser && newPass && newPass.trim() !== "") {
-            // 💾 फ़ोन की लोकल मेमोरी में हमेशा के लिए सुरक्षित सेव करें
             localStorage.setItem("appUsername", newUser.trim());
             localStorage.setItem("appPassword", newPass.trim());
             alert("🎉 मुबारक हो भाई! आपका नया यूज़रनेम और पासवर्ड सेव हो गया है। अगली बार से इसी नए पासवर्ड से ऐप खुलेगी।");
