@@ -16,6 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const todayIST = `${yyyy}-${mm}-${dd}`;
 
     try {
+        // 1. एक्टिव ग्राहकों से टारगेट निकालना
         const custSnapshot = await getDocs(collection(db, "customers"));
         let activeCount = 0;
         let totalDemand = 0;
@@ -25,26 +26,32 @@ window.addEventListener('DOMContentLoaded', async () => {
             const cust = docSnap.data();
             if ((cust.status || "Active") === "Active") {
                 activeCount++;
-                totalDemand += Number(cust.dailyEmi || cust.emi || 0);
+                totalDemand += Number(cust.dailyEmi || cust.emi || cust.amount || 0);
                 activeCustomers.push({ id: docSnap.id, ...cust });
             }
         });
 
+        // 2. आज की वसूली निकालना
         const collectSnapshot = await getDocs(collection(db, "collections"));
         let todayCollectedSum = 0;
         let paidCustomerIds = new Set();
 
         collectSnapshot.forEach(docSnap => {
             const col = docSnap.data();
-            if (col.date === todayIST) {
+            
+            // तारीख मैच करने का फुल-प्रूफ तरीका
+            if (col.date === todayIST || (col.createdAt && col.createdAt.includes(todayIST))) {
                 todayCollectedSum += Number(col.amount || 0);
-                const cId = col.customerId || col.id;
+                
+                // ग्राहक की आईडी निकालने के सभी संभावित नाम चेक करें
+                const cId = col.customerId || col.custObjId || col.id || col.customerID;
                 if (cId) {
                     paidCustomerIds.add(cId);
                 }
             }
         });
 
+        // 3. आज चूक गए ग्राहकों की संख्या
         let missedCustCount = 0;
         activeCustomers.forEach(cust => {
             if (!paidCustomerIds.has(cust.id)) {
@@ -52,19 +59,17 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 🔥 यहाँ सुधार किया: आज का ड्यू = कुल टारगेट - आज की वसूली
+        // 4. आज की बकाया ड्यू राशि (टारगेट - वसूली)
         const todayMissedSum = totalDemand - todayCollectedSum;
 
-        // 🖥️ UI पर एकदम सीधा और सही डेटा दिखाना
+        // 🖥️ UI पर एकदम सही रेंडरिंग
         if (txtTodayCollected) {
-            // अब यह सही दिखाएगा: ₹1700 / ₹2200
             txtTodayCollected.innerText = `₹${todayCollectedSum} / ₹${totalDemand}`;
         }
         if (txtTodayDemand) {
             txtTodayDemand.innerText = `₹${totalDemand}`;
         }
         if (txtTodayMissed) {
-            // अब यहाँ सही बकाया दिखेगा: ₹500
             txtTodayMissed.innerText = `₹${todayMissedSum > 0 ? todayMissedSum : 0}`;
         }
         if (txtActiveAccounts) {
