@@ -13,6 +13,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtCollection = document.getElementById("txtCollection"); 
     const txtExpenses = document.getElementById("txtExpenses"); 
     const txtNewCustomers = document.getElementById("txtNewCustomers"); 
+    
+    // 🎯 [नया फ़ीचर]: मुनाफे को स्क्रीन पर दिखाने वाले एलिमेंट्स
+    const txtInterestEarned = document.getElementById("txtInterestEarned"); 
+    const txtNetProfit = document.getElementById("txtNetProfit"); 
 
     let allCustomers = []; 
     let allCollections = []; 
@@ -53,7 +57,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else {
             const cleanStr = String(dateVal).replace(/\//g, '-').trim();
             if (cleanStr.includes('-') && cleanStr.split('-')[0].length === 4) {
-                return cleanStr.split(' ')[0]; // पहले से YYYY-MM-DD है
+                return cleanStr.split(' ')[0]; 
             }
             dObj = new Date(cleanStr);
         }
@@ -71,7 +75,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     function calculateReport(type) { 
         const nowObj = new Date();
         const nowParts = new Intl.DateTimeFormat('en-US', options).formatToParts(nowObj);
-        const currentMonth = parseInt(nowParts.find(p => p.type === 'month').value) - 1; // 0-11
+        const currentMonth = parseInt(nowParts.find(p => p.type === 'month').value) - 1; 
         const currentYear = parseInt(nowParts.find(p => p.type === 'year').value);
 
         const targetDailyDate = inpReportDate ? inpReportDate.value : todayIST; 
@@ -173,10 +177,26 @@ window.addEventListener('DOMContentLoaded', async () => {
             } 
         }); 
 
+        // 🎯 [वित्तीय गणित - प्रॉफिट लॉजिक]: 
+        // कुल कलेक्शन का 1/6 हिस्सा (16.66%) ब्याज की शुद्ध कमाई है।
+        const interestEarned = Math.round(totalCollected / 6);
+        const netProfit = interestEarned - totalExp;
+
+        // UI पर पुरानी वैल्यूज दिखाना
         txtDisbursement.textContent = `₹${totalDisbursed}`; 
         txtCollection.textContent = `₹${totalCollected}`; 
         txtExpenses.textContent = `₹${totalExp}`; 
         txtNewCustomers.textContent = newCustCount; 
+
+        // 🖥️ UI पर नए प्रॉफिट फ़ील्ड्स को रेंडर करना
+        if (txtInterestEarned) {
+            txtInterestEarned.textContent = `₹${interestEarned}`;
+        }
+        if (txtNetProfit) {
+            txtNetProfit.textContent = `₹${netProfit}`;
+            // मुनाफे के अनुसार रंग बदलना (प्लस में हरा, माइनस में लाल)
+            txtNetProfit.style.color = netProfit >= 0 ? "#22c55e" : "#ef4444";
+        }
     } 
 
     // 🔘 बटन क्लिक इवेंट्स 
