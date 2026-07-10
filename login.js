@@ -1,7 +1,7 @@
 // firebase.js से db और auth दोनों को इम्पोर्ट किया
-import { db, auth } from "./firebase.js"; 
+import { db, auth } from "./firebase.js";
 // फायरबेस का लॉगिन फंक्शन इम्पोर्ट किया
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js"; 
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 window.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById("loginBtn");
@@ -9,8 +9,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (loginBtn) {
         loginBtn.onclick = async () => {
-            const username = document.getElementById("username").value.trim(); // यहाँ अपनी ईमेल आईडी डालें
-            const password = document.getElementById("password").value.trim(); // यहाँ अपना पासवर्ड डालें
+            const username = document.getElementById("username").value.trim(); // ईमेल आईडी
+            const password = document.getElementById("password").value.trim(); // पासवर्ड
 
             if (errorEl) errorEl.innerText = ""; // पुराना एरर साफ करें
 
@@ -24,7 +24,7 @@ window.addEventListener('DOMContentLoaded', () => {
             if (errorEl) errorEl.innerText = "⏳ लॉग इन हो रहा है, कृपया प्रतीक्षा करें...";
 
             try {
-                // 🔐 असली फ़ायरबेस लॉगिन: यह डेटाबेस को अनलॉक कर देगा
+                // 🔐 असली फ़ायरबेस लॉगिन
                 const userCredential = await signInWithEmailAndPassword(auth, username, password);
                 
                 // लॉगिन सफल होने पर लोकलस्टोरेज सेट करें और होम पेज पर जाएं
