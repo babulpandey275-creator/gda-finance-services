@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtExpenses = document.getElementById("txtExpenses"); 
     const txtNewCustomers = document.getElementById("txtNewCustomers"); 
     
-    // 🎯 [नया फ़ीचर]: मुनाफे को स्क्रीन पर दिखाने वाले एलिमेंट्स
+    // प्रॉफिट दिखाने वाले एलिमेंट्स
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
     const txtNetProfit = document.getElementById("txtNetProfit"); 
 
@@ -24,11 +24,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख YYYY-MM-DD फ़ॉर्मेट में निकालना
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
-    const yyyy = todayParts.find(p => p.type === 'year').value;
-    const mm = todayParts.find(p => p.type === 'month').value;
-    const dd = todayParts.find(p => p.type === 'day').value;
-    const todayIST = `${yyyy}-${mm}-${dd}`; 
+    let todayIST = new Date().toISOString().split('T')[0];
+    try {
+        const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+        const yyyy = todayParts.find(p => p.type === 'year').value;
+        const mm = todayParts.find(p => p.type === 'month').value;
+        const dd = todayParts.find(p => p.type === 'day').value;
+        todayIST = `${yyyy}-${mm}-${dd}`; 
+    } catch(e) { console.error(e); }
 
     if (inpReportDate) inpReportDate.value = todayIST; 
 
@@ -45,10 +48,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.error("Error loading report data:", err); 
     } 
 
-    // तारीख को शुद्ध YYYY-MM-DD स्ट्रिंग में बदलने का जादुई फंक्शन
     function cleanDateToYYYYMMDD(dateVal) {
         if (!dateVal) return "";
-        
         let dObj = null;
         if (dateVal.toDate) {
             dObj = dateVal.toDate();
@@ -61,22 +62,29 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
             dObj = new Date(cleanStr);
         }
-
         if (dObj && !isNaN(dObj.getTime())) {
-            const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dObj);
-            const y = parts.find(p => p.type === 'year').value;
-            const m = parts.find(p => p.type === 'month').value;
-            const d = parts.find(p => p.type === 'day').value;
-            return `${y}-${m}-${d}`;
+            try {
+                const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dObj);
+                const y = parts.find(p => p.type === 'year').value;
+                const m = parts.find(p => p.type === 'month').value;
+                const d = parts.find(p => p.type === 'day').value;
+                return `${y}-${m}-${d}`;
+            } catch(e) {
+                return dObj.toISOString().split('T')[0];
+            }
         }
         return "";
     }
 
     function calculateReport(type) { 
-        const nowObj = new Date();
-        const nowParts = new Intl.DateTimeFormat('en-US', options).formatToParts(nowObj);
-        const currentMonth = parseInt(nowParts.find(p => p.type === 'month').value) - 1; 
-        const currentYear = parseInt(nowParts.find(p => p.type === 'year').value);
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        try {
+            const nowObj = new Date();
+            const nowParts = new Intl.DateTimeFormat('en-US', options).formatToParts(nowObj);
+            currentMonth = parseInt(nowParts.find(p => p.type === 'month').value) - 1; 
+            currentYear = parseInt(nowParts.find(p => p.type === 'year').value);
+        } catch(e) {}
 
         const targetDailyDate = inpReportDate ? inpReportDate.value : todayIST; 
 
@@ -85,10 +93,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         let totalExp = 0; 
         let newCustCount = 0; 
 
-        // 1. वितरित लोन (Disbursement) और नए ग्राहकों का हिसाब 
         allCustomers.forEach(cust => { 
             if (!cust.loanDate) return; 
-            
             const custDateStr = cleanDateToYYYYMMDD(cust.loanDate);
             if (!custDateStr) return;
 
@@ -110,14 +116,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                     if (cYear === currentYear) match = true; 
                 } 
             } 
-
             if (match) { 
                 totalDisbursed += (Number(cust.loanAmount) || 0); 
                 newCustCount++; 
             } 
         }); 
 
-        // 2. वसूली कलेक्शन (Collection) का हिसाब 
         allCollections.forEach(col => { 
             const colDateStr = cleanDateToYYYYMMDD(col.date || col.createdAt);
             if (!colDateStr) return; 
@@ -140,16 +144,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                     if (cYear === currentYear) match = true; 
                 } 
             } 
-
             if (match) { 
                 totalCollected += (Number(col.amount) || 0); 
             } 
         }); 
 
-        // 3. खर्चे (Expenses) का हिसाब 
         allExpenses.forEach(exp => { 
             if (!exp.date) return; 
-            
             const expDateStr = cleanDateToYYYYMMDD(exp.date);
             if (!expDateStr) return;
 
@@ -171,41 +172,33 @@ window.addEventListener('DOMContentLoaded', async () => {
                     if (cYear === currentYear) match = true; 
                 } 
             } 
-
             if (match) { 
                 totalExp += (Number(exp.amount) || 0); 
             } 
         }); 
 
-        // 🎯 [वित्तीय गणित - प्रॉफिट लॉजिक]: 
-        // कुल कलेक्शन का 1/6 हिस्सा (16.66%) ब्याज की शुद्ध कमाई है।
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
 
-        // UI पर पुरानी वैल्यूज दिखाना
-        txtDisbursement.textContent = `₹${totalDisbursed}`; 
-        txtCollection.textContent = `₹${totalCollected}`; 
-        txtExpenses.textContent = `₹${totalExp}`; 
-        txtNewCustomers.textContent = newCustCount; 
+        if (txtDisbursement) txtDisbursement.textContent = `₹${totalDisbursed}`; 
+        if (txtCollection) txtCollection.textContent = `₹${totalCollected}`; 
+        if (txtExpenses) txtExpenses.textContent = `₹${totalExp}`; 
+        if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
 
-        // 🖥️ UI पर नए प्रॉफिट फ़ील्ड्स को रेंडर करना
-        if (txtInterestEarned) {
-            txtInterestEarned.textContent = `₹${interestEarned}`;
-        }
+        if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned}`;
         if (txtNetProfit) {
             txtNetProfit.textContent = `₹${netProfit}`;
-            // मुनाफे के अनुसार रंग बदलना (प्लस में हरा, माइनस में लाल)
             txtNetProfit.style.color = netProfit >= 0 ? "#22c55e" : "#ef4444";
         }
     } 
 
-    // 🔘 बटन क्लिक इवेंट्स 
+    // बटन क्लिक इवेंट्स (सुरक्षित तरीके से बिना क्रैश हुए)
     if (btnDaily) { 
         btnDaily.onclick = () => { 
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
             btnDaily.classList.add("active"); 
             if (dateFilterBox) dateFilterBox.style.display = "block"; 
-            reportTitle.textContent = "तारीख के अनुसार दैनिक लाइव रिपोर्ट"; 
+            if (reportTitle) reportTitle.textContent = "तारीख के अनुसार दैनिक लाइव रिपोर्ट"; 
             calculateReport("daily"); 
         }; 
     } 
@@ -215,7 +208,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
             btnMonthly.classList.add("active"); 
             if (dateFilterBox) dateFilterBox.style.display = "none"; 
-            reportTitle.textContent = "इस महीने की लाइव रिपोर्ट (Current Month)"; 
+            if (reportTitle) reportTitle.textContent = "इस महीने की लाइव रिपोर्ट (Current Month)"; 
             calculateReport("monthly"); 
         }; 
     } 
@@ -225,7 +218,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
             btnQuarterly.classList.add("active"); 
             if (dateFilterBox) dateFilterBox.style.display = "none"; 
-            reportTitle.textContent = "इस तिमाही की लाइव रिपोर्ट (Current Quarter)"; 
+            if (reportTitle) reportTitle.textContent = "इस तिमाही की लाइव रिपोर्ट (Current Quarter)"; 
             calculateReport("quarterly"); 
         }; 
     } 
@@ -235,7 +228,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
             btnYearly.classList.add("active"); 
             if (dateFilterBox) dateFilterBox.style.display = "none"; 
-            reportTitle.textContent = "इस साल की लाइव रिपोर्ट (Current Year)"; 
+            if (reportTitle) reportTitle.textContent = "इस साल की लाइव रिपोर्ट (Current Year)"; 
             calculateReport("yearly"); 
         }; 
     } 
