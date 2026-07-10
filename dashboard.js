@@ -8,70 +8,72 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtTodayDemand = document.getElementById("txtTodayDemand");
     const lblDueCount = document.getElementById("lblDueCount");
 
-    // 🇮🇳 भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD)
+    // आज की तारीख (IST)
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const yyyy = todayParts.find(p => p.type === 'year').value;
     const mm = todayParts.find(p => p.type === 'month').value;
     const dd = todayParts.find(p => p.type === 'day').value;
     const todayIST = `${yyyy}-${mm}-${dd}`;
+    const todayObj = new Date();
 
     try {
-        // 1. सभी एक्टिव ग्राहकों से आज का कुल टारगेट (Demand) निकालना
+        // 1. ग्राहकों का डेटा लाना और ड्यू लिस्ट वाले सेम लॉजिक से ओवरड्यू ग्राहक गिनना
         const custSnapshot = await getDocs(collection(db, "customers"));
         let activeCount = 0;
         let totalDemand = 0;
-        let activeCustomers = [];
+        let missedCustCount = 0;
+        let totalOverdueAmount = 0;
 
         custSnapshot.forEach(docSnap => {
             const cust = docSnap.data();
             if ((cust.status || "Active") === "Active") {
                 activeCount++;
                 totalDemand += Number(cust.dailyEmi || cust.emi || 0);
-                activeCustomers.push({ id: docSnap.id, ...cust });
+
+                // ड्यू लिस्ट वाला सेम लॉजिक यहाँ लागू किया
+                if (cust.loanDate && cust.status !== "Closed") {
+                    const loanAmount = Number(cust.loanAmount || 0);
+                    const totalCollectedVal = Number(cust.totalCollected || 0);
+                    const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
+                    const dynamicRemaining = totalPayableWithInterest - totalCollectedVal;
+
+                    const loanDate = new Date(cust.loanDate);
+                    const diffTime = todayObj - loanDate;
+                    const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    const paidDays = Number(cust.paidDays || 0);
+                    const dueDays = totalDays - paidDays;
+
+                    // अगर उसकी किस्तें बकाया हैं और लोन अमाउंट बचा है
+                    if (dueDays > 0 && dynamicRemaining > 0) {
+                        missedCustCount++;
+                        const emi = Number(cust.emi || 0);
+                        totalOverdueAmount += (dueDays * emi);
+                    }
+                }
             }
         });
 
         // 2. आज की तारीख में वास्तव में जमा हुई कुल वसूली (Collection) निकालना
         const collectSnapshot = await getDocs(collection(db, "collections"));
         let todayCollectedSum = 0;
-        let paidCustomerIds = new Set();
 
         collectSnapshot.forEach(docSnap => {
             const col = docSnap.data();
-            
-            // सुरक्षा जांच: सिर्फ आज की तारीख वाले कलेक्शन को जोड़ना
             if (col.date === todayIST || (col.createdAt && col.createdAt.includes(todayIST))) {
                 todayCollectedSum += Number(col.amount || 0);
-                
-                const cId = col.customerId || col.custObjId || col.id;
-                if (cId) {
-                    paidCustomerIds.add(cId);
-                }
             }
         });
 
-        // 3. आज कितने एक्टिव ग्राहक किस्त देने से चूक गए (Due Customers Count)
-        let missedCustCount = 0;
-        let missedEmiSum = 0;
-
-        activeCustomers.forEach(cust => {
-            if (!paidCustomerIds.has(cust.id)) {
-                missedCustCount++;
-                missedEmiSum += Number(cust.dailyEmi || cust.emi || 0);
-            }
-        });
-
-        // 🖥️ UI पर एकदम सीधा और आपकी पसंद का सही डेटा दिखाना
+        // 🖥️ UI पर डेटा दिखाना (आपकी पसंद के अनुसार सटीक आंकड़े)
         if (txtTodayCollected) {
-            // "आज वसूली" बॉक्स में आपकी वास्तविक कुल वसूली (जैसे ₹1700) / कुल टारगेट दिखेगा
             txtTodayCollected.innerText = `₹${todayCollectedSum} / ₹${totalDemand}`;
         }
         if (txtTodayDemand) {
             txtTodayDemand.innerText = `₹${totalDemand}`;
         }
         if (txtTodayMissed) {
-            // "आज का ड्यू" बॉक्स में आज की छूटी हुई किस्त (टारगेट - वसूली) दिखेगा (जैसे ₹500)
+            // आज का ड्यू (टारगेट - आज की वसूली)
             const remainingDue = totalDemand - todayCollectedSum;
             txtTodayMissed.innerText = `₹${remainingDue > 0 ? remainingDue : 0}`;
         }
@@ -79,13 +81,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             txtActiveAccounts.innerText = activeCount;
         }
         if (lblDueCount) {
-            // Pending Due List (X) वाले बटन के ब्रैकेट में आज किस्त न देने वालों की संख्या दिखेगी
+            // अब यह संख्या सीधे आपके ड्यू लिस्ट पेज के कुल ग्राहकों की संख्या से 100% मैच करेगी
             lblDueCount.innerText = missedCustCount;
         }
-
-        // आज चूकने वाले ग्राहकों की सूची लोकल स्टोरेज में डालना ताकि लिस्ट पेज में लोड हो सके
-        const dueList = activeCustomers.filter(cust => !paidCustomerIds.has(cust.id));
-        localStorage.setItem("todayDueCustomers", JSON.stringify(dueList));
 
     } catch (err) {
         console.error("डैशबोर्ड एरर:", err);
