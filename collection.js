@@ -11,36 +11,71 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectionDate = document.getElementById("collectionDate"); 
     const submitCollectionBtn = document.getElementById("submitCollectionBtn"); 
 
-    // 1. आज की तारीख को IST (भारत के टाइम) के अनुसार बिना किसी एरर के YYYY-MM-DD फॉर्मेट में बनाना
-    const now = new Date();
-    const tzOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5:30
-    const todayIST = new Date(now.getTime() + tzOffset).toISOString().split('T')[0];
-    
-    if (collectionDate) {
+    // 🇮🇳 भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD फॉर्मेट में)
+    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+    const yyyy = todayParts.find(p => p.type === 'year').value;
+    const mm = todayParts.find(p => p.type === 'month').value;
+    const dd = todayParts.find(p => p.type === 'day').value;
+    const todayIST = `${yyyy}-${mm}-${dd}`;
+
+    if (collectionDate) { 
         collectionDate.value = todayIST; 
-    }
+    } 
 
     // URL से ग्राहक की ID निकालना 
     const urlParams = new URLSearchParams(window.location.search); 
     const urlCustId = urlParams.get('id'); 
     let allCustomers = {}; 
 
-    // 2. चुने हुए ग्राहक की लाइव जानकारी स्क्रीन पर दिखाना 
+    // 🧮 2. चुने हुए ग्राहक की लाइव जानकारी और लेट फाइन स्क्रीन पर दिखाना 
     function showCustomerDetails(id) { 
         const cust = allCustomers[id]; 
         if (!cust) return; 
 
         const baseLoan = Number(cust.loanAmount || 0); 
         const totalCollected = Number(cust.totalCollected || 0); 
+        const totalPayableWithInterest = baseLoan + (baseLoan * 0.20); 
+        const dynamicRemaining = totalPayableWithInterest - totalCollected; 
+        const emi = Number(cust.dailyEmi || cust.emi || 0);
+
+        // लेट फाइन (Penalty) और गैप दिन की गणना
+        let gapDays = 0;
+        let penaltyAmount = 0;
+
+        if (cust.loanDate && cust.loanDate < todayIST) {
+            const date1 = new Date(todayIST);
+            const date2 = new Date(cust.loanDate);
+            const diffTime = Math.abs(date1 - date2);
+            const totalDaysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            const paidDaysCount = Number(cust.paidDays || 0);
+            gapDays = totalDaysPassed - paidDaysCount;
+            if (gapDays < 0) gapDays = 0;
+
+            // 60-80 दिन पर 10% रोज, 80+ दिन पर 15% रोज का फाइन नियम
+            if (gapDays > 60 && gapDays <= 80) {
+                penaltyAmount = (gapDays - 60) * (emi * 0.10);
+            } else if (gapDays > 80) {
+                penaltyAmount = (20 * (emi * 0.10)) + ((gapDays - 80) * (emi * 0.15));
+            }
+        }
+
+        const totalPayableNow = dynamicRemaining + penaltyAmount;
+
+        if (txtEmi) txtEmi.textContent = `₹${emi}`; 
         
-        const totalPayable = baseLoan + (baseLoan * 0.20); 
-        const remaining = totalPayable - totalCollected; 
-
-        if (txtEmi) txtEmi.textContent = `₹${cust.dailyEmi || cust.emi || 0}`; 
-        if (txtRemaining) txtRemaining.textContent = `₹${remaining}`; 
+        // स्क्रीन पर कुल बकाया (मूल + जुर्माना) दिखाना
+        if (txtRemaining) {
+            if (penaltyAmount > 0) {
+                txtRemaining.innerHTML = `₹${Math.round(totalPayableNow)} <span style="font-size:12px; color:#d32f2f; display:block; margin-top:4px;">(शामिल लेट फाइन: ₹${Math.round(penaltyAmount)})</span>`;
+            } else {
+                txtRemaining.textContent = `₹${Math.round(totalPayableNow)}`;
+            }
+        }
+        
         if (txtPaidDays) txtPaidDays.textContent = `${cust.paidDays || 0} दिन`; 
-
-        if (collectAmount) collectAmount.value = cust.dailyEmi || cust.emi || ""; 
+        if (collectAmount) collectAmount.value = emi || ""; 
         if (customerDetailsBox) customerDetailsBox.style.display = "block"; 
     } 
 
@@ -82,12 +117,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault(); 
             const selectedId = customerSelect.value; 
             const amount = Number(collectAmount.value); 
-
-            // 🎯 यहाँ इनपुट बॉक्स से आपकी चुनी हुई बैक-डेट उठाई जाएगी
-            let finalDateStr = todayIST;
-            if (collectionDate && collectionDate.value) {
-                finalDateStr = collectionDate.value;
-            }
+            
+            let finalDateStr = todayIST; 
+            if (collectionDate && collectionDate.value) { 
+                finalDateStr = collectionDate.value; 
+            } 
 
             if (!selectedId) { 
                 alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!"); 
@@ -102,7 +136,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 submitCollectionBtn.disabled = true; 
                 submitCollectionBtn.innerText = "⏳ जमा हो रहा है..."; 
 
-                // A. कलेक्शन टेबल में आपके द्वारा चुनी गई बैक-डेट सेव होगी
+                // A. कलेक्शन टेबल में एंट्री सेव करना
                 await addDoc(collection(db, "collections"), { 
                     customerId: selectedId, 
                     amount: amount, 
@@ -111,10 +145,9 @@ window.addEventListener('DOMContentLoaded', async () => {
                     timestamp: new Date() 
                 }); 
 
-                // B. कस्टमर के खाते को अपडेट करना
+                // B. कस्टमर के मास्टर रिकॉर्ड को अपडेट करना
                 const custDocRef = doc(db, "customers", selectedId); 
                 const custSnap = await getDoc(custDocRef); 
-
                 if (custSnap.exists()) { 
                     const custData = custSnap.data(); 
                     const newTotalCollected = Number(custData.totalCollected || 0) + amount; 
@@ -125,7 +158,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
                     await updateDoc(custDocRef, { 
                         totalCollected: newTotalCollected, 
-                        remainingAmount: newRemaining, 
+                        remainingAmount: newRemaining >= 0 ? newRemaining : 0, 
                         paidDays: newPaidDays 
                     }); 
                 } 
