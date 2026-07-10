@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectionDate = document.getElementById("collectionDate"); 
     const submitCollectionBtn = document.getElementById("submitCollectionBtn"); 
 
-    // 1. डिफ़ॉल्ट रूप से आज की शुद्ध भारतीय तारीख (IST) सेट करना (Format: YYYY-MM-DD)
+    // 1. डिफ़ॉल्ट रूप से आज की शुद्ध भारतीय तारीख (IST) सेट करना (Format: YYYY-MM-DD) 
     const todayIST = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }).trim(); 
     if (collectionDate) collectionDate.value = todayIST; 
 
@@ -57,7 +57,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 } 
             }); 
 
-            // अगर लिस्ट से ID आई है, तो उसे तुरंत सिलेक्ट करें
+            // अगर लिस्ट से ID आई है, तो उसे तुरंत सिलेक्ट करें 
             if (urlCustId && allCustomers[urlCustId]) { 
                 customerSelect.value = urlCustId; 
                 showCustomerDetails(urlCustId); 
@@ -81,9 +81,12 @@ window.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault(); 
             const selectedId = customerSelect.value; 
             const amount = Number(collectAmount.value); 
-            
-            // 🎯 [सुधार]: इनपुट बॉक्स के भरोसे न रहकर सीधे शुद्ध IST तारीख (YYYY-MM-DD) बनाना
-            const finalDateStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }).trim();
+
+            // 🎯 [बदलाव]: अब यह कोड इनपुट बॉक्स से आपके द्वारा चुनी गई तारीख (बैक-डेट) को उठाएगा
+            let finalDateStr = todayIST;
+            if (collectionDate && collectionDate.value) {
+                finalDateStr = collectionDate.value;
+            }
 
             if (!selectedId) { 
                 alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!"); 
@@ -98,7 +101,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 submitCollectionBtn.disabled = true; 
                 submitCollectionBtn.innerText = "⏳ जमा हो रहा है..."; 
 
-                // A. कलेक्शन टेबल में नई एंट्री जोड़ना (अब एकदम शुद्ध तारीख जाएगी)
+                // A. कलेक्शन टेबल में नई एंट्री जोड़ना (अब चुनी हुई बैक-डेट जाएगी) 
                 await addDoc(collection(db, "collections"), { 
                     customerId: selectedId, 
                     amount: amount, 
@@ -110,6 +113,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 // B. कस्टमर के खाते में कुल जमा, बकाया और दिन अपडेट करना 
                 const custDocRef = doc(db, "customers", selectedId); 
                 const custSnap = await getDoc(custDocRef); 
+
                 if (custSnap.exists()) { 
                     const custData = custSnap.data(); 
                     const newTotalCollected = Number(custData.totalCollected || 0) + amount; 
