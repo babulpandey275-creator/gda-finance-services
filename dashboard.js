@@ -2,7 +2,7 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
-    // 🛡️ सुरक्षा जांच (लॉगिन चेक)
+    // 🛡️ सुरक्षा जांच (लॉगिन चेक) 
     if (localStorage.getItem("gdaLoggedIn") !== "true") { 
         window.location.href = "login.html"; 
         return; 
@@ -19,7 +19,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         }; 
     } 
 
-    // लाइव डैशबोर्ड डेटा लोड करें
+    // ⚙️ पासवर्ड बदलने वाले बटन का लॉजिक चालू करें
+    initPasswordChangeLogic();
+
+    // लाइव डैशबोर्ड डेटा लोड करें 
     await loadDashboardData(); 
 }); 
 
@@ -28,48 +31,65 @@ async function loadDashboardData() {
         const customerSnap = await getDocs(collection(db, "customers")); 
         const collectionSnap = await getDocs(collection(db, "collections")); 
 
-        // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख (Format: YYYY-MM-DD)
+        // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख (Format: YYYY-MM-DD) 
         const todayStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }); 
-
+        
         let todayCollectionAmount = 0; 
         let dueCustomersCount = 0; 
         let activeAccountsCount = 0; 
 
-        // 1. आज की वसूली का हिसाब (भारतीय समय के अनुसार)
+        // 1. आज की वसूली का हिसाब (मजबूत तारीख मिलान लॉजिक के साथ) 
         collectionSnap.forEach((docSnap) => { 
             const item = docSnap.data(); 
-            if (item.date === todayStr) { 
+            let colDateStr = "";
+
+            if (item.date) {
+                // अगर तारीख Firebase Timestamp है
+                if (item.date.toDate) {
+                    colDateStr = item.date.toDate().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
+                } 
+                // अगर तारीख Seconds में है
+                else if (item.date.seconds) {
+                    colDateStr = new Date(item.date.seconds * 1000).toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
+                } 
+                // अगर तारीख सीधा टेक्स्ट (String) है, तो समय का हिस्सा हटाकर सिर्फ YYYY-MM-DD लें
+                else {
+                    colDateStr = String(item.date).split(" ")[0].split("T")[0];
+                }
+            }
+
+            // 🎯 अब शुद्ध तारीख को आज की तारीख से मैच करें
+            if (colDateStr === todayStr) { 
                 todayCollectionAmount += Number(item.amount || 0); 
             } 
         }); 
 
-        // 2. ड्यू लिस्ट और सक्रिय खातों का सटीक वित्तीय गणित
+        // 2. ड्यू लिस्ट और सक्रिय खातों का सटीक वित्तीय गणित 
         customerSnap.forEach((docSnap) => { 
             const customer = docSnap.data(); 
             if (customer.status !== "Closed") { 
                 activeAccountsCount++; 
-
                 if (customer.loanDate) { 
                     const loanAmount = Number(customer.loanAmount || 0); 
                     const totalCollected = Number(customer.totalCollected || 0); 
-
-                    // 20% ब्याज दर का गणित (₹10,000 -> ₹12,000)
+                    
+                    // 20% ब्याज दर का गणित (₹10,000 -> ₹12,000) 
                     const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
                     const dynamicRemaining = totalPayableWithInterest - totalCollected; 
-
+                    
                     const loanDate = new Date(customer.loanDate); 
                     const today = new Date(); 
-
-                    // लोन लिए कितने दिन बीत चुके हैं
+                    
+                    // लोन लिए कितने दिन बीत चुके हैं 
                     const passedDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)); 
                     const paidDays = Number(customer.paidDays || 0); 
                     const loanPlan = Number(customer.loanPlan || 60); 
 
-                    // स्थिति A: अगर प्लान अवधि (60 दिन) पार हो चुकी है और बैलेंस बाकी है
+                    // स्थिति A: अगर प्लान अवधि (60 दिन) पार हो चुकी है और बैलेंस बाकी है 
                     if (passedDays > loanPlan && dynamicRemaining > 0) { 
                         dueCustomersCount++; 
                     } 
-                    // स्थिति B: अवधि के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है
+                    // स्थिति B: अवधि के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है 
                     else { 
                         const missedDays = passedDays - paidDays; 
                         if (missedDays >= 3 && dynamicRemaining > 0) { 
@@ -80,7 +100,7 @@ async function loadDashboardData() {
             } 
         }); 
 
-        // 🖥️ स्क्रीन के समरी कार्ड्स में डेटा दिखाना
+        // 🖥️ स्क्रीन के समरी कार्ड्स में डेटा दिखाना 
         if (document.getElementById("miniTodayCollection")) { 
             document.getElementById("miniTodayCollection").textContent = `₹${todayCollectionAmount}`; 
         } 
@@ -91,13 +111,60 @@ async function loadDashboardData() {
             document.getElementById("miniActiveAccounts").textContent = activeAccountsCount; 
         } 
 
-        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज (Badge) अपडेट करना
+        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज (Badge) अपडेट करना 
         const badgeDue = document.getElementById("badgeDue"); 
-        if (badgeDue) {
+        if (badgeDue) { 
             badgeDue.textContent = dueCustomersCount; 
-        }
-
+        } 
     } catch (err) { 
         console.error("डैशबोर्ड लाइव डेटा लोड करने में त्रुटि:", err); 
     } 
+}
+
+// ⚙️ खुद से मोबाइल द्वारा पासवर्ड बदलने का जादुई फंक्शन
+function initPasswordChangeLogic() {
+    // अगर स्क्रीन पर बटन नहीं है, तो हम नीचे एक सुंदर बटन खुद ही जोड़ देते हैं
+    if (!document.getElementById("btnOpenPassChange")) {
+        const btnContainer = document.createElement("div");
+        btnContainer.style.cssText = "text-align: center; margin: 30px 0; padding: 0 15px;";
+        
+        const changePassBtn = document.createElement("button");
+        changePassBtn.id = "btnOpenPassChange";
+        changePassBtn.innerHTML = "⚙️ सुरक्षा सेटिंग्स (Change Password)";
+        changePassBtn.style.cssText = "background: linear-gradient(135deg, #475569 0%, #334155 100%); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: all 0.3s;";
+        
+        btnContainer.appendChild(changePassBtn);
+        // इसे पेज के मुख्य कंटेनर या बॉडी में सबसे नीचे जोड़ें
+        document.body.appendChild(btnContainer);
+    }
+
+    document.getElementById("btnOpenPassChange").onclick = function() {
+        // 1. सुरक्षा के लिए पुराना पासवर्ड मांगना
+        const oldPass = prompt("सुरक्षा जांच: अपना मौजूदा (पुराना) पासवर्ड डालें:");
+        if (!oldPass) return;
+
+        // डिफ़ॉल्ट पासवर्ड जो भी आपकी login.js में था (जैसे 'gda123')
+        const currentSavedPass = localStorage.getItem("appPassword") || "gda123"; 
+
+        if (oldPass !== currentSavedPass) {
+            alert("❌ गलत पुराना पासवर्ड! सुरक्षा कारणों से बदलाव रद्द किया गया।");
+            return;
+        }
+
+        // 2. नया यूज़रनेम पूछना
+        const currentSavedUser = localStorage.getItem("appUsername") || "admin";
+        const newUser = prompt("नया यूज़रनेम डालें (पुराना रखने के लिए इसे ऐसे ही छोड़ दें):", currentSavedUser);
+        
+        // 3. नया पासवर्ड पूछना
+        const newPass = prompt("अब अपना नया सीक्रेट पासवर्ड दर्ज करें:");
+
+        if (newUser && newPass && newPass.trim() !== "") {
+            // 💾 फ़ोन की लोकल मेमोरी में हमेशा के लिए सुरक्षित सेव करें
+            localStorage.setItem("appUsername", newUser.trim());
+            localStorage.setItem("appPassword", newPass.trim());
+            alert("🎉 मुबारक हो भाई! आपका नया यूज़रनेम और पासवर्ड सेव हो गया है। अगली बार से इसी नए पासवर्ड से ऐप खुलेगी।");
+        } else {
+            alert("⚠️ पासवर्ड खाली नहीं हो सकता, कोई बदलाव नहीं किया गया!");
+        }
+    };
 }
