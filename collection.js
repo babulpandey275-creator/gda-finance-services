@@ -11,9 +11,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectionDate = document.getElementById("collectionDate"); 
     const submitCollectionBtn = document.getElementById("submitCollectionBtn"); 
 
-    // 1. डिफ़ॉल्ट रूप से आज की शुद्ध भारतीय तारीख (IST) सेट करना (Format: YYYY-MM-DD) 
-    const todayIST = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }).trim(); 
-    if (collectionDate) collectionDate.value = todayIST; 
+    // 1. आज की तारीख को IST (भारत के टाइम) के अनुसार बिना किसी एरर के YYYY-MM-DD फॉर्मेट में बनाना
+    const now = new Date();
+    const tzOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5:30
+    const todayIST = new Date(now.getTime() + tzOffset).toISOString().split('T')[0];
+    
+    if (collectionDate) {
+        collectionDate.value = todayIST; 
+    }
 
     // URL से ग्राहक की ID निकालना 
     const urlParams = new URLSearchParams(window.location.search); 
@@ -28,7 +33,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         const baseLoan = Number(cust.loanAmount || 0); 
         const totalCollected = Number(cust.totalCollected || 0); 
         
-        // 20% ब्याज दर का सही वित्तीय गणित 
         const totalPayable = baseLoan + (baseLoan * 0.20); 
         const remaining = totalPayable - totalCollected; 
 
@@ -36,7 +40,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (txtRemaining) txtRemaining.textContent = `₹${remaining}`; 
         if (txtPaidDays) txtPaidDays.textContent = `${cust.paidDays || 0} दिन`; 
 
-        // ऑटो-फ़िल किस्त राशि 
         if (collectAmount) collectAmount.value = cust.dailyEmi || cust.emi || ""; 
         if (customerDetailsBox) customerDetailsBox.style.display = "block"; 
     } 
@@ -57,7 +60,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 } 
             }); 
 
-            // अगर लिस्ट से ID आई है, तो उसे तुरंत सिलेक्ट करें 
             if (urlCustId && allCustomers[urlCustId]) { 
                 customerSelect.value = urlCustId; 
                 showCustomerDetails(urlCustId); 
@@ -68,7 +70,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         } 
     } 
 
-    // ड्रापडाउन चेंज होने पर 
     if (customerSelect) { 
         customerSelect.onchange = (e) => { 
             showCustomerDetails(e.target.value); 
@@ -82,7 +83,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             const selectedId = customerSelect.value; 
             const amount = Number(collectAmount.value); 
 
-            // 🎯 [बदलाव]: अब यह कोड इनपुट बॉक्स से आपके द्वारा चुनी गई तारीख (बैक-डेट) को उठाएगा
+            // 🎯 यहाँ इनपुट बॉक्स से आपकी चुनी हुई बैक-डेट उठाई जाएगी
             let finalDateStr = todayIST;
             if (collectionDate && collectionDate.value) {
                 finalDateStr = collectionDate.value;
@@ -101,7 +102,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 submitCollectionBtn.disabled = true; 
                 submitCollectionBtn.innerText = "⏳ जमा हो रहा है..."; 
 
-                // A. कलेक्शन टेबल में नई एंट्री जोड़ना (अब चुनी हुई बैक-डेट जाएगी) 
+                // A. कलेक्शन टेबल में आपके द्वारा चुनी गई बैक-डेट सेव होगी
                 await addDoc(collection(db, "collections"), { 
                     customerId: selectedId, 
                     amount: amount, 
@@ -110,7 +111,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     timestamp: new Date() 
                 }); 
 
-                // B. कस्टमर के खाते में कुल जमा, बकाया और दिन अपडेट करना 
+                // B. कस्टमर के खाते को अपडेट करना
                 const custDocRef = doc(db, "customers", selectedId); 
                 const custSnap = await getDoc(custDocRef); 
 
