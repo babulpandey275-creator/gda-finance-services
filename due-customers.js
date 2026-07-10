@@ -4,10 +4,8 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/f
 const list = document.getElementById("dueList"); 
 
 async function loadDueCustomers() { 
-    // टेबल के अंदर सुंदर स्पिनर लोडिंग एनीमेशन 
     list.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-light);"><i class="fas fa-spinner fa-spin"></i> बकायेदारों की सूची लोड हो रही है...</td></tr>`; 
-    
-    try {
+    try { 
         const snapshot = await getDocs(collection(db, "customers")); 
         list.innerHTML = ""; 
         const today = new Date(); 
@@ -17,13 +15,10 @@ async function loadDueCustomers() {
             const c = docSnap.data(); 
             if (!c.loanDate || c.status === "Closed") return; 
 
-            // Core Amounts Extraction matching backend structure
-            const loanAmount = Number(c.loanAmount || 0);
-            const totalCollected = Number(c.totalCollected || 0);
-
-            // 20% interest ratio logic mapping (10k -> 12k | 15k -> 18k)
-            const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
-            const dynamicRemaining = totalPayableWithInterest - totalCollected;
+            const loanAmount = Number(c.loanAmount || 0); 
+            const totalCollected = Number(c.totalCollected || 0); 
+            const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
+            const dynamicRemaining = totalPayableWithInterest - totalCollected; 
 
             const loanDate = new Date(c.loanDate); 
             const diffTime = today - loanDate; 
@@ -31,20 +26,38 @@ async function loadDueCustomers() {
             const paidDays = Number(c.paidDays || 0); 
             const dueDays = totalDays - paidDays; 
 
-            // Fixed filter conditional rule logic
             if (dueDays > 0 && dynamicRemaining > 0) { 
                 hasDueCustomers = true; 
-                const emi = Number(c.emi || 0);
+                const emi = Number(c.emi || 0); 
                 const dueAmount = dueDays * emi; 
-                
-                // FIXED: Schema structural identification mapping variables (member_id & loanAmount)
-                const displayId = c.member_id || `ID: ${docSnap.id.substring(0, 5)}...`;
+                const displayId = c.member_id || `ID: ${docSnap.id.substring(0, 5)}...`; 
 
-                // टेबल रो (Row) का ढांचा - FIXED redirection flow to collection.html
                 list.innerHTML += ` 
                     <tr> 
                         <td> 
-                            <div style="font-weight: 600; color: var(--primary-dark);">${c.name || "-"}</div> 
-                            <div style="font-size: 11px; color: var(--text-light);">${displayId}</div> 
+                            <div style="font-weight: 600; color: #1565C0;">${c.name || "-"}</div> 
+                            <div style="font-size: 11px; color: var(--text-muted);">${displayId}</div> 
                         </td> 
-                        <td>${c.mobile || "-"}</td>
+                        <td>${c.mobile || "-"}</td> 
+                        <td>₹${emi}</td> 
+                        <td style="color: #d32f2f; font-weight: 600;">₹${Math.round(dynamicRemaining)}</td> 
+                        <td>${dueDays} दिन लंबित</td> 
+                        <td> 
+                            <a href="collection.html?id=${docSnap.id}" class="btn" style="padding: 5px 10px; font-size: 12px; background: #2e7d32; text-decoration: none; color: white; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;"> 
+                                <i class="fas fa-hand-holding-usd"></i> Collect 
+                            </a> 
+                        </td> 
+                    </tr>`; 
+            } 
+        }); 
+
+        if (!hasDueCustomers) { 
+            list.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#2e7d32; font-weight:600;">🎉 कोई भी ग्राहक बकाया नहीं है! सभी किस्तें समय पर हैं।</td></tr>`; 
+        } 
+    } catch (err) { 
+        console.error("बकाया सूची लोड एरर:", err); 
+        list.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--danger);">⚠️ डेटा लोड करने में त्रुटि आई।</td></tr>`; 
+    } 
+} 
+
+window.addEventListener("DOMContentLoaded", loadDueCustomers);
