@@ -30,4 +30,68 @@
         <button class="tab-btn active" id="btnDaily">Daily</button>
         <button class="tab-btn" id="btnMonthly">Monthly</button>
         <button class="tab-btn" id="btnQuarterly">Quarterly</button>
-        <button class="tab
+        <button class="tab-btn" id="btnYearly">Yearly</button>
+    </div>
+
+    <div id="dateFilterBox" class="date-picker-box">
+        <label>तारीख चुनें:</label>
+        <input type="date" id="inpReportDate">
+    </div>
+
+    <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">오늘 की लाइव रिपोर्ट</div>
+
+    <div class="stats-box" style="border-left:5px solid #1565c0;">
+        <div class="stats-left">
+            <p>कुल वितरित लोन (Disbursement)</p>
+            <h2 id="txtDisbursement">₹0</h2>
+        </div>
+        <div class="icon">💵</div>
+    </div>
+
+    <div class="stats-box" style="border-left:5px solid #22c55e;">
+        <div class="stats-left">
+            <p>कुल वसूली कलेक्शन (Collection)</p>
+            <h2 id="txtCollection">₹0</h2>
+        </div>
+        <div class="icon">💰</div>
+    </div>
+
+    <div class="stats-box" style="border-left:5px solid #6366f1; background: #f5f3ff;">
+        <div class="stats-left">
+            <p style="color: #6366f1;">कुल ब्याज कमाई (Interest Income)</p>
+            <h2 id="txtInterestEarned" style="color: #4338ca;">₹0</h2>
+        </div>
+        <div class="icon">📈</div>
+    </div>
+
+    <div class="stats-box" style="border-left:5px solid #f43f5e;">
+        <div class="stats-left">
+            <p>कुल खर्चे (Total Expenses)</p>
+            <h2 id="txtExpenses">₹0</h2>
+        </div>
+        <div class="icon">📉</div>
+    </div>
+
+    <div class="stats-box" style="border-left:5px solid #10b981; background: #f0fdf4; border: 2px solid #a7f3d0;">
+        <div class="stats-left">
+            <p style="color: #047857; font-weight: bold;">🎉 शुद्ध मुनाफा (Net Profit)</p>
+            <h2 id="txtNetProfit" style="color: #065f46; font-size: 24px; font-weight: bold;">₹0</h2>
+        </div>
+        <div class="icon">🏆</div>
+    </div>
+
+    <div class="stats-box" style="border-left:5px solid #ffb703;">
+        <div class="stats-left">
+            <p>नए पंजीकृत ग्राहक (New Accounts)</p>
+            <h2 id="txtNewCustomers">0</h2>
+        </div>
+        <div class="icon">👤</div>
+    </div>
+
+    <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे एंट्री व सुधार (Manage Expenses)</a>
+    <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
+</div>
+
+<script type="module" src="report.js"></script>
+</body>
+</html>
