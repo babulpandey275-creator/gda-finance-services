@@ -31,41 +31,47 @@ async function loadDashboardData() {
         const customerSnap = await getDocs(collection(db, "customers")); 
         const collectionSnap = await getDocs(collection(db, "collections")); 
 
-        // 🇮🇳 शुद्ध भारतीय समय (IST) के अनुसार आज की तारीख (Format: YYYY-MM-DD) 
-        const todayStr = new Date().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' }).trim(); 
+        // 🇮🇳 भारतीय समय (IST) के अनुसार आज का दिन, महीना और साल अलग-अलग निकालें
+        const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: 'numeric', day: 'numeric' };
+        const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+        
+        const todayDay = todayParts.find(p => p.type === 'day').value;
+        const todayMonth = todayParts.find(p => p.type === 'month').value;
+        const todayYear = todayParts.find(p => p.type === 'year').value;
         
         let todayCollectionAmount = 0; 
         let dueCustomersCount = 0; 
         let activeAccountsCount = 0; 
 
-        // 1. आज की वसूली का हिसाब (सुपर मजबूत तारीख मिलान) 
+        // 1. आज की वसूली का हिसाब (सबसे सटीक तारीख मिलान लॉजिक) 
         collectionSnap.forEach((docSnap) => { 
             const item = docSnap.data(); 
-            let colDateStr = "";
+            if (!item.date) return;
 
-            if (item.date) {
-                // अगर तारीख Firebase Timestamp ऑब्जेक्ट है
-                if (item.date.toDate) {
-                    colDateStr = item.date.toDate().toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
-                } 
-                // अगर तारीख Seconds में है
-                else if (item.date.seconds) {
-                    colDateStr = new Date(item.date.seconds * 1000).toLocaleDateString('en-ZA', { timeZone: 'Asia/Kolkata' });
-                } 
-                // अगर तारीख टेक्स्ट (String) है, तो उसमें से केवल YYYY-MM-DD वाला हिस्सा छांट कर निकालें
-                else {
-                    const match = String(item.date).match(/\d{4}-\d{2}-\d{2}/);
-                    if (match) {
-                        colDateStr = match[0];
-                    } else {
-                        colDateStr = String(item.date).trim();
-                    }
-                }
+            let colDateObj = null;
+
+            // तारीख को सही JavaScript Date में बदलना
+            if (item.date.toDate) {
+                colDateObj = item.date.toDate();
+            } else if (item.date.seconds) {
+                colDateObj = new Date(item.date.seconds * 1000);
+            } else {
+                // अगर तारीख टेक्स्ट है तो स्लैश और डैश दोनों को ठीक करके डेट बनाएँ
+                const cleanDateStr = String(item.date).replace(/\//g, '-').trim();
+                colDateObj = new Date(cleanDateStr);
             }
 
-            // दोनों तरफ के एक्स्ट्रा स्पेस हटाकर पक्का मिलान करें
-            if (colDateStr.trim() === todayStr) { 
-                todayCollectionAmount += Number(item.amount || 0); 
+            if (colDateObj && !isNaN(colDateObj.getTime())) {
+                // कलेक्शन की तारीख का दिन, महीना, साल भी IST के अनुसार निकालें
+                const colParts = new Intl.DateTimeFormat('en-US', options).formatToParts(colDateObj);
+                const colDay = colParts.find(p => p.type === 'day').value;
+                const colMonth = colParts.find(p => p.type === 'month').value;
+                const colYear = colParts.find(p => p.type === 'year').value;
+
+                // 🎯 दिन, महीना और साल तीनों का एकदम पक्का मिलान
+                if (colDay === todayDay && colMonth === todayMonth && colYear === todayYear) { 
+                    todayCollectionAmount += Number(item.amount || 0); 
+                } 
             } 
         }); 
 
@@ -78,23 +84,19 @@ async function loadDashboardData() {
                     const loanAmount = Number(customer.loanAmount || 0); 
                     const totalCollected = Number(customer.totalCollected || 0); 
                     
-                    // 20% ब्याज दर का गणित (₹10,000 -> ₹12,000) 
                     const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
                     const dynamicRemaining = totalPayableWithInterest - totalCollected; 
                     
                     const loanDate = new Date(customer.loanDate); 
                     const today = new Date(); 
                     
-                    // लोन लिए कितने दिन बीत चुके हैं 
                     const passedDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)); 
                     const paidDays = Number(customer.paidDays || 0); 
                     const loanPlan = Number(customer.loanPlan || 60); 
 
-                    // स्थिति A: अगर प्लान अवधि (60 दिन) पार हो चुकी है और बैलेंस बाकी है 
                     if (passedDays > loanPlan && dynamicRemaining > 0) { 
                         dueCustomersCount++; 
                     } 
-                    // स्थिति B: अवधि के अंदर है, लेकिन लगातार 3 दिन या उससे ज्यादा से किस्त गायब है 
                     else { 
                         const missedDays = passedDays - paidDays; 
                         if (missedDays >= 3 && dynamicRemaining > 0) { 
@@ -116,7 +118,6 @@ async function loadDashboardData() {
             document.getElementById("miniActiveAccounts").textContent = activeAccountsCount; 
         } 
 
-        // पेंडिंग ड्यू लिस्ट का बगल वाला बैज (Badge) अपडेट करना 
         const badgeDue = document.getElementById("badgeDue"); 
         if (badgeDue) { 
             badgeDue.textContent = dueCustomersCount; 
@@ -126,7 +127,7 @@ async function loadDashboardData() {
     } 
 }
 
-// ⚙️ खुद से मोबाइल द्वारा पासवर्ड बदलने का जादुई फंक्शन
+// ⚙️ खुद से मोबाइल द्वारा पासवर्ड बदलने का फंक्शन
 function initPasswordChangeLogic() {
     if (!document.getElementById("btnOpenPassChange")) {
         const btnContainer = document.createElement("div");
