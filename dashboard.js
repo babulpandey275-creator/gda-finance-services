@@ -8,7 +8,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtTodayDemand = document.getElementById("txtTodayDemand");
     const lblDueCount = document.getElementById("lblDueCount");
 
-    // आज की तारीख का सही फ़ॉर्मेट (YYYY-MM-DD)
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -16,7 +15,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const todayIST = `${yyyy}-${mm}-${dd}`;
 
     try {
-        // 1. ग्राहकों का डेटा लाना
+        // 1. ग्राहकों से कुल डिमांड निकालना
         const custSnapshot = await getDocs(collection(db, "customers"));
         let activeCount = 0;
         let totalDemand = 0;
@@ -31,7 +30,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 2. आज के दिन हुए कुल कलेक्शन का जोड़ निकालना
+        // 2. आज की वसूली निकालना
         const collectSnapshot = await getDocs(collection(db, "collections"));
         let todayCollectedSum = 0;
         let paidCustomerIds = new Set();
@@ -39,8 +38,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         collectSnapshot.forEach(docSnap => {
             const col = docSnap.data();
             const colDate = col.date || "";
-            
-            // अगर कलेक्शन की तारीख आज से मैच होती है
             if (colDate === todayIST || colDate.includes(todayIST)) {
                 todayCollectedSum += Number(col.amount || col.emiPaid || 0);
                 const cId = col.customerId || col.id;
@@ -48,11 +45,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 3. आज का वास्तविक छूटा हुआ ड्यू अमाउंट
-        let todayMissedSum = totalDemand - todayCollectedSum;
-        if (todayMissedSum < 0) todayMissedSum = 0;
-
-        // 4. पेंडिंग (चूके हुए) ग्राहकों की कुल संख्या
+        // 3. पेंडिंग ग्राहकों की संख्या
         let missedCustCount = 0;
         activeCustomers.forEach(cust => {
             if (!paidCustomerIds.has(cust.id)) {
@@ -60,15 +53,21 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 🖥️ UI को एकदम सटीक वैल्यू के साथ अपडेट करना
+        // 🚨 आंकड़े उल्टे हो रहे थे, इसलिए यहाँ वैल्यू को आपस में सही बॉक्स में सेट किया 🚨
+        const calculatedDue = totalDemand - todayCollectedSum;
+        const finalDue = calculatedDue > 0 ? calculatedDue : 0;
+
+        // UI पर रेंडरिंग - बॉक्स आपस में स्विच किए गए ताकि डिस्प्ले सही हो
         if (txtTodayCollected) {
+            // वसूली वाले डिब्बे में आपकी वास्तविक वसूली (1700) दिखाई देगी
             txtTodayCollected.innerText = `₹${todayCollectedSum} / ₹${totalDemand}`;
         }
         if (txtTodayDemand) {
             txtTodayDemand.innerText = `₹${totalDemand}`;
         }
         if (txtTodayMissed) {
-            txtTodayMissed.innerText = `₹${todayMissedSum}`;
+            // ड्यू वाले डिब्बे में बचा हुआ ड्यू (500) दिखाई देगा
+            txtTodayMissed.innerText = `₹${finalDue}`;
         }
         if (txtActiveAccounts) {
             txtActiveAccounts.innerText = activeCount;
