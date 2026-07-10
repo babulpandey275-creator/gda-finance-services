@@ -8,28 +8,42 @@ async function loadDueCustomers() {
     try { 
         const snapshot = await getDocs(collection(db, "customers")); 
         list.innerHTML = ""; 
-        const today = new Date(); 
+        
+        // 🗓️ आज की तारीख की शुरुआत (00:00:00) सेट की ताकि समय का अंतर बाधा न बने
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         let hasDueCustomers = false; 
 
         snapshot.forEach((docSnap) => { 
             const c = docSnap.data(); 
             if (!c.loanDate || c.status === "Closed") return; 
 
+            // लोन की तारीख को पढ़ें और उसका समय भी 00:00:00 करें
+            const loanDate = new Date(c.loanDate); 
+            loanDate.setHours(0, 0, 0, 0); 
+
+            // 🚨 मुख्य सुधार: अगर आपने डेट आगे बढ़ाकर आज की या भविष्य की कर दी है, 
+            // तो इसका मतलब आज उसका पहला दिन है या अभी लोन शुरू नहीं हुआ है, इसलिए वह ड्यू लिस्ट में नहीं आएगा।
+            if (loanDate >= today) {
+                return; // इस ग्राहक को छोड़ दो, यह ड्यू नहीं है
+            }
+
             const loanAmount = Number(c.loanAmount || 0); 
             const totalCollected = Number(c.totalCollected || 0); 
             const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
             const dynamicRemaining = totalPayableWithInterest - totalCollected; 
 
-            const loanDate = new Date(c.loanDate); 
+            // बीते दिनों का सही अंतर
             const diffTime = today - loanDate; 
             const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
             const paidDays = Number(c.paidDays || 0); 
             const dueDays = totalDays - paidDays; 
 
+            // यदि सच में दिन बकाया हैं और बैलेंस बाकी है, तभी लिस्ट में दिखेगा
             if (dueDays > 0 && dynamicRemaining > 0) { 
                 hasDueCustomers = true; 
                 const emi = Number(c.emi || 0); 
-                const dueAmount = dueDays * emi; 
                 const displayId = c.member_id || `ID: ${docSnap.id.substring(0, 5)}...`; 
 
                 list.innerHTML += ` 
