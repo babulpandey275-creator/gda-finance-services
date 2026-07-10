@@ -13,14 +13,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             // Spinner loading display 
             historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-spinner fa-spin"></i> डेटा लोड हो रहा है (Loading)...</td></tr>`; 
             
-            // 🎯 [बड़ा सुधार]: पहले 'customers' कलेक्शन लोड करें ताकि नाम और मोबाइल मिल सके
+            // 🎯 pehle 'customers' collection load karein taaki naam aur mobile mil sake
             const custSnap = await getDocs(collection(db, "customers"));
-            let customerMap = {}; // ग्राहक का डेटा स्टोर करने के लिए एक जादुई तिजोरी
+            let customerMap = {}; 
             custSnap.forEach((cDoc) => {
                 customerMap[cDoc.id] = cDoc.data();
             });
 
-            // अब 'collections' कलेक्शन लोड करें
+            // Ab 'collections' collection load karein
             const qSnap = await getDocs(collection(db, "collections")); 
             historyList.innerHTML = ""; 
             
@@ -34,14 +34,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                 logArray.push({ id: docSnap.id, ...docSnap.data() }); 
             }); 
 
-            // Newest entries sorting by timestamp parameters 
+            // Naye entries ko sabse upar dikhane ke liye sort karein
             logArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)); 
 
             logArray.forEach((collect) => { 
-                // 🔍 तिजोरी से इस किस्त के ग्राहक का नाम और मोबाइल नंबर ढूंढना
+                // 🔍 customerId ke zariye uski details nikalna
                 const linkedCustomer = customerMap[collect.customerId] || {};
                 
-                // 📅 1. Dynamic Date Recovery Logic
+                // 📅 Tarikh nikalne ka logic
                 let finalDateDisplay = "-"; 
                 if (collect.date) { 
                     finalDateDisplay = collect.date; 
@@ -49,16 +49,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                     finalDateDisplay = collect.createdAt.split("T")[0]; 
                 } 
 
-                // 👤 📞 ग्राहक का नाम और मोबाइल नंबर (अगर कलेक्शन में नहीं है, तो कस्टमर लिस्ट से उठाएगा)
-                let finalNameDisplay = collect.customerName || linkedCustomer.name || "अज्ञात ग्राहक";
+                // 👤 📞 Naam aur mobile number jo database se match karega
+                let finalNameDisplay = collect.customerName || linkedCustomer.name || "Unknown Customer";
                 let finalMobileDisplay = collect.customerMobile || collect.mobile || linkedCustomer.mobile || "दर्ज नहीं"; 
                 let memberIdDisplay = collect.memberId || linkedCustomer.memberId || "";
 
-                // 💳 3. Payment Mode & Note defaults filtering 
                 let paymentMode = collect.mode || "Cash"; 
                 let transactionNote = collect.note || "EMI Collection"; 
 
-                // Creating perfectly mapped row matching exactly 6 columns layout structure 
+                // HTML row banana
                 const tr = document.createElement("tr"); 
                 tr.innerHTML = ` 
                     <td style="padding: 12px 8px; font-weight: 500;">${finalDateDisplay}</td> 
