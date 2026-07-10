@@ -9,6 +9,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     let allCustomers = []; 
     let currentFilter = "Active"; 
 
+    // 🇮🇳 भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD फॉर्मेट)
+    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
+    const yyyy = todayParts.find(p => p.type === 'year').value;
+    const mm = todayParts.find(p => p.type === 'month').value;
+    const dd = todayParts.find(p => p.type === 'day').value;
+    const todayIST = `${yyyy}-${mm}-${dd}`;
+
     async function fetchCustomers() { 
         try { 
             listContainer.innerHTML = "⏳ लोड हो रहा है..."; 
@@ -49,16 +57,48 @@ window.addEventListener('DOMContentLoaded', async () => {
             div.style.marginBottom = "14px"; 
             div.style.border = "1px solid #e2e8f0"; 
             div.style.boxShadow = "0 2px 4px rgba(0,0,0,0.02)"; 
-            
+
             const photoUrl = cust.customerPhoto || "https://img.icons8.com/color/96/user-male-circle.png"; 
-            
+
+            // 🧮 लेट फाइन (Penalty) का लाइव गणित
+            const loanAmount = Number(cust.loanAmount || 0);
+            const totalCollected = Number(cust.totalCollected || 0);
+            const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
+            const dynamicRemaining = totalPayableWithInterest - totalCollected;
+
+            let penaltyAmount = 0;
+            let gapDays = 0;
+
+            // जुर्माना केवल 'Active' खातों पर लाइव कैलकुलेट होगा
+            if ((cust.status || "Active") === "Active" && cust.loanDate && cust.loanDate < todayIST) {
+                const date1 = new Date(todayIST);
+                const date2 = new Date(cust.loanDate);
+                const diffTime = Math.abs(date1 - date2);
+                const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const paidDays = Number(cust.paidDays || 0);
+                gapDays = totalDays - paidDays;
+
+                const emi = Number(cust.emi || 0);
+                if (gapDays > 60 && gapDays <= 80) {
+                    penaltyAmount = (gapDays - 60) * (emi * 0.10);
+                } else if (gapDays > 80) {
+                    penaltyAmount = (20 * (emi * 0.10)) + ((gapDays - 80) * (emi * 0.15));
+                }
+            }
+
+            const totalPayableNow = dynamicRemaining + penaltyAmount;
+
             div.innerHTML = ` 
                 <div class="clickable-trigger" data-id="${cust.id}" style="display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;"> 
                     <img src="${photoUrl}" style="width:55px;height:55px;border-radius:50%;object-fit:cover;" onerror="this.src='https://img.icons8.com/color/96/user-male-circle.png'"> 
                     <div style="flex:1;"> 
                         <h4 style="margin:0 0 4px 0;font-size:16px;color:#0f172a;font-weight:600;">${cust.name || "N/A"}</h4> 
                         <p style="margin:0 0 2px 0;font-size:13px;color:#64748b;">📞 ${cust.mobile || "-"}</p> 
-                        <p style="margin:0;font-size:12px;color:#64748b;">💵 लोन: ₹${cust.loanAmount || 0} | <span style="color:#ef4444;font-weight:500;">🔻 बकाया: ₹${cust.remainingAmount || 0}</span></p> 
+                        <p style="margin:0;font-size:12px;color:#64748b;">
+                            💵 लोन: ₹${loanAmount} | 
+                            <span style="color:#ef4444;font-weight:600;">🔻 कुल देय: ₹${Math.round(totalPayableNow)}</span>
+                        </p> 
+                        ${penaltyAmount > 0 ? `<p style="margin:4px 0 0 0;font-size:11px;color:#d32f2f;font-weight:500;">⚠️ शामिल लेट फाइन: ₹${Math.round(penaltyAmount)} (${gapDays} दिन बकाया)</p>` : ''}
                     </div> 
                 </div> 
                 <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:10px;"> 
@@ -81,30 +121,23 @@ window.addEventListener('DOMContentLoaded', async () => {
             btn.onclick = async (e) => { 
                 e.stopPropagation(); 
                 const id = e.target.getAttribute("data-id"); 
-                
                 const adminPassword = prompt("🔐 सुरक्षा锁: ग्राहक का पूरा रिकॉर्ड डिलीट करने के लिए एडमिन पासवर्ड डालें:"); 
                 if (adminPassword === "GDA@2026") { 
                     if (confirm("⚠️ क्या आप सच में इस ग्राहक का पूरा डेटा और उसकी पूरी कलेक्शन हिस्ट्री हमेशा के लिए डिलीट करना चाहते हैं?")) { 
                         try { 
-                            // 1. सबसे पहले 'customers' कलेक्शन से ग्राहक को डिलीट करें
                             await deleteDoc(doc(db, "customers", id)); 
-
-                            // 2. 🔥 नया ऑटो-अपडेट लॉजिक: 'collections' कलेक्शन से इसकी सभी किस्तें डिलीट करना
-                            const collectionsRef = collection(db, "collections");
-                            const q = query(collectionsRef, where("customerId", "==", id));
-                            const querySnapshot = await getDocs(q);
-                            
-                            // सभी रिलेटेड किस्तों को एक साथ बैच (Batch) बनाकर डिलीट करना
-                            const batch = writeBatch(db);
-                            querySnapshot.forEach((docSnap) => {
-                                batch.delete(docSnap.ref);
-                            });
-                            await batch.commit();
-
+                            const collectionsRef = collection(db, "collections"); 
+                            const q = query(collectionsRef, where("customerId", "==", id)); 
+                            const querySnapshot = await getDocs(q); 
+                            const batch = writeBatch(db); 
+                            querySnapshot.forEach((docSnap) => { 
+                                batch.delete(docSnap.ref); 
+                            }); 
+                            await batch.commit(); 
                             alert("🗑️ ग्राहक का रिकॉर्ड और उसकी पूरी ईएमआई हिस्ट्री सफ़लतापूर्वक साफ़ कर दी गई है!"); 
                             fetchCustomers(); 
                         } catch (err) { 
-                            console.error("डिलीट करने में एरर:", err);
+                            console.error("डिलीट करने में एरर:", err); 
                             alert("⚠️ रिकॉर्ड डिलीट करने में समस्या आई।"); 
                         } 
                     } 
@@ -123,7 +156,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderList(); 
         }; 
     } 
-
     if(tabClosed){ 
         tabClosed.onclick = () => { 
             currentFilter = "Closed"; 
@@ -132,7 +164,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderList(); 
         }; 
     } 
-
     if(searchInp){ 
         searchInp.oninput = () => { 
             renderList(); 
