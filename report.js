@@ -1,16 +1,14 @@
 import { db } from './firebase-config.js'; 
-// ⚡ वर्शन 12.0.0 का पक्का मैचिंग लिंक
 import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 // ==========================================
-// 🔐 1. पक्का सेशन-आधारित एडमिन लॉक लॉजिक (PIN: 8271)
+// 🔐 1. सेशन-आधारित एडमिन लॉक लॉजिक (PIN: 8271)
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // जांचें कि क्या इस सेशन में ऐप पहले से अनलॉक है
+    // जांचें कि क्या पहले से अनलॉक है
     if (sessionStorage.getItem('reportUnlocked') === 'true') {
         const lockEl = document.getElementById('lockScreen');
         if (lockEl) lockEl.style.display = 'none';
-        loadReportData(); // अगर पहले से अनलॉक है तो डेटा लोड करें
     }
 });
 
@@ -18,11 +16,9 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('btnUnlock')?.addEventListener('click', () => {
     const pin = document.getElementById('pinInput').value.trim();
     
-    // बाबू भाई का पर्सनल पिन 8271
     if (pin == 8271 || pin === "8271") { 
         sessionStorage.setItem('reportUnlocked', 'true'); 
         document.getElementById('lockScreen').style.display = 'none';
-        loadReportData(); // अनलॉक होते ही तुरंत डेटा लोड हो
     } else {
         const errEl = document.getElementById('errorMsg');
         if (errEl) errEl.style.display = 'block';
@@ -32,7 +28,7 @@ document.getElementById('btnUnlock')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 📊 2. वित्तीय रिपोर्ट लाइव डेटा कैलकुलेशन लॉजिक
+// 📊 2. वित्तीय रिपोर्ट लाइव डेटा कैलकुलेशन लॉजिक (तुरंत लोड होने वाला)
 // ==========================================
 let currentTab = 'Daily';
 
@@ -154,14 +150,11 @@ function updateDOM(id, value) {
     if (el) el.innerText = value;
 }
 
-// पेज लोड होने पर दैनिक डेटा अपने आप लोड हो
+// ⚡ बिना किसी शर्त के पेज लोड होते ही डेटा तुरंत डेटाबेस से खींचेगा
 window.addEventListener('load', () => {
     const dateInput = document.getElementById('inpReportDate');
     if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
-    // अगर पहले से अनलॉक है तो तुरंत लोड करें
-    if (sessionStorage.getItem('reportUnlocked') === 'true') {
-        switchTab('Daily');
-    }
+    switchTab('Daily'); // यह लाइन बिना किसी रोक-टोक के तुरंत लाइव डेटा चला देगी
 });
