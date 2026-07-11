@@ -96,14 +96,13 @@
     </div>
 
     <script type="module">
-        // आपकी अपनी वर्किंग कॉन्फिग फाइल को डायरेक्ट इम्पोर्ट किया
         import { db } from './firebase-config.js'; 
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         let currentTab = 'Daily';
 
         // 🔐 अनलॉक प्रक्रिया
-        function doUnlock() {
+        window.doUnlock = function() {
             const pin = document.getElementById('pinInput').value.trim();
             if (pin === "8271") { 
                 sessionStorage.setItem('reportPageUnlocked', 'true'); 
@@ -117,15 +116,15 @@
         }
 
         // पेज लोड इवेंट
-        window.addEventListener('load', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('reportPageUnlocked') === 'true') {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 setupAppAndLoad();
             } else {
-                document.getElementById('btnUnlock').addEventListener('click', doUnlock);
+                document.getElementById('btnUnlock').addEventListener('click', window.doUnlock);
                 document.getElementById('pinInput').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') doUnlock();
+                    if (e.key === 'Enter') window.doUnlock();
                 });
             }
         });
@@ -173,53 +172,61 @@
             try {
                 // 1. Loans
                 const loanSnapshot = await getDocs(collection(db, "loans"));
-                loanSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if(data.date) {
-                        const loanDate = new Date(data.date);
-                        if (checkDateMatch(loanDate, today, currentTab)) {
-                            disbursement += Number(data.amount || 0);
-                            interestIncome += Number(data.interest || 0);
+                if(loanSnapshot) {
+                    loanSnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if(data && data.date) {
+                            const loanDate = new Date(data.date);
+                            if (checkDateMatch(loanDate, today, currentTab)) {
+                                disbursement += Number(data.amount || 0);
+                                interestIncome += Number(data.interest || 0);
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 // 2. Collections
                 const collSnapshot = await getDocs(collection(db, "collections"));
-                collSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if(data.date) {
-                        const collDate = new Date(data.date);
-                        if (checkDateMatch(collDate, today, currentTab)) {
-                            collectionAmt += Number(data.amount || 0);
+                if(collSnapshot) {
+                    collSnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if(data && data.date) {
+                            const collDate = new Date(data.date);
+                            if (checkDateMatch(collDate, today, currentTab)) {
+                                collectionAmt += Number(data.amount || 0);
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 // 3. Expenses
                 const expSnapshot = await getDocs(collection(db, "expenses"));
-                expSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if(data.date) {
-                        const expDate = new Date(data.date);
-                        if (checkDateMatch(expDate, today, currentTab)) {
-                            expenses += Number(data.amount || 0);
+                if(expSnapshot) {
+                    expSnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if(data && data.date) {
+                            const expDate = new Date(data.date);
+                            if (checkDateMatch(expDate, today, currentTab)) {
+                                expenses += Number(data.amount || 0);
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 // 4. Customers
                 const custSnapshot = await getDocs(collection(db, "customers"));
-                custSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const dStr = data.createdAt || data.date;
-                    if(dStr) {
-                        const regDate = new Date(dStr);
-                        if (checkDateMatch(regDate, today, currentTab)) {
-                            newCustomers++;
+                if(custSnapshot) {
+                    custSnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const dStr = data.createdAt || data.date;
+                        if(dStr) {
+                            const regDate = new Date(dStr);
+                            if (checkDateMatch(regDate, today, currentTab)) {
+                                newCustomers++;
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 const netProfit = (collectionAmt + interestIncome) - expenses;
                 const totalPortfolio = disbursement + collectionAmt;
