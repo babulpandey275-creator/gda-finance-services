@@ -1,72 +1,162 @@
+import { db } from "./firebase.js"; 
+// ⚡ यहाँ फ़ायरबेस के लोड होने वाले वर्ज़न को स्थिर (Stable) कर दिया गया है ताकि कोड कभी न अटके
+import { collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
-import { db } from './firebase-config.js'; 
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+window.addEventListener('DOMContentLoaded', async () => { 
+    const video = document.getElementById("video"); 
+    const canvas = document.getElementById("canvas"); 
+    const captureBtn = document.getElementById("captureBtn"); 
+    const reTakeBtn = document.getElementById("reTakeBtn"); 
+    let capturedImageData = null; 
+    
+    const loanAmountInput = document.getElementById("loanAmount"); 
+    const loanPlanSelect = document.getElementById("loanPlan"); 
+    const totalCollectionInput = document.getElementById("remainingAmount"); 
+    const emiInput = document.getElementById("emi"); 
+    const saveBtn = document.getElementById("saveBtn"); 
 
-document.addEventListener('DOMContentLoaded', () => {
-    // आज की तारीख ऑटोमैटिक सेट करने के लिए
-    const dateInput = document.getElementById('inpRegDate');
-    if (dateInput && !dateInput.value) {
-        const localDate = new Date();
-        const offset = localDate.getTimezoneOffset();
-        const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
-        dateInput.value = adjustedDate.toISOString().split('T')[0];
-    }
+    // 🆔 ऑटोमैटिक GDA आईडी (जैसे GDA001, GDA002) जेनरेट करने का आपका फंक्शन
+    async function generateNextGdaId() { 
+        try { 
+            const q = query(collection(db, "customers"), orderBy("member_no", "desc"), limit(1)); 
+            const querySnapshot = await getDocs(q); 
+            let nextNumber = 1; 
+            if (!querySnapshot.empty) { 
+                const lastCustomer = querySnapshot.docs[0].data(); 
+                if (lastCustomer.member_no !== undefined) { 
+                    nextNumber = parseInt(lastCustomer.member_no, 10) + 1; 
+                } 
+            } 
+            const formattedNumber = String(nextNumber).padStart(3, '0'); 
+            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber }; 
+        } catch (error) { 
+            console.error("Error generating GDA ID:", error); 
+            alert("⚠️ फायरबेस इंडेक्स सेट हो रहा है या कोई गड़बड़ी है।"); 
+            return null; 
+        } 
+    } 
 
-    // फॉर्म सबमिशन हैंडलर
-    const regForm = document.getElementById('registrationForm');
-    if (regForm) {
-        regForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    // 📷 आपका असली कैमरा चालू करने का लॉजिक
+    if (video) { 
+        const constraints = { video: { facingMode: { exact: "environment" } }, audio: false }; 
+        navigator.mediaDevices.getUserMedia(constraints) 
+            .then((stream) => { video.srcObject = stream; }) 
+            .catch((err) => { 
+                console.warn("Exact back camera failed, trying normal environment...", err); 
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }) 
+                    .then((stream) => { video.srcObject = stream; }) 
+                    .catch((e) => { 
+                        navigator.mediaDevices.getUserMedia({ video: true, audio: false }) 
+                            .then(stream => { video.srcObject = stream; }) 
+                            .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2)); 
+                    }); 
+            }); 
+    } 
 
-            const submitBtn = document.getElementById('btnSubmitReg');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerText = "⏳ सेव हो रहा है...";
-            }
+    // 📸 फ़ोटो कैप्चर बटन
+    if (captureBtn) { 
+        captureBtn.onclick = () => { 
+            const context = canvas.getContext("2d"); 
+            canvas.width = video.videoWidth || 640; 
+            canvas.height = video.videoHeight || 480; 
+            context.drawImage(video, 0, 0, canvas.width, canvas.height); 
+            capturedImageData = canvas.toDataURL("image/jpeg"); 
+            video.style.display = "none"; 
+            canvas.style.display = "block"; 
+            captureBtn.style.display = "none"; 
+            reTakeBtn.style.display = "block"; 
+        }; 
+    } 
 
-            // आपके HTML फ़ील्ड्स के अनुसार डेटा उठाना
-            const name = document.getElementById('inpCustomerName')?.value.trim();
-            const phone = document.getElementById('inpCustomerPhone')?.value.trim();
-            const address = document.getElementById('inpCustomerAddress')?.value.trim();
-            const amount = Number(document.getElementById('inpLoanAmount')?.value || 0);
-            const interest = Number(document.getElementById('inpInterestAmount')?.value || 0);
-            const termDays = Number(document.getElementById('inpLoanTerm')?.value || 0);
-            const regDate = document.getElementById('inpRegDate')?.value;
+    // 🔄 दोबारा फ़ोटो लेने का बटन
+    if (reTakeBtn) { 
+        reTakeBtn.onclick = () => { 
+            capturedImageData = null; 
+            canvas.style.display = "none"; 
+            video.style.display = "block"; 
+            reTakeBtn.style.display = "none"; 
+            captureBtn.style.display = "block"; 
+        }; 
+    } 
 
-            try {
-                // 1. कस्टमर डेटा सेव करना
-                const customerRef = await addDoc(collection(db, "customers"), {
-                    name: name,
-                    phone: phone,
-                    address: address,
-                    status: "active",
-                    createdAt: regDate
-                });
+    // 🧮 आपका 20% ब्याज वाला असली कैलकुलेटर फंक्शन
+    function doCalculation() { 
+        const loanAmount = Number(loanAmountInput.value); 
+        const selectedPlan = Number(loanPlanSelect.value); 
+        if (!loanAmount || loanAmount <= 0) { 
+            totalCollectionInput.value = ""; 
+            emiInput.value = ""; 
+            return; 
+        } 
+        const totalCollection = loanAmount + (loanAmount * 0.20); 
+        const dailyEmi = totalCollection / selectedPlan; 
+        totalCollectionInput.value = Math.round(totalCollection); 
+        emiInput.value = Math.round(dailyEmi); 
+    } 
 
-                // 2. लोन डेटा सेव करना
-                await addDoc(collection(db, "loans"), {
-                    customerId: customerRef.id,
-                    customerName: name,
-                    amount: amount,
-                    interest: interest,
-                    termDays: termDays,
-                    date: regDate,
-                    status: "active"
-                });
+    if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation); 
+    if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation); 
 
-                const dailyEmi = Math.ceil((amount + interest) / termDays);
-                alert(`🎉 खाता खुल गया!\nदैनिक EMI: ₹${dailyEmi}`);
-                
-                window.location.href = "index.html";
+    // 💾 फ़ायरबेस में ग्राहक का पूरा डेटा सुरक्षित सेव करने का लॉजिक
+    saveBtn.onclick = async () => { 
+        const name = document.getElementById("customerName").value.trim(); 
+        const mobile = document.getElementById("mobileNumber").value.trim(); 
+        const address = document.getElementById("address").value.trim(); 
+        const aadhaar = document.getElementById("aadhaarNumber").value.trim(); 
+        const pan = document.getElementById("panNumber") ? document.getElementById("panNumber").value.trim().toUpperCase() : "-"; 
+        const loanAmount = Number(loanAmountInput.value); 
+        const selectedPlan = Number(loanPlanSelect.value); 
+        const totalCollection = Number(totalCollectionInput.value); 
+        const emi = Number(emiInput.value); 
 
-            } catch (error) {
-                console.error("Error:", error);
-                alert("🚨 सेव नहीं हो पाया! इंटरनेट चेक करें।");
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "➕ Register";
-                }
-            }
-        });
-    }
+        if (!name || !mobile || !address || !aadhaar || !loanAmount) { 
+            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, आधार कार्ड, लोन राशि) दर्ज करें!"); 
+            return; 
+        } 
+
+        try { 
+            saveBtn.disabled = true; 
+            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है..."; 
+            
+            const idObj = await generateNextGdaId(); 
+            if (!idObj) { 
+                throw new Error("GDA ID जेनरेट नहीं हो सकी।"); 
+            } 
+
+            const todayDate = new Date().toISOString().split('T')[0]; 
+            
+            // आपके डेटाबेस स्ट्रक्चर के अनुसार हूबहू एंट्री
+            await addDoc(collection(db, "customers"), { 
+                customerCode: idObj.member_id, 
+                member_no: idObj.member_no, 
+                name: name, 
+                mobile: mobile, 
+                address: address, 
+                aadharCard: aadhaar, 
+                panCard: pan, 
+                loanAmount: loanAmount, 
+                planDuration: selectedPlan, 
+                duration: selectedPlan, 
+                totalCollection: totalCollection, 
+                remainingAmount: totalCollection, 
+                totalCollected: 0, 
+                dailyEmi: emi, 
+                emi: emi, 
+                paidDays: 0, 
+                status: "Active", 
+                customerPhoto: capturedImageData || null, 
+                loanDate: todayDate, 
+                createdAt: new Date().toISOString() 
+            }); 
+
+            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`); 
+            window.location.href = "customer-list.html"; 
+
+        } catch (error) { 
+            console.error("कस्टमर सेव करने में तकनीकी एरर:", error); 
+            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।"); 
+            saveBtn.disabled = false; 
+            saveBtn.innerText = "💰 ग्राहक सुरक्षित करें"; 
+        } 
+    }; 
 });
