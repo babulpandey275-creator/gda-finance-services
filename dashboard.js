@@ -82,15 +82,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // आंकड़े सीधे रखने का सुरक्षा घेरा
-            let rawDue = totalDemand - todayCollectedSum;
-            let finalCollected = todayCollectedSum;
+            // 🧮 वास्तविक और शुद्ध गणना (हार्डकोडेड बग हटा दिया गया है)
+            let finalCollected = todayCollectedSum; 
+            let rawDue = totalDemand - finalCollected;
             let finalDue = rawDue > 0 ? rawDue : 0;
-
-            if (finalCollected === 500 || finalDue === 1700) {
-                finalCollected = totalDemand - 500;
-                finalDue = 500;
-            }
 
             // 🖥️ UI अपडेट
             if (txtTodayCollected) { txtTodayCollected.innerText = `₹${finalCollected} / ₹${totalDemand}`; }
@@ -105,13 +100,11 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     // ======= 🚪 लॉगआउट बटन का सही फ़ंक्शन (Firebase SignOut) =======
-    // ध्यान रखें: आपके HTML में लॉगआउट बटन की ID "logoutBtn" होनी चाहिए
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
         logoutBtn.onclick = () => {
             if (confirm("क्या आप सचमुच लॉगआउट करना चाहते हैं?")) {
                 auth.signOut().then(() => {
-                    // फ़ायरबेस से लॉगआउट होने के बाद लोकल स्टोरेज साफ़ करें
                     localStorage.removeItem("gdaLoggedIn");
                     console.log("सफलतापूर्वक लॉगआउट किया गया।");
                     window.location.href = "login.html";
