@@ -1,6 +1,4 @@
-// ⚡ आपके असली फ़ाइल नाम (firebase.js) से ही db इम्पोर्ट किया
 import { db } from "./firebase.js"; 
-// ⚡ आपके असली फ़ायरबेस वर्ज़न (12.0.0) के साथ सिंक कर दिया ताकि डेटा ब्लॉक न हो
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
@@ -18,12 +16,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
     const txtNetProfit = document.getElementById("txtNetProfit"); 
+    
+    // ⚡ नए HTML ड्यू बॉक्स का कनेक्शन यहाँ जोड़ा है
+    const txtTotalDue = document.getElementById("txtTotalDue"); 
 
     let allCustomers = []; 
     let allCollections = []; 
     let allExpenses = []; 
 
-    // 🇮🇳 भारतीय समय (IST) फ़ॉर्मेट
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     let todayIST = new Date().toISOString().split('T')[0];
     try {
@@ -36,7 +36,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (inpReportDate) inpReportDate.value = todayIST; 
 
-    // 📥 डेटाबेस से सारा डेटा लोड करना
     try { 
         const custSnap = await getDocs(collection(db, "customers")); 
         custSnap.forEach(doc => allCustomers.push(doc.data())); 
@@ -67,10 +66,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (dObj && !isNaN(dObj.getTime())) {
             try {
                 const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dObj);
-                const y = parts.find(p => p.type === 'year').value;
-                const m = parts.find(p => p.type === 'month').value;
-                const d = parts.find(p => p.type === 'day').value;
-                return `${y}-${m}-${d}`;
+                const y = parts.find(p => p.year ? p.value : p.type === 'year' ? p.value : '');
+                const m = parts.find(p => p.month ? p.value : p.type === 'month' ? p.value : '');
+                const d = parts.find(p => p.day ? p.value : p.type === 'day' ? p.value : '');
+                
+                // fallback for parts structure
+                let yVal = parts.find(p => p.type === 'year')?.value || dObj.getFullYear();
+                let mVal = parts.find(p => p.type === 'month')?.value || String(dObj.getMonth() + 1).padStart(2, '0');
+                let dVal = parts.find(p => p.type === 'day')?.value || String(dObj.getDate()).padStart(2, '0');
+                
+                return `${yVal}-${mVal}-${dVal}`;
             } catch(e) {
                 return dObj.toISOString().split('T')[0];
             }
@@ -78,7 +83,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         return "";
     }
 
-    // 🧮 कैलकुलेशन लॉजिक
     function calculateReport(type) { 
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
@@ -95,8 +99,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         let totalCollected = 0; 
         let totalExp = 0; 
         let newCustCount = 0; 
+        let runningMarketDue = 0; 
 
-        // 1. Loans / Customers
+        // 1. Loans / Customers / Due Calculation
         allCustomers.forEach(cust => { 
             const dStr = cust.loanDate || cust.date || cust.createdAt;
             if (!dStr) return; 
@@ -121,9 +126,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                     if (cYear === currentYear) match = true; 
                 } 
             } 
+            
             if (match) { 
                 totalDisbursed += (Number(cust.loanAmount) || Number(cust.amount) || 0); 
                 newCustCount++; 
+                // ⚡ ग्राहकों का बचा हुआ बकाया पैसा (remainingAmount) चुने गए फ़िल्टर के हिसाब से जोड़ेगा
+                runningMarketDue += (Number(cust.remainingAmount) || 0);
             } 
         }); 
 
@@ -184,7 +192,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             } 
         }); 
 
-        // 💰 आपकी पुरानी असली मैथ (कलेक्शन का छठा हिस्सा ब्याज)
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
         const totalPortfolio = totalDisbursed + totalCollected;
@@ -195,6 +202,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
+        
+        // ⚡ कैलकुलेट किया हुआ ड्यू अमाउंट स्क्रीन वाले डिब्बे में यहाँ से भेजा जा रहा है
+        if (txtTotalDue) txtTotalDue.textContent = `₹${runningMarketDue.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
             txtNetProfit.textContent = `₹${netProfit.toLocaleString('en-IN')}`;
