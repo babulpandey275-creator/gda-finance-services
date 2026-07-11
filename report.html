@@ -33,7 +33,7 @@
         .back-btn{display:block;text-align:center;background:#475569;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px;}
         .manage-exp-btn{display:block;text-align:center;background:#dc3545;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:10px;}
 
-        /* --- 🔐 PASSWORD SECURITY SCREEN --- */
+        /* --- 🔐 PASSWORD SECURITY MODAL OVERLAY --- */
         #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .lock-box { background: #fff; padding: 30px 20px; border-radius: 15px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .lock-box h3 { margin: 0 0 10px; color: #0f172a; font-size: 18px; }
@@ -45,7 +45,6 @@
 </head>
 <body>
 
-    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
             <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
@@ -57,7 +56,6 @@
         </div>
     </div>
 
-    <!-- मुख्य रिपोर्ट कार्ड (शुरुआत में छुपा रहेगा जब तक लॉक न खुले) -->
     <div class="card" id="mainContent" style="display: none;">
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
@@ -94,10 +92,9 @@
         </div>
 
         <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे ENTRY व सुधार (Manage Expenses)</a>
-        <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
+        <a href="index.html" class="back-btn">⬅ डैशबोध पर वापस जाएं</a>
     </div>
 
-    <!-- ⚡ जावास्क्रिप्ट फ़ाइल का लिंक (ताज़ा वर्शन v=secure_lock के साथ) -->
-    <script type="module" src="./report.js?v=secure_lock"></script>
+    <script type="module" src="./report.js?v=final_secure_lock"></script>
 </body>
 </html>
