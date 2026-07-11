@@ -8,22 +8,8 @@
         body{margin:0;padding:15px;background:#eef3f8;font-family:Arial,sans-serif;}
         .card{max-width:500px;margin:auto;background:#fff;border-radius:15px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.15); position: relative;}
         
-        /* --- 🏢 COMPANY BRANDING LOGO STYLE --- */
-        .logo-container {
-            text-align: center;
-            margin-bottom: 10px;
-            margin-top: 5px;
-        }
-        .company-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #d4af37;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            background: #0f172a;
-        }
-
+        .logo-container { text-align: center; margin-bottom: 10px; margin-top: 5px; }
+        .company-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #d4af37; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: #0f172a; }
         .heading{text-align:center;font-size:20px;margin-bottom:20px;color:#1565c0;font-weight:bold;}
         .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
         .tab-btn{padding:10px 4px;background:#e2e8f0;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:12px;text-align:center;}
@@ -33,119 +19,44 @@
         .date-picker-box label{font-weight:bold;font-size:13px;color:#475569;margin-right:8px;}
         .date-picker-box input{padding:8px;font-size:14px;border-radius:6px;border:1px solid #cbd5e1;font-weight:bold;text-align:center;}
         
-        /* --- TOTAL PORTFOLIO HERO CARD --- */
-        .portfolio-card {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            border: 2px solid #d4af37;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        .portfolio-card p { margin: 0; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .portfolio-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 2px solid #d4af37; border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .portfolio-card p { margin: 0; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
         .portfolio-card h1 { margin: 5px 0; font-size: 26px; color: #fbf5b7; font-weight: bold; }
 
-        /* --- SMALL GRID BOX DESIGN --- */
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .stats-box {
-            background:#f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-        }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stats-box { background:#f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
         .stats-left p{margin:0;font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase; line-height: 1.2;}
         .stats-left h2{margin:5px 0 0 0;font-size:16px;color:#0f172a;}
         .icon{font-size:18px;}
-        
         .full-width { grid-column: span 2; padding: 15px; }
 
         .back-btn{display:block;text-align:center;background:#475569;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px;}
         .manage-exp-btn{display:block;text-align:center;background:#dc3545;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:10px;}
 
         /* --- 🔐 PASSWORD SECURITY MODAL OVERLAY --- */
-        #lockScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0f172a;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .lock-box {
-            background: #fff;
-            padding: 30px 20px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 320px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .lock-box .lock-logo {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            margin-bottom: 15px;
-            border: 2px solid #d4af37;
-            background: #0f172a;
-        }
+        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .lock-box { background: #fff; padding: 30px 20px; border-radius: 15px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .lock-box h3 { margin: 0 0 10px; color: #0f172a; font-size: 18px; }
         .lock-box p { font-size: 13px; color: #64748b; margin: 0 0 20px; }
-        .lock-box input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: bold;
-            box-sizing: border-box;
-        }
-        .lock-box button {
-            width: 100%;
-            padding: 12px;
-            background: #1565c0;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .lock-box input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: bold; box-sizing: border-box; }
+        .lock-box button { width: 100%; padding: 12px; background: #1565c0; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
         #errorMsg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
-            <img src="logo.png" alt="GDA Logo" class="lock-logo" onerror="this.style.display='none';">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
             <h3>वित्तीय रिपोर्ट लॉक है</h3>
             <p>कृपया आगे बढ़ने के लिए अपना 4-अंकों का एडमिन PIN दर्ज करें</p>
-            <input type="password" id="pinInput" placeholder="••••" maxlength="6" inputmode="numeric">
+            <input type="password" id="pinInput" placeholder="••••" maxlength="4" inputmode="numeric">
             <button id="btnUnlock">🔒 अनलॉक करें</button>
             <div id="errorMsg">गलत पासवर्ड! कृपया दोबारा प्रयास करें।</div>
         </div>
     </div>
 
-    <!-- मुख्य रिपोर्ट कार्ड -->
-    <div class="card">
-        
-        <!-- 🏢 कंपनी का नया 3D लोगो -->
+    <div class="card" id="mainContent" style="display: none;">
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
         </div>
@@ -166,13 +77,11 @@
 
         <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">तारीख के अनुसार दैनिक लाइव रिपोर्ट</div>
 
-        <!-- 🔥 कुल पोर्टफोलियो बॉक्स -->
         <div class="portfolio-card">
             <p>💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)</p>
             <h1 id="txtTotalPortfolio">₹0</h1>
         </div>
 
-        <!-- 🗂️ छोटे डिज़ाइनर बॉक्स का ग्रिड कंटेनर -->
         <div class="grid-container">
             <div class="stats-box" style="border-left:4px solid #1565c0;"><div class="stats-left"><p>वितरित लोन<br>(Disbursement)</p><h2 id="txtDisbursement">₹0</h2></div><div class="icon">💵</div></div>
             <div class="stats-box" style="border-left:4px solid #22c55e;"><div class="stats-left"><p>वसूली कलेक्शन<br>(Collection)</p><h2 id="txtCollection">₹0</h2></div><div class="icon">💰</div></div>
@@ -186,62 +95,62 @@
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
-    <!-- ⚡ डायरेक्ट इन-बिल्ट जावास्क्रिप्ट लॉजिक जो तुरंत काम करेगा -->
     <script type="module">
         import { db } from './firebase-config.js'; 
         import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
         let currentTab = 'Daily';
 
-        // 🔐 1. लॉक और अनलॉक कंट्रोलर फंक्शन
-        function handleUnlock() {
+        // 🔐 अनलॉक करने का फंक्शन
+        function doUnlock() {
             const pin = document.getElementById('pinInput').value.trim();
-            if (pin === "8271" || pin == 8271) { 
-                sessionStorage.setItem('reportUnlocked', 'true'); 
+            if (pin === "8271") { 
+                sessionStorage.setItem('reportPageUnlocked', 'true'); 
                 document.getElementById('lockScreen').style.display = 'none';
-                loadReportData(); // अनलॉक होते ही डेटा तुरंत स्क्रीन पर लाए
+                document.getElementById('mainContent').style.display = 'block';
+                loadReportData(); // अनलॉक होते ही तुरंत लाइव डेटा खींचे
             } else {
                 document.getElementById('errorMsg').style.display = 'block';
                 document.getElementById('pinInput').value = '';
             }
         }
 
-        // पेज लोड होते ही सबसे पहले चलने वाला काम
-        document.addEventListener('DOMContentLoaded', () => {
-            // अगर पहले से अनलॉक है तो लॉक स्क्रीन हटाओ और डेटा लाओ
-            if (sessionStorage.getItem('reportUnlocked') === 'true') {
+        // पेज लोड होते ही चेक करें
+        window.addEventListener('load', () => {
+            // अगर पहले से सेशन में अनलॉक है
+            if (sessionStorage.getItem('reportPageUnlocked') === 'true') {
                 document.getElementById('lockScreen').style.display = 'none';
-                loadReportData();
+                document.getElementById('mainContent').style.display = 'block';
+                setupApp();
+            } else {
+                // बटन क्लिक पर अनलॉक चलाएं
+                document.getElementById('btnUnlock').addEventListener('click', doUnlock);
+                // Enter दबाने पर भी अनलॉक हो
+                document.getElementById('pinInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') doUnlock();
+                });
+                setupApp();
             }
+        });
 
-            // अनलॉक बटन पर क्लिक करने का काम
-            document.getElementById('btnUnlock')?.addEventListener('click', handleUnlock);
-
-            // टैब बदलने का काम
+        function setupApp() {
             document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
             document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
             document.getElementById('btnQuarterly')?.addEventListener('click', () => switchTab('Quarterly'));
             document.getElementById('btnYearly')?.addEventListener('click', () => switchTab('Yearly'));
             document.getElementById('inpReportDate')?.addEventListener('change', () => loadReportData());
 
-            // तारीख बॉक्स में आज की तारीख सेट करना
             const dateInput = document.getElementById('inpReportDate');
             if (dateInput && !dateInput.value) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
-            
-            // अगर पहले से अनलॉक है तो दैनिक रिपोर्ट लोड करो
-            if (sessionStorage.getItem('reportUnlocked') === 'true') {
-                switchTab('Daily');
-            }
-        });
+            switchTab('Daily');
+        }
 
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            const activeBtn = document.getElementById(`btn${tab}`);
-            if (activeBtn) activeBtn.classList.add('active');
+            document.getElementById(`btn${tab}`)?.classList.add('active');
             
             const dateFilterBox = document.getElementById('dateFilterBox');
             const reportTitle = document.getElementById('reportTitle');
@@ -253,63 +162,70 @@
                 if (dateFilterBox) dateFilterBox.style.display = 'none';
                 if (reportTitle) reportTitle.innerText = `${tab} के अनुसार लाइव बिजनेस रिपोर्ट`;
             }
-            if (sessionStorage.getItem('reportUnlocked') === 'true') {
-                loadReportData();
-            }
+            loadReportData();
         }
 
-        // 📊 2. फ़ायरबेस से लाइव डेटा खींचने वाला असली फंक्शन
+        // 📊 फ़ायरबेस लाइव डेटा कैलकुलेशन
         async function loadReportData() {
             let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
             const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
             const today = new Date(selectedDate);
 
             try {
-                // लोन
+                // 1. Loans
                 const loanSnapshot = await getDocs(collection(db, "loans"));
                 loanSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const loanDate = new Date(data.date);
-                    if (checkDateMatch(loanDate, today, currentTab)) {
-                        disbursement += Number(data.amount || 0);
-                        interestIncome += Number(data.interest || 0);
+                    if(data.date) {
+                        const loanDate = new Date(data.date);
+                        if (checkDateMatch(loanDate, today, currentTab)) {
+                            disbursement += Number(data.amount || 0);
+                            interestIncome += Number(data.interest || 0);
+                        }
                     }
                 });
 
-                // कलेक्शन
+                // 2. Collections
                 const collSnapshot = await getDocs(collection(db, "collections"));
                 collSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const collDate = new Date(data.date);
-                    if (checkDateMatch(collDate, today, currentTab)) {
-                        collectionAmt += Number(data.amount || 0);
+                    if(data.date) {
+                        const collDate = new Date(data.date);
+                        if (checkDateMatch(collDate, today, currentTab)) {
+                            collectionAmt += Number(data.amount || 0);
+                        }
                     }
                 });
 
-                // खर्चे
+                // 3. Expenses
                 const expSnapshot = await getDocs(collection(db, "expenses"));
                 expSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const expDate = new Date(data.date);
-                    if (checkDateMatch(expDate, today, currentTab)) {
-                        expenses += Number(data.amount || 0);
+                    if(data.date) {
+                        const expDate = new Date(data.date);
+                        if (checkDateMatch(expDate, today, currentTab)) {
+                            expenses += Number(data.amount || 0);
+                        }
                     }
                 });
 
-                // ग्राहक
+                // 4. Customers
                 const custSnapshot = await getDocs(collection(db, "customers"));
                 custSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const regDate = new Date(data.createdAt || data.date);
-                    if (checkDateMatch(regDate, today, currentTab)) {
-                        newCustomers++;
+                    const dStr = data.createdAt || data.date;
+                    if(dStr) {
+                        const regDate = new Date(dStr);
+                        if (checkDateMatch(regDate, today, currentTab)) {
+                            newCustomers++;
+                        }
                     }
                 });
 
                 const netProfit = (collectionAmt + interestIncome) - expenses;
                 const totalPortfolio = disbursement + collectionAmt;
 
-                // स्क्रीन पर डेटा अपडेट
+                // DOM Update
                 document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
                 document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
                 document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
@@ -319,7 +235,7 @@
                 document.getElementById('txtTotalPortfolio').innerText = `₹${totalPortfolio.toLocaleString('en-IN')}`;
 
             } catch (error) {
-                console.error("डेटाबेस लोड एरर:", error);
+                console.error("डेटाबेस एरर:", error);
             }
         }
 
