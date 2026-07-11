@@ -32,31 +32,11 @@
 
         .back-btn{display:block;text-align:center;background:#475569;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px;}
         .manage-exp-btn{display:block;text-align:center;background:#dc3545;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:10px;}
-
-        /* --- 🔐 PASSWORD SECURITY MODAL OVERLAY --- */
-        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .lock-box { background: #fff; padding: 30px 20px; border-radius: 15px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .lock-box h3 { margin: 0 0 10px; color: #0f172a; font-size: 18px; }
-        .lock-box p { font-size: 13px; color: #64748b; margin: 0 0 20px; }
-        .lock-box input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: bold; box-sizing: border-box; }
-        .lock-box button { width: 100%; padding: 12px; background: #1565c0; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
-        #errorMsg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="lockScreen">
-        <div class="lock-box">
-            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
-            <h3>वित्तीय रिपोर्ट लॉक है</h3>
-            <p>कृपया आगे बढ़ने के लिए अपना 4-अंकों का एडमिन PIN दर्ज करें</p>
-            <input type="password" id="pinInput" placeholder="••••" maxlength="4" inputmode="numeric">
-            <button id="btnUnlock">🔒 अनलॉक करें</button>
-            <div id="errorMsg">गलत पासवर्ड! कृपया दोबारा प्रयास करें।</div>
-        </div>
-    </div>
-
-    <div class="card" id="mainContent" style="display: none;">
+    <div class="card" id="mainContent">
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
         </div>
@@ -92,9 +72,9 @@
         </div>
 
         <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे ENTRY व सुधार (Manage Expenses)</a>
-        <a href="index.html" class="back-btn">⬅ डैशबोध पर वापस जाएं</a>
+        <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
-    <script type="module" src="./report.js?v=final_secure_lock"></script>
+    <script type="module" src="./report.js?v=nolock_final_fix"></script>
 </body>
 </html>
