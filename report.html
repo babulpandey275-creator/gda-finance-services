@@ -132,6 +132,7 @@
 </head>
 <body>
 
+    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
             <img src="logo.png" alt="GDA Logo" class="lock-logo" onerror="this.style.display='none';">
@@ -143,8 +144,10 @@
         </div>
     </div>
 
+    <!-- मुख्य रिपोर्ट कार्ड -->
     <div class="card">
         
+        <!-- 🏢 कंपनी का नया 3D लोगो -->
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
         </div>
@@ -165,6 +168,7 @@
 
         <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">तारीख के अनुसार दैनिक लाइव रिपोर्ट</div>
 
+        <!-- 🔥 कुल पोर्टफोलियो बॉक्स -->
         <div class="portfolio-card">
             <p>💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)</p>
             <h1 id="txtTotalPortfolio">₹0</h1>
@@ -173,6 +177,7 @@
             </div>
         </div>
 
+        <!-- 🗂️ छोटे डिज़ाइनर बॉक्स का ग्रिड कंटेनर -->
         <div class="grid-container">
             
             <div class="stats-box" style="border-left:4px solid #1565c0;">
@@ -207,6 +212,7 @@
                 <div class="icon">📉</div>
             </div>
 
+            <!-- शुद्ध मुनाफा -->
             <div class="stats-box full-width" style="border-left:5px solid #10b981; background: #f0fdf4; border: 2px solid #a7f3d0;">
                 <div class="stats-left">
                     <p style="color: #047857; font-weight: bold;">🎉 शुद्ध मुनाफा (NET PROFIT)</p>
@@ -215,6 +221,7 @@
                 <div class="icon">🏆</div>
             </div>
 
+            <!-- नए ग्राहक -->
             <div class="stats-box full-width" style="border-left:5px solid #ffb703;">
                 <div class="stats-left">
                     <p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p>
@@ -229,29 +236,7 @@
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // तुरंत चेक करें कि पहले से अनलॉक है या नहीं
-            if (sessionStorage.getItem('reportUnlocked') === 'true') {
-                document.getElementById('lockScreen').style.display = 'none';
-            }
-
-            // बटन पर क्लिक का काम
-            document.getElementById('btnUnlock').addEventListener('click', () => {
-                const enteredPin = document.getElementById('pinInput').value.trim();
-                
-                // बाबू भाई का परफ्यूम पिन 8271 मैचिंग
-                if (enteredPin === "8271" || enteredPin == 8271) {
-                    sessionStorage.setItem('reportUnlocked', 'true');
-                    document.getElementById('lockScreen').style.display = 'none';
-                } else {
-                    document.getElementById('errorMsg').style.display = 'block';
-                    document.getElementById('pinInput').value = ''; // गलत होने पर बॉक्स खाली करें
-                }
-            });
-        });
-    </script>
-
-    <script type="module" src="report.js"></script>
+    <!-- ⚡ ब्राउज़र रिफ्रेश की दिक्कत खत्म करने के लिए नया अपडेटेड लिंक -->
+    <script type="module" src="report.js?v=2.0"></script>
 </body>
 </html>
