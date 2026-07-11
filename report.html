@@ -45,8 +45,6 @@
         }
         .portfolio-card p { margin: 0; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .portfolio-card h1 { margin: 5px 0; font-size: 26px; color: #fbf5b7; font-weight: bold; }
-        .portfolio-trend { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-        .trend-up { color: #22c55e; }
 
         /* --- SMALL GRID BOX DESIGN --- */
         .grid-container {
@@ -132,10 +130,11 @@
 </head>
 <body>
 
+    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
             <img src="logo.png" alt="GDA Logo" class="lock-logo" onerror="this.style.display='none';">
-            <h3>वित्तीय रिपोर्ट锁 है</h3>
+            <h3>वित्तीय रिपोर्ट लॉक है</h3>
             <p>कृपया आगे बढ़ने के लिए अपना 4-अंकों का एडमिन PIN दर्ज करें</p>
             <input type="password" id="pinInput" placeholder="••••" maxlength="6" inputmode="numeric">
             <button id="btnUnlock">🔒 अनलॉक करें</button>
@@ -143,8 +142,10 @@
         </div>
     </div>
 
+    <!-- मुख्य रिपोर्ट कार्ड -->
     <div class="card">
         
+        <!-- 🏢 कंपनी का नया 3D लोगो -->
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
         </div>
@@ -165,106 +166,74 @@
 
         <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">तारीख के अनुसार दैनिक लाइव रिपोर्ट</div>
 
+        <!-- 🔥 कुल पोर्टफोलियो बॉक्स -->
         <div class="portfolio-card">
             <p>💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)</p>
             <h1 id="txtTotalPortfolio">₹0</h1>
-            <div id="portfolioTrend" class="portfolio-trend trend-up">
-                <span>▲</span> इस महीने बिज़नेस ग्रोथ ट्रैक पर है
-            </div>
         </div>
 
+        <!-- 🗂️ छोटे डिज़ाइनर बॉक्स का ग्रिड कंटेनर -->
         <div class="grid-container">
-            
-            <div class="stats-box" style="border-left:4px solid #1565c0;">
-                <div class="stats-left">
-                    <p>वितरित लोन<br>(Disbursement)</p>
-                    <h2 id="txtDisbursement">₹0</h2>
-                </div>
-                <div class="icon">💵</div>
-            </div>
-
-            <div class="stats-box" style="border-left:4px solid #22c55e;">
-                <div class="stats-left">
-                    <p>वसूली कलेक्शन<br>(Collection)</p>
-                    <h2 id="txtCollection">₹0</h2>
-                </div>
-                <div class="icon">💰</div>
-            </div>
-
-            <div class="stats-box" style="border-left:4px solid #6366f1; background: #f5f3ff;">
-                <div class="stats-left">
-                    <p style="color: #6366f1;">ब्याज कमाई<br>(Interest Income)</p>
-                    <h2 id="txtInterestEarned" style="color: #4338ca;">₹0</h2>
-                </div>
-                <div class="icon">📈</div>
-            </div>
-
-            <div class="stats-box" style="border-left:4px solid #f43f5e;">
-                <div class="stats-left">
-                    <p>कुल खर्चे<br>(Total Expenses)</p>
-                    <h2 id="txtExpenses">₹0</h2>
-                </div>
-                <div class="icon">📉</div>
-            </div>
-
-            <div class="stats-box full-width" style="border-left:5px solid #10b981; background: #f0fdf4; border: 2px solid #a7f3d0;">
-                <div class="stats-left">
-                    <p style="color: #047857; font-weight: bold;">🎉 शुद्ध मुनाफा (NET PROFIT)</p>
-                    <h2 id="txtNetProfit" style="color: #065f46; font-size: 22px; font-weight: bold;">₹0</h2>
-                </div>
-                <div class="icon">🏆</div>
-            </div>
-
-            <div class="stats-box full-width" style="border-left:5px solid #ffb703;">
-                <div class="stats-left">
-                    <p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p>
-                    <h2 id="txtNewAccounts">0</h2>
-                </div>
-                <div class="icon">👥</div>
-            </div>
-            
+            <div class="stats-box" style="border-left:4px solid #1565c0;"><div class="stats-left"><p>वितरित लोन<br>(Disbursement)</p><h2 id="txtDisbursement">₹0</h2></div><div class="icon">💵</div></div>
+            <div class="stats-box" style="border-left:4px solid #22c55e;"><div class="stats-left"><p>वसूली कलेक्शन<br>(Collection)</p><h2 id="txtCollection">₹0</h2></div><div class="icon">💰</div></div>
+            <div class="stats-box" style="border-left:4px solid #6366f1; background: #f5f3ff;"><div class="stats-left"><p style="color:#6366f1;">ब्याज कमाई<br>(Interest Income)</p><h2 id="txtInterestEarned" style="color:#4338ca;">₹0</h2></div><div class="icon">📈</div></div>
+            <div class="stats-box" style="border-left:4px solid #f43f5e;"><div class="stats-left"><p>कुल खर्चे<br>(Total Expenses)</p><h2 id="txtExpenses">₹0</h2></div><div class="icon">📉</div></div>
+            <div class="stats-box full-width" style="border-left:5px solid #10b981; background: #f0fdf4; border: 2px solid #a7f3d0;"><div class="stats-left"><p style="color:#047857; font-weight:bold;">🎉 शुद्ध मुनाफा (NET PROFIT)</p><h2 id="txtNetProfit" style="color:#065f46; font-size:22px; font-weight:bold;">₹0</h2></div><div class="icon">🏆</div></div>
+            <div class="stats-box full-width" style="border-left:5px solid #ffb703;"><div class="stats-left"><p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p><h2 id="txtNewAccounts">0</h2></div><div class="icon">👥</div></div>
         </div>
 
         <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे एंट्री व सुधार (Manage Expenses)</a>
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
+    <!-- ⚡ डायरेक्ट इन-बिल्ट जावास्क्रिप्ट लॉजिक जो तुरंत काम करेगा -->
     <script type="module">
         import { db } from './firebase-config.js'; 
         import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
         let currentTab = 'Daily';
 
-        // 🔐 लॉक चेक और अनलॉक हैंडलर
+        // 🔐 1. लॉक और अनलॉक कंट्रोलर फंक्शन
+        function handleUnlock() {
+            const pin = document.getElementById('pinInput').value.trim();
+            if (pin === "8271" || pin == 8271) { 
+                sessionStorage.setItem('reportUnlocked', 'true'); 
+                document.getElementById('lockScreen').style.display = 'none';
+                loadReportData(); // अनलॉक होते ही डेटा तुरंत स्क्रीन पर लाए
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('pinInput').value = '';
+            }
+        }
+
+        // पेज लोड होते ही सबसे पहले चलने वाला काम
         document.addEventListener('DOMContentLoaded', () => {
+            // अगर पहले से अनलॉक है तो लॉक स्क्रीन हटाओ और डेटा लाओ
             if (sessionStorage.getItem('reportUnlocked') === 'true') {
                 document.getElementById('lockScreen').style.display = 'none';
+                loadReportData();
             }
 
-            document.getElementById('btnUnlock')?.addEventListener('click', () => {
-                const pin = document.getElementById('pinInput').value.trim();
-                if (pin === "8271" || pin == 8271) { 
-                    sessionStorage.setItem('reportUnlocked', 'true'); 
-                    document.getElementById('lockScreen').style.display = 'none';
-                } else {
-                    document.getElementById('errorMsg').style.display = 'block';
-                    document.getElementById('pinInput').value = '';
-                }
-            });
+            // अनलॉक बटन पर क्लिक करने का काम
+            document.getElementById('btnUnlock')?.addEventListener('click', handleUnlock);
 
-            // इवेंट लिसनर्स सेट करें
+            // टैब बदलने का काम
             document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
             document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
             document.getElementById('btnQuarterly')?.addEventListener('click', () => switchTab('Quarterly'));
             document.getElementById('btnYearly')?.addEventListener('click', () => switchTab('Yearly'));
             document.getElementById('inpReportDate')?.addEventListener('change', () => loadReportData());
 
-            // पहली बार डेटा लोड करें
+            // तारीख बॉक्स में आज की तारीख सेट करना
             const dateInput = document.getElementById('inpReportDate');
             if (dateInput && !dateInput.value) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
-            switchTab('Daily');
+            
+            // अगर पहले से अनलॉक है तो दैनिक रिपोर्ट लोड करो
+            if (sessionStorage.getItem('reportUnlocked') === 'true') {
+                switchTab('Daily');
+            }
         });
 
         function switchTab(tab) {
@@ -284,16 +253,19 @@
                 if (dateFilterBox) dateFilterBox.style.display = 'none';
                 if (reportTitle) reportTitle.innerText = `${tab} के अनुसार लाइव बिजनेस रिपोर्ट`;
             }
-            loadReportData();
+            if (sessionStorage.getItem('reportUnlocked') === 'true') {
+                loadReportData();
+            }
         }
 
+        // 📊 2. फ़ायरबेस से लाइव डेटा खींचने वाला असली फंक्शन
         async function loadReportData() {
             let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
             const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
             const today = new Date(selectedDate);
 
             try {
-                // 💵 वितरित लोन
+                // लोन
                 const loanSnapshot = await getDocs(collection(db, "loans"));
                 loanSnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -304,7 +276,7 @@
                     }
                 });
 
-                // 💰 कलेक्शन
+                // कलेक्शन
                 const collSnapshot = await getDocs(collection(db, "collections"));
                 collSnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -314,7 +286,7 @@
                     }
                 });
 
-                // 📉 खर्चे
+                // खर्चे
                 const expSnapshot = await getDocs(collection(db, "expenses"));
                 expSnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -324,7 +296,7 @@
                     }
                 });
 
-                // 👥 नए ग्राहक
+                // ग्राहक
                 const custSnapshot = await getDocs(collection(db, "customers"));
                 custSnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -337,16 +309,17 @@
                 const netProfit = (collectionAmt + interestIncome) - expenses;
                 const totalPortfolio = disbursement + collectionAmt;
 
-                updateDOM('txtDisbursement', `₹${disbursement.toLocaleString('en-IN')}`);
-                updateDOM('txtCollection', `₹${collectionAmt.toLocaleString('en-IN')}`);
-                updateDOM('txtInterestEarned', `₹${interestIncome.toLocaleString('en-IN')}`);
-                updateDOM('txtExpenses', `₹${expenses.toLocaleString('en-IN')}`);
-                updateDOM('txtNetProfit', `₹${netProfit.toLocaleString('en-IN')}`);
-                updateDOM('txtNewAccounts', newCustomers);
-                updateDOM('txtTotalPortfolio', `₹${totalPortfolio.toLocaleString('en-IN')}`);
+                // स्क्रीन पर डेटा अपडेट
+                document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
+                document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
+                document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
+                document.getElementById('txtExpenses').innerText = `₹${expenses.toLocaleString('en-IN')}`;
+                document.getElementById('txtNetProfit').innerText = `₹${netProfit.toLocaleString('en-IN')}`;
+                document.getElementById('txtNewAccounts').innerText = newCustomers;
+                document.getElementById('txtTotalPortfolio').innerText = `₹${totalPortfolio.toLocaleString('en-IN')}`;
 
             } catch (error) {
-                console.error("त्रुटि:", error);
+                console.error("डेटाबेस लोड एरर:", error);
             }
         }
 
@@ -359,11 +332,6 @@
             }
             if (mode === 'Yearly') return targetDate.getFullYear() === baseDate.getFullYear();
             return false;
-        }
-
-        function updateDOM(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = value;
         }
     </script>
 </body>
