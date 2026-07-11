@@ -45,6 +45,7 @@
 </head>
 <body>
 
+    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
             <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
@@ -56,6 +57,7 @@
         </div>
     </div>
 
+    <!-- मुख्य रिपोर्ट कार्ड -->
     <div class="card" id="mainContent" style="display: none;">
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
@@ -91,49 +93,47 @@
             <div class="stats-box full-width" style="border-left:5px solid #ffb703;"><div class="stats-left"><p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p><h2 id="txtNewAccounts">0</h2></div><div class="icon">👥</div></div>
         </div>
 
-        <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे एंट्री व सुधार (Manage Expenses)</a>
+        <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे ENTRY व सुधार (Manage Expenses)</a>
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
+    <!-- ⚡ फिक्स जावास्क्रिप्ट लॉजिक -->
     <script type="module">
         import { db } from './firebase-config.js'; 
         import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
         let currentTab = 'Daily';
 
-        // 🔐 अनलॉक करने का फंक्शन
+        // 🔐 अनलॉक प्रक्रिया
         function doUnlock() {
             const pin = document.getElementById('pinInput').value.trim();
             if (pin === "8271") { 
                 sessionStorage.setItem('reportPageUnlocked', 'true'); 
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-                loadReportData(); // अनलॉक होते ही तुरंत लाइव डेटा खींचे
+                setupAppAndLoad(); // अनलॉक होने के बाद ही लोड सेटअप करें
             } else {
                 document.getElementById('errorMsg').style.display = 'block';
                 document.getElementById('pinInput').value = '';
             }
         }
 
-        // पेज लोड होते ही चेक करें
+        // पेज लोड इवेंट
         window.addEventListener('load', () => {
-            // अगर पहले से सेशन में अनलॉक है
             if (sessionStorage.getItem('reportPageUnlocked') === 'true') {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-                setupApp();
+                setupAppAndLoad();
             } else {
-                // बटन क्लिक पर अनलॉक चलाएं
                 document.getElementById('btnUnlock').addEventListener('click', doUnlock);
-                // Enter दबाने पर भी अनलॉक हो
                 document.getElementById('pinInput').addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') doUnlock();
                 });
-                setupApp();
             }
         });
 
-        function setupApp() {
+        // ऐप के सारे बटन एक्टिवेट करना
+        function setupAppAndLoad() {
             document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
             document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
             document.getElementById('btnQuarterly')?.addEventListener('click', () => switchTab('Quarterly'));
@@ -165,8 +165,10 @@
             loadReportData();
         }
 
-        // 📊 फ़ायरबेस लाइव डेटा कैलकुलेशन
+        // 📊 फ़ायरबेस लाइव डेटा फेच
         async function loadReportData() {
+            if (sessionStorage.getItem('reportPageUnlocked') !== 'true') return; // सुरक्षा जांच
+
             let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
             const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
             const today = new Date(selectedDate);
