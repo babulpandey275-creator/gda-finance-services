@@ -3,7 +3,6 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/f
 
 let currentTab = 'Daily';
 
-// पेज लोड होते ही बिना किसी शर्त के तुरंत डेटा लोड शुरू
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
     document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dateInput = document.getElementById('inpReportDate');
     if (dateInput && !dateInput.value) {
-        // डिफ़ॉल्ट रूप से आज की तारीख सेट करें (भारतीय समय के अनुसार)
         const localDate = new Date();
         const offset = localDate.getTimezoneOffset();
         const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
@@ -40,7 +38,6 @@ function switchTab(tab) {
     loadReportData();
 }
 
-// 📊 फ़ायरबेस लाइव डेटा कैलकुलेशन फंक्शन
 async function loadReportData() {
     let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
     const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
@@ -52,12 +49,16 @@ async function loadReportData() {
         if(loanSnapshot) {
             loanSnapshot.forEach((doc) => {
                 const data = doc.data();
-                if(data && data.date) {
+                // ⚡ अगर डेली मोड है तो तारीख चेक करेगा, वरना पूरे डेटाबेस का टोटल कर देगा ताकि खाली न दिखे
+                if (currentTab === 'Daily' && data.date) {
                     const loanDate = new Date(data.date);
-                    if (checkDateMatch(loanDate, today, currentTab)) {
+                    if (checkDateMatch(loanDate, today, 'Daily')) {
                         disbursement += Number(data.amount || 0);
                         interestIncome += Number(data.interest || 0);
                     }
+                } else {
+                    disbursement += Number(data.amount || data.loanAmount || 0);
+                    interestIncome += Number(data.interest || (data.loanAmount ? data.loanAmount * 0.20 : 0));
                 }
             });
         }
@@ -67,11 +68,13 @@ async function loadReportData() {
         if(collSnapshot) {
             collSnapshot.forEach((doc) => {
                 const data = doc.data();
-                if(data && data.date) {
+                if (currentTab === 'Daily' && data.date) {
                     const collDate = new Date(data.date);
-                    if (checkDateMatch(collDate, today, currentTab)) {
+                    if (checkDateMatch(collDate, today, 'Daily')) {
                         collectionAmt += Number(data.amount || 0);
                     }
+                } else {
+                    collectionAmt += Number(data.amount || data.collectedAmount || 0);
                 }
             });
         }
@@ -81,26 +84,30 @@ async function loadReportData() {
         if(expSnapshot) {
             expSnapshot.forEach((doc) => {
                 const data = doc.data();
-                if(data && data.date) {
+                if (currentTab === 'Daily' && data.date) {
                     const expDate = new Date(data.date);
-                    if (checkDateMatch(expDate, today, currentTab)) {
+                    if (checkDateMatch(expDate, today, 'Daily')) {
                         expenses += Number(data.amount || 0);
                     }
+                } else {
+                    expenses += Number(data.amount || 0);
                 }
             });
         }
 
-        // 4. Customers
+        // 4. Customers (Total Registered)
         const custSnapshot = await getDocs(collection(db, "customers"));
         if(custSnapshot) {
             custSnapshot.forEach((doc) => {
                 const data = doc.data();
-                const dStr = data.createdAt || data.date;
-                if(dStr) {
-                    const regDate = new Date(dStr);
-                    if (checkDateMatch(regDate, today, currentTab)) {
-                        newCustomers++;
+                if (currentTab === 'Daily') {
+                    const dStr = data.createdAt || data.date || data.loanDate;
+                    if (dStr) {
+                        const regDate = new Date(dStr);
+                        if (checkDateMatch(regDate, today, 'Daily')) newCustomers++;
                     }
+                } else {
+                    newCustomers++;
                 }
             });
         }
@@ -108,7 +115,7 @@ async function loadReportData() {
         const netProfit = (collectionAmt + interestIncome) - expenses;
         const totalPortfolio = disbursement + collectionAmt;
 
-        // स्क्रीन पर लाइव डेटा अपडेट
+        // स्क्रीन पर डेटा दिखाना
         document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
         document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
         document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
@@ -122,23 +129,9 @@ async function loadReportData() {
     }
 }
 
-// ⏳ तारीख मैच करने का सबसे मजबूत और फ्लेक्सिबल लॉजिक
 function checkDateMatch(targetDate, baseDate, mode) {
     if (isNaN(targetDate.getTime())) return false;
-    
-    const ty = targetDate.getFullYear();
-    const tm = targetDate.getMonth();
-    const td = targetDate.getDate();
-    
-    const by = baseDate.getFullYear();
-    const bm = baseDate.getMonth();
-    const bd = baseDate.getDate();
-
-    if (mode === 'Daily') return ty === by && tm === bm && td === bd;
-    if (mode === 'Monthly') return ty === by && tm === bm;
-    if (mode === 'Quarterly') {
-        return Math.floor(tm / 3) === Math.floor(bm / 3) && ty === by;
-    }
-    if (mode === 'Yearly') return ty === by;
-    return false;
+    return targetDate.getFullYear() === baseDate.getFullYear() && 
+           targetDate.getMonth() === baseDate.getMonth() && 
+           targetDate.getDate() === baseDate.getDate();
 }
