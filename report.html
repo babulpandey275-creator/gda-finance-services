@@ -45,7 +45,6 @@
 </head>
 <body>
 
-    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
     <div id="lockScreen">
         <div class="lock-box">
             <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
@@ -57,7 +56,6 @@
         </div>
     </div>
 
-    <!-- मुख्य रिपोर्ट कार्ड -->
     <div class="card" id="mainContent" style="display: none;">
         <div class="logo-container">
             <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
@@ -97,23 +95,11 @@
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
-    <!-- ⚡ फिक्स जावास्क्रिप्ट लॉजिक जो सीधे फायरबेस मॉड्यूल लोड करता है -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"; 
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        // आपकी अपनी वर्किंग कॉन्फिग फाइल को डायरेक्ट इम्पोर्ट किया
+        import { db } from './firebase-config.js'; 
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        // फ़ायरबेस का डायरेक्ट कनेक्शन (ताकि किसी बाहरी JS फ़ाइल पर निर्भर न रहना पड़े)
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDFG2At-wHGTiUg6cc2kjiKmgbK-dSgXKw", 
-            authDomain: "gda-finance-services.firebaseapp.com", 
-            projectId: "gda-finance-services", 
-            storageBucket: "gda-finance-services.firebasestorage.app", 
-            messagingSenderId: "146207390486", 
-            appId: "1:146207390486:web:076e980ea1404c665b6e37"
-        }; 
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         let currentTab = 'Daily';
 
         // 🔐 अनलॉक प्रक्रिया
@@ -238,7 +224,7 @@
                 const netProfit = (collectionAmt + interestIncome) - expenses;
                 const totalPortfolio = disbursement + collectionAmt;
 
-                // DOM Update
+                // DOM पर लाइव डेटा अपडेट
                 document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
                 document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
                 document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
