@@ -7,7 +7,24 @@
     <style>
         body{margin:0;padding:15px;background:#eef3f8;font-family:Arial,sans-serif;}
         .card{max-width:500px;margin:auto;background:#fff;border-radius:15px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.15); position: relative;}
-        .heading{text-align:center;font-size:22px;margin-bottom:20px;color:#1565c0;font-weight:bold;}
+        
+        /* --- 🏢 COMPANY BRANDING LOGO STYLE --- */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #d4af37;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #0f172a;
+        }
+
+        .heading{text-align:center;font-size:20px;margin-bottom:20px;color:#1565c0;font-weight:bold;}
         .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
         .tab-btn{padding:10px 4px;background:#e2e8f0;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:12px;text-align:center;}
         .tab-btn.active{background:#1565c0;color:white;}
@@ -30,7 +47,6 @@
         .portfolio-card h1 { margin: 5px 0; font-size: 26px; color: #fbf5b7; font-weight: bold; }
         .portfolio-trend { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
         .trend-up { color: #22c55e; }
-        .trend-down { color: #f43f5e; }
 
         /* --- SMALL GRID BOX DESIGN --- */
         .grid-container {
@@ -53,7 +69,6 @@
         .stats-left h2{margin:5px 0 0 0;font-size:16px;color:#0f172a;}
         .icon{font-size:18px;}
         
-        /* Full width utility for special highlights */
         .full-width { grid-column: span 2; padding: 15px; }
 
         .back-btn{display:block;text-align:center;background:#475569;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px;}
@@ -80,7 +95,14 @@
             width: 100%;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
-        .lock-box i { font-size: 40px; color: #1565c0; margin-bottom: 15px; display: block; }
+        .lock-box .lock-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 2px solid #d4af37;
+            background: #0f172a;
+        }
         .lock-box h3 { margin: 0 0 10px; color: #0f172a; font-size: 18px; }
         .lock-box p { font-size: 13px; color: #64748b; margin: 0 0 20px; }
         .lock-box input {
@@ -105,16 +127,15 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .lock-box button:hover { background: #0d47a1; }
         #errorMsg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन -->
+    <!-- 🔐 सुरक्षा पासवर्ड स्क्रीन (logo.png के साथ) -->
     <div id="lockScreen">
         <div class="lock-box">
-            <span>🔒</span>
+            <img src="logo.png" alt="GDA Logo" class="lock-logo" onerror="this.style.display='none';">
             <h3>वित्तीय रिपोर्ट लॉक है</h3>
             <p>कृपया आगे बढ़ने के लिए अपना 4-अंकों का एडमिन PIN दर्ज करें</p>
             <input type="password" id="pinInput" placeholder="••••" maxlength="6" inputmode="numeric">
@@ -123,8 +144,14 @@
         </div>
     </div>
 
-    <!-- मुख्य रिपोर्ट कार्ड (अनलॉक होने के बाद दिखेगा) -->
+    <!-- मुख्य रिपोर्ट कार्ड -->
     <div class="card">
+        
+        <!-- 🏢 आपकी कंपनी का नया चमकदार लोगो -->
+        <div class="logo-container">
+            <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
+        </div>
+        
         <div class="heading">📊 वित्तीय रिपोर्ट (Financial Reports)</div>
         
         <div class="tabs">
@@ -141,12 +168,12 @@
 
         <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">तारीख के अनुसार दैनिक लाइव रिपोर्ट</div>
 
-        <!-- 🔥 नया कुल पोर्टफोलियो बॉक्स (ब्याज समेत) -->
+        <!-- 🔥 कुल पोर्टफोलियो बॉक्स -->
         <div class="portfolio-card">
             <p>💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)</p>
             <h1 id="txtTotalPortfolio">₹0</h1>
             <div id="portfolioTrend" class="portfolio-trend trend-up">
-                <span id="trendIcon">▲</span> इस महीने बिज़नेस ग्रोथ ट्रैक पर है
+                <span>▲</span> इस महीने बिज़नेस ग्रोथ ट्रैक पर है
             </div>
         </div>
 
@@ -185,7 +212,7 @@
                 <div class="icon">📉</div>
             </div>
 
-            <!-- शुद्ध मुनाफा (Full Width Highlight) -->
+            <!-- शुद्ध मुनाफा -->
             <div class="stats-box full-width" style="border-left:5px solid #10b981; background: #f0fdf4; border: 2px solid #a7f3d0;">
                 <div class="stats-left">
                     <p style="color: #047857; font-weight: bold;">🎉 शुद्ध मुनाफा (NET PROFIT)</p>
@@ -198,9 +225,9 @@
             <div class="stats-box full-width" style="border-left:5px solid #ffb703;">
                 <div class="stats-left">
                     <p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p>
-                    <h2 id="txtNewCustomers">0</h2>
+                    <h2 id="txtNewAccounts">0</h2>
                 </div>
-                <div class="icon">👤</div>
+                <div class="icon">👥</div>
             </div>
             
         </div>
