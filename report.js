@@ -3,39 +3,8 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/f
 
 let currentTab = 'Daily';
 
-// 🔐 ताला खोलने का असली और पक्का फंक्शन (बटन आईडी: btnUnlock)
-function doUnlock() {
-    const pin = document.getElementById('pinInput').value.trim();
-    
-    if (pin === "8271" || pin == 8271) { 
-        sessionStorage.setItem('reportPageUnlocked', 'true'); 
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        setupAppAndLoad(); // ताला खुलते ही तुरंत डेटा लोड होगा
-    } else {
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('pinInput').value = ''; 
-    }
-}
-
-// पेज लोड होते ही सबसे पहले चेक करो
+// पेज लोड होते ही बिना किसी शर्त के तुरंत डेटा लोड शुरू
 document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('reportPageUnlocked') === 'true') {
-        if(document.getElementById('lockScreen')) document.getElementById('lockScreen').style.display = 'none';
-        if(document.getElementById('mainContent')) document.getElementById('mainContent').style.display = 'block';
-        setupAppAndLoad();
-    } else {
-        const unlockBtn = document.getElementById('btnUnlock');
-        if (unlockBtn) {
-            unlockBtn.addEventListener('click', doUnlock);
-        }
-        document.getElementById('pinInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') doUnlock();
-        });
-    }
-});
-
-function setupAppAndLoad() {
     document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
     document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
     document.getElementById('btnQuarterly')?.addEventListener('click', () => switchTab('Quarterly'));
@@ -47,7 +16,7 @@ function setupAppAndLoad() {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
     switchTab('Daily');
-}
+});
 
 function switchTab(tab) {
     currentTab = tab;
@@ -67,15 +36,14 @@ function switchTab(tab) {
     loadReportData();
 }
 
-// 📊 फ़ायरबेस लाइव डेटा फ़ेचिंग
+// 📊 फ़ायरबेस लाइव डेटा कैलकुलेशन फंक्शन
 async function loadReportData() {
-    if (sessionStorage.getItem('reportPageUnlocked') !== 'true') return; 
-
     let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
     const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
     const today = new Date(selectedDate);
 
     try {
+        // 1. Loans
         const loanSnapshot = await getDocs(collection(db, "loans"));
         if(loanSnapshot) {
             loanSnapshot.forEach((doc) => {
@@ -90,6 +58,7 @@ async function loadReportData() {
             });
         }
 
+        // 2. Collections
         const collSnapshot = await getDocs(collection(db, "collections"));
         if(collSnapshot) {
             collSnapshot.forEach((doc) => {
@@ -103,6 +72,7 @@ async function loadReportData() {
             });
         }
 
+        // 3. Expenses
         const expSnapshot = await getDocs(collection(db, "expenses"));
         if(expSnapshot) {
             expSnapshot.forEach((doc) => {
@@ -116,6 +86,7 @@ async function loadReportData() {
             });
         }
 
+        // 4. Customers
         const custSnapshot = await getDocs(collection(db, "customers"));
         if(custSnapshot) {
             custSnapshot.forEach((doc) => {
@@ -133,6 +104,7 @@ async function loadReportData() {
         const netProfit = (collectionAmt + interestIncome) - expenses;
         const totalPortfolio = disbursement + collectionAmt;
 
+        // स्क्रीन पर लाइव डेटा अपडेट
         document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
         document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
         document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
