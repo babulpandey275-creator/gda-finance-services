@@ -97,11 +97,23 @@
         <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
     </div>
 
-    <!-- ⚡ फिक्स जावास्क्रिप्ट लॉजिक -->
+    <!-- ⚡ फिक्स जावास्क्रिप्ट लॉजिक जो सीधे फायरबेस मॉड्यूल लोड करता है -->
     <script type="module">
-        import { db } from './firebase-config.js'; 
-        import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"; 
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+        // फ़ायरबेस का डायरेक्ट कनेक्शन (ताकि किसी बाहरी JS फ़ाइल पर निर्भर न रहना पड़े)
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDFG2At-wHGTiUg6cc2kjiKmgbK-dSgXKw", 
+            authDomain: "gda-finance-services.firebaseapp.com", 
+            projectId: "gda-finance-services", 
+            storageBucket: "gda-finance-services.firebasestorage.app", 
+            messagingSenderId: "146207390486", 
+            appId: "1:146207390486:web:076e980ea1404c665b6e37"
+        }; 
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         let currentTab = 'Daily';
 
         // 🔐 अनलॉक प्रक्रिया
@@ -111,7 +123,7 @@
                 sessionStorage.setItem('reportPageUnlocked', 'true'); 
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-                setupAppAndLoad(); // अनलॉक होने के बाद ही लोड सेटअप करें
+                setupAppAndLoad(); 
             } else {
                 document.getElementById('errorMsg').style.display = 'block';
                 document.getElementById('pinInput').value = '';
@@ -132,7 +144,6 @@
             }
         });
 
-        // ऐप के सारे बटन एक्टिवेट करना
         function setupAppAndLoad() {
             document.getElementById('btnDaily')?.addEventListener('click', () => switchTab('Daily'));
             document.getElementById('btnMonthly')?.addEventListener('click', () => switchTab('Monthly'));
@@ -167,7 +178,7 @@
 
         // 📊 फ़ायरबेस लाइव डेटा फेच
         async function loadReportData() {
-            if (sessionStorage.getItem('reportPageUnlocked') !== 'true') return; // सुरक्षा जांच
+            if (sessionStorage.getItem('reportPageUnlocked') !== 'true') return; 
 
             let disbursement = 0, collectionAmt = 0, interestIncome = 0, expenses = 0, newCustomers = 0;
             const selectedDate = document.getElementById('inpReportDate')?.value || new Date().toISOString().split('T')[0];
