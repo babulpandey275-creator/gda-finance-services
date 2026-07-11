@@ -1,4 +1,5 @@
-import { db } from "./firebase.js"; 
+// ⚡ यहाँ आपकी असली काम करने वाली कॉन्फ़िगरेशन फ़ाइल का नाम सही कर दिया गया है
+import { db } from "./firebase-config.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
@@ -13,10 +14,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtCollection = document.getElementById("txtCollection"); 
     const txtExpenses = document.getElementById("txtExpenses"); 
     
-    // HTML के अनुसार सही आईडी (txtNewAccounts) मैच की
+    // ⚡ आपके HTML के अनुसार आईडी (txtNewAccounts) को परफेक्ट मैच किया
     const txtNewCustomers = document.getElementById("txtNewAccounts") || document.getElementById("txtNewCustomers"); 
     
-    // 💰 पोर्टफोलियो दिखाने वाला एलिमेंट जो पुराने कोड में गायब था
+    // 💰 आपके HTML के अनुसार कुल पोर्टफोलियो की आईडी सेट की
     const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
     
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
@@ -126,7 +127,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 } 
             } 
             if (match) { 
-                // आपके रजिस्ट्रेशन के हिसाब से loanAmount फील्ड का जोड़
                 totalDisbursed += (Number(cust.loanAmount) || 0); 
                 newCustCount++; 
             } 
@@ -193,17 +193,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
         
-        // ⚡ कुल पोर्टफोलियो = लोन राशि + आज की वसूली (जो पुराने कोड में मिसिंग था)
+        // ⚡ कुल पोर्टफोलियो = वितरित लोन + वसूली कलेक्शन
         const totalPortfolio = totalDisbursed + totalCollected;
 
-        // UI अपडेट्स
+        // UI पर डेटा दिखाना
         if (txtDisbursement) txtDisbursement.textContent = `₹${totalDisbursed.toLocaleString('en-IN')}`; 
         if (txtCollection) txtCollection.textContent = `₹${totalCollected.toLocaleString('en-IN')}`; 
         if (txtExpenses) txtExpenses.textContent = `₹${totalExp.toLocaleString('en-IN')}`; 
         if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
         
-        // 💰 पोर्टफोलियो स्क्रीन पर दिखाना शुरू
+        // 💰 कुल पोर्टफोलियो को बॉक्स में भेजा
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
