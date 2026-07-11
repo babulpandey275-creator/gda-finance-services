@@ -3,11 +3,10 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/f
 
 let currentTab = 'Daily';
 
-// 🔐 ताला खोलने का असली और पक्का फंक्शन
+// 🔐 ताला खोलने का असली और पक्का फंक्शन (बटन आईडी: btnUnlock)
 function doUnlock() {
     const pin = document.getElementById('pinInput').value.trim();
     
-    // बाबू भाई का पर्सनल पिन मैचिंग
     if (pin === "8271" || pin == 8271) { 
         sessionStorage.setItem('reportPageUnlocked', 'true'); 
         document.getElementById('lockScreen').style.display = 'none';
@@ -15,25 +14,21 @@ function doUnlock() {
         setupAppAndLoad(); // ताला खुलते ही तुरंत डेटा लोड होगा
     } else {
         document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('pinInput').value = ''; // गलत होने पर बॉक्स खाली
+        document.getElementById('pinInput').value = ''; 
     }
 }
 
-// पेज लोड होते ही सबसे पहले यह चलेगा
+// पेज लोड होते ही सबसे पहले चेक करो
 document.addEventListener('DOMContentLoaded', () => {
-    // अगर पहले से अनलॉक है तो सीधे अंदर भेजो
     if (sessionStorage.getItem('reportPageUnlocked') === 'true') {
         if(document.getElementById('lockScreen')) document.getElementById('lockScreen').style.display = 'none';
         if(document.getElementById('mainContent')) document.getElementById('mainContent').style.display = 'block';
         setupAppAndLoad();
     } else {
-        // ⚡ यहाँ आईडी बिल्कुल सही (btnUnlock) मैच कर दी गई है!
         const unlockBtn = document.getElementById('btnUnlock');
         if (unlockBtn) {
             unlockBtn.addEventListener('click', doUnlock);
         }
-        
-        // कीबोर्ड से Enter दबाने पर भी खुलेगा
         document.getElementById('pinInput')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') doUnlock();
         });
@@ -72,7 +67,7 @@ function switchTab(tab) {
     loadReportData();
 }
 
-// 📊 फ़ायरबेस से लाइव डेटा लाने का फंक्शन
+// 📊 फ़ायरबेस लाइव डेटा फ़ेचिंग
 async function loadReportData() {
     if (sessionStorage.getItem('reportPageUnlocked') !== 'true') return; 
 
@@ -81,7 +76,6 @@ async function loadReportData() {
     const today = new Date(selectedDate);
 
     try {
-        // 1. Loans
         const loanSnapshot = await getDocs(collection(db, "loans"));
         if(loanSnapshot) {
             loanSnapshot.forEach((doc) => {
@@ -96,7 +90,6 @@ async function loadReportData() {
             });
         }
 
-        // 2. Collections
         const collSnapshot = await getDocs(collection(db, "collections"));
         if(collSnapshot) {
             collSnapshot.forEach((doc) => {
@@ -110,7 +103,6 @@ async function loadReportData() {
             });
         }
 
-        // 3. Expenses
         const expSnapshot = await getDocs(collection(db, "expenses"));
         if(expSnapshot) {
             expSnapshot.forEach((doc) => {
@@ -124,7 +116,6 @@ async function loadReportData() {
             });
         }
 
-        // 4. Customers
         const custSnapshot = await getDocs(collection(db, "customers"));
         if(custSnapshot) {
             custSnapshot.forEach((doc) => {
@@ -142,7 +133,6 @@ async function loadReportData() {
         const netProfit = (collectionAmt + interestIncome) - expenses;
         const totalPortfolio = disbursement + collectionAmt;
 
-        // UI पर लाइव डेटा दिखाना
         document.getElementById('txtDisbursement').innerText = `₹${disbursement.toLocaleString('en-IN')}`;
         document.getElementById('txtCollection').innerText = `₹${collectionAmt.toLocaleString('en-IN')}`;
         document.getElementById('txtInterestEarned').innerText = `₹${interestIncome.toLocaleString('en-IN')}`;
