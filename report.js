@@ -1,5 +1,7 @@
-import { db } from "./firebase-config.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+// ⚡ आपके असली फ़ाइल नाम (firebase.js) से ही db इम्पोर्ट किया
+import { db } from "./firebase.js"; 
+// ⚡ आपके असली फ़ायरबेस वर्ज़न (12.0.0) के साथ सिंक कर दिया ताकि डेटा ब्लॉक न हो
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => { 
     const btnDaily = document.getElementById("btnDaily"); 
@@ -12,13 +14,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtDisbursement = document.getElementById("txtDisbursement"); 
     const txtCollection = document.getElementById("txtCollection"); 
     const txtExpenses = document.getElementById("txtExpenses"); 
-    
-    // ⚡ आपके HTML के अनुसार आईडी को 'txtNewAccounts' पर परफेक्ट मैप किया
     const txtNewCustomers = document.getElementById("txtNewAccounts"); 
-    
-    // 💰 आपके HTML का कुल पोर्टफोलियो वाला बॉक्स
     const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
-    
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
     const txtNetProfit = document.getElementById("txtNetProfit"); 
 
@@ -35,11 +32,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         const mm = todayParts.find(p => p.type === 'month').value;
         const dd = todayParts.find(p => p.type === 'day').value;
         todayIST = `${yyyy}-${mm}-${dd}`; 
-    } catch(e) { console.error(e); }
+    } catch(e) {}
 
     if (inpReportDate) inpReportDate.value = todayIST; 
 
-    // 📥 फ़ायरबेस से डेटा लोड करना
+    // 📥 डेटाबेस से सारा डेटा लोड करना
     try { 
         const custSnap = await getDocs(collection(db, "customers")); 
         custSnap.forEach(doc => allCustomers.push(doc.data())); 
@@ -81,7 +78,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         return "";
     }
 
-    // 🧮 आपकी असली कैलकुलेशन मैथ
+    // 🧮 कैलकुलेशन लॉजिक
     function calculateReport(type) { 
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
@@ -99,7 +96,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         let totalExp = 0; 
         let newCustCount = 0; 
 
-        // 1. Loans / Customers (डेटाबेस फील्ड्स सुरक्षा के साथ)
+        // 1. Loans / Customers
         allCustomers.forEach(cust => { 
             const dStr = cust.loanDate || cust.date || cust.createdAt;
             if (!dStr) return; 
@@ -190,18 +187,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         // 💰 आपकी पुरानी असली मैथ (कलेक्शन का छठा हिस्सा ब्याज)
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
-        
-        // ⚡ कुल पोर्टफोलियो = वितरित लोन + आज की वसूली
         const totalPortfolio = totalDisbursed + totalCollected;
 
-        // UI स्क्रीन पर सही डेटा भेजना
         if (txtDisbursement) txtDisbursement.textContent = `₹${totalDisbursed.toLocaleString('en-IN')}`; 
         if (txtCollection) txtCollection.textContent = `₹${totalCollected.toLocaleString('en-IN')}`; 
         if (txtExpenses) txtExpenses.textContent = `₹${totalExp.toLocaleString('en-IN')}`; 
         if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
-        
-        // 💰 पोर्टफोलियो बॉक्स को लाइव वैल्यू असाइन की
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
@@ -210,7 +202,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     } 
 
-    // बटन क्लिक इवेंट्स
     if (btnDaily) { 
         btnDaily.onclick = () => { 
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
