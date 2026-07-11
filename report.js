@@ -1,31 +1,31 @@
 import { db } from './firebase-config.js'; 
-import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+// ⚡ वर्शन 12.0.0 का पक्का मैचिंग लिंक
+import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 // ==========================================
 // 🔐 1. पक्का सेशन-आधारित एडमिन लॉक लॉजिक (PIN: 8271)
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // जांचें कि क्या पहले से अनलॉक है
+    // जांचें कि क्या इस सेशन में ऐप पहले से अनलॉक है
     if (sessionStorage.getItem('reportUnlocked') === 'true') {
         const lockEl = document.getElementById('lockScreen');
         if (lockEl) lockEl.style.display = 'none';
+        loadReportData(); // अगर पहले से अनलॉक है तो डेटा लोड करें
     }
 });
 
 // अनलॉक बटन का काम
 document.getElementById('btnUnlock')?.addEventListener('click', () => {
-    // .trim() लगाने से अगर कोई स्पेस (space) छूट गया होगा, तो वो हट जाएगा
     const pin = document.getElementById('pinInput').value.trim();
     
-    // नंबर और टेक्स्ट दोनों तरीकों से चेक करने के लिए == का इस्तेमाल
+    // बाबू भाई का पर्सनल पिन 8271
     if (pin == 8271 || pin === "8271") { 
         sessionStorage.setItem('reportUnlocked', 'true'); 
         document.getElementById('lockScreen').style.display = 'none';
+        loadReportData(); // अनलॉक होते ही तुरंत डेटा लोड हो
     } else {
         const errEl = document.getElementById('errorMsg');
         if (errEl) errEl.style.display = 'block';
-        
-        // गलत पिन होने पर इनपुट बॉक्स को खाली कर दे
         const inputEl = document.getElementById('pinInput');
         if (inputEl) inputEl.value = '';
     }
@@ -73,6 +73,7 @@ async function loadReportData() {
     const today = new Date(selectedDate);
 
     try {
+        // 💵 1. वितरित लोन (Disbursement) और ब्याज
         const loanSnapshot = await getDocs(collection(db, "loans"));
         loanSnapshot.forEach((doc) => {
             const data = doc.data();
@@ -83,6 +84,7 @@ async function loadReportData() {
             }
         });
 
+        // 💰 2. वसूली कलेक्शन (Collection)
         const collSnapshot = await getDocs(collection(db, "collections"));
         collSnapshot.forEach((doc) => {
             const data = doc.data();
@@ -92,6 +94,7 @@ async function loadReportData() {
             }
         });
 
+        // 📉 3. कुल खर्चे (Expenses)
         const expSnapshot = await getDocs(collection(db, "expenses"));
         expSnapshot.forEach((doc) => {
             const data = doc.data();
@@ -101,18 +104,21 @@ async function loadReportData() {
             }
         });
 
+        // 👥 4. नए पंजीकृत ग्राहक (New Accounts)
         const custSnapshot = await getDocs(collection(db, "customers"));
         custSnapshot.forEach((doc) => {
             const data = doc.data();
-            const regDate = new Date(data.createdAt);
+            const regDate = new Date(data.createdAt || data.date);
             if (checkDateMatch(regDate, today, currentTab)) {
                 newCustomers++;
             }
         });
 
+        // 🧮 5. गणितीय गणना
         const netProfit = (collectionAmt + interestIncome) - expenses;
         const totalPortfolio = disbursement + collectionAmt;
 
+        // 🖥️ 6. स्क्रीन पर डेटा लाइव अपडेट करना
         updateDOM('txtDisbursement', `₹${disbursement.toLocaleString('en-IN')}`);
         updateDOM('txtCollection', `₹${collectionAmt.toLocaleString('en-IN')}`);
         updateDOM('txtInterestEarned', `₹${interestIncome.toLocaleString('en-IN')}`);
@@ -128,14 +134,18 @@ async function loadReportData() {
 
 function checkDateMatch(targetDate, baseDate, mode) {
     if (isNaN(targetDate.getTime())) return false;
-    if (mode === 'Daily') return targetDate.toDateString() === baseDate.toDateString();
-    if (mode === 'Monthly') return targetDate.getMonth() === baseDate.getMonth() && targetDate.getFullYear() === baseDate.getFullYear();
-    if (mode === 'Quarterly') {
+    
+    if (mode === 'Daily') {
+        return targetDate.toDateString() === baseDate.toDateString();
+    } else if (mode === 'Monthly') {
+        return targetDate.getMonth() === baseDate.getMonth() && targetDate.getFullYear() === baseDate.getFullYear();
+    } else if (mode === 'Quarterly') {
         const targetQuarter = Math.floor(targetDate.getMonth() / 3);
         const baseQuarter = Math.floor(baseDate.getMonth() / 3);
         return targetQuarter === baseQuarter && targetDate.getFullYear() === baseDate.getFullYear();
+    } else if (mode === 'Yearly') {
+        return targetDate.getFullYear() === baseDate.getFullYear();
     }
-    if (mode === 'Yearly') return targetDate.getFullYear() === baseDate.getFullYear();
     return false;
 }
 
@@ -144,10 +154,14 @@ function updateDOM(id, value) {
     if (el) el.innerText = value;
 }
 
+// पेज लोड होने पर दैनिक डेटा अपने आप लोड हो
 window.addEventListener('load', () => {
     const dateInput = document.getElementById('inpReportDate');
     if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
-    switchTab('Daily');
+    // अगर पहले से अनलॉक है तो तुरंत लोड करें
+    if (sessionStorage.getItem('reportUnlocked') === 'true') {
+        switchTab('Daily');
+    }
 });
