@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dateInput = document.getElementById('inpReportDate');
     if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        // डिफ़ॉल्ट रूप से आज की तारीख सेट करें (भारतीय समय के अनुसार)
+        const localDate = new Date();
+        const offset = localDate.getTimezoneOffset();
+        const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
+        dateInput.value = adjustedDate.toISOString().split('T')[0];
     }
     switchTab('Daily');
 });
@@ -118,13 +122,23 @@ async function loadReportData() {
     }
 }
 
+// ⏳ तारीख मैच करने का सबसे मजबूत और फ्लेक्सिबल लॉजिक
 function checkDateMatch(targetDate, baseDate, mode) {
     if (isNaN(targetDate.getTime())) return false;
-    if (mode === 'Daily') return targetDate.toDateString() === baseDate.toDateString();
-    if (mode === 'Monthly') return targetDate.getMonth() === baseDate.getMonth() && targetDate.getFullYear() === baseDate.getFullYear();
+    
+    const ty = targetDate.getFullYear();
+    const tm = targetDate.getMonth();
+    const td = targetDate.getDate();
+    
+    const by = baseDate.getFullYear();
+    const bm = baseDate.getMonth();
+    const bd = baseDate.getDate();
+
+    if (mode === 'Daily') return ty === by && tm === bm && td === bd;
+    if (mode === 'Monthly') return ty === by && tm === bm;
     if (mode === 'Quarterly') {
-        return Math.floor(targetDate.getMonth() / 3) === Math.floor(baseDate.getMonth() / 3) && targetDate.getFullYear() === baseDate.getFullYear();
+        return Math.floor(tm / 3) === Math.floor(bm / 3) && ty === by;
     }
-    if (mode === 'Yearly') return targetDate.getFullYear() === baseDate.getFullYear();
+    if (mode === 'Yearly') return ty === by;
     return false;
 }
