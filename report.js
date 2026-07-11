@@ -1,4 +1,3 @@
-// ⚡ यहाँ आपकी असली काम करने वाली कॉन्फ़िगरेशन फ़ाइल का नाम सही कर दिया गया है
 import { db } from "./firebase-config.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
@@ -14,10 +13,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtCollection = document.getElementById("txtCollection"); 
     const txtExpenses = document.getElementById("txtExpenses"); 
     
-    // ⚡ आपके HTML के अनुसार आईडी (txtNewAccounts) को परफेक्ट मैच किया
-    const txtNewCustomers = document.getElementById("txtNewAccounts") || document.getElementById("txtNewCustomers"); 
+    // ⚡ आपके HTML के अनुसार आईडी को 'txtNewAccounts' पर परफेक्ट मैप किया
+    const txtNewCustomers = document.getElementById("txtNewAccounts"); 
     
-    // 💰 आपके HTML के अनुसार कुल पोर्टफोलियो की आईडी सेट की
+    // 💰 आपके HTML का कुल पोर्टफोलियो वाला बॉक्स
     const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
     
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
@@ -27,7 +26,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     let allCollections = []; 
     let allExpenses = []; 
 
-    // 🇮🇳 शुद्ध भारतीय समय (IST) फ़ॉर्मेट
+    // 🇮🇳 भारतीय समय (IST) फ़ॉर्मेट
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     let todayIST = new Date().toISOString().split('T')[0];
     try {
@@ -40,7 +39,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (inpReportDate) inpReportDate.value = todayIST; 
 
-    // 📥 डेटाबेस से सारा डेटा लोड करना
+    // 📥 फ़ायरबेस से डेटा लोड करना
     try { 
         const custSnap = await getDocs(collection(db, "customers")); 
         custSnap.forEach(doc => allCustomers.push(doc.data())); 
@@ -54,7 +53,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.error("Error loading report data:", err); 
     } 
 
-    // तारीख को साफ़ करने का आपका फंक्शन
     function cleanDateToYYYYMMDD(dateVal) {
         if (!dateVal) return "";
         let dObj = null;
@@ -83,7 +81,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         return "";
     }
 
-    // 🧮 कैलकुलेशन लॉजिक
+    // 🧮 आपकी असली कैलकुलेशन मैथ
     function calculateReport(type) { 
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
@@ -101,7 +99,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         let totalExp = 0; 
         let newCustCount = 0; 
 
-        // 1. Loans / Customers
+        // 1. Loans / Customers (डेटाबेस फील्ड्स सुरक्षा के साथ)
         allCustomers.forEach(cust => { 
             const dStr = cust.loanDate || cust.date || cust.createdAt;
             if (!dStr) return; 
@@ -127,7 +125,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 } 
             } 
             if (match) { 
-                totalDisbursed += (Number(cust.loanAmount) || 0); 
+                totalDisbursed += (Number(cust.loanAmount) || Number(cust.amount) || 0); 
                 newCustCount++; 
             } 
         }); 
@@ -193,17 +191,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
         
-        // ⚡ कुल पोर्टफोलियो = वितरित लोन + वसूली कलेक्शन
+        // ⚡ कुल पोर्टफोलियो = वितरित लोन + आज की वसूली
         const totalPortfolio = totalDisbursed + totalCollected;
 
-        // UI पर डेटा दिखाना
+        // UI स्क्रीन पर सही डेटा भेजना
         if (txtDisbursement) txtDisbursement.textContent = `₹${totalDisbursed.toLocaleString('en-IN')}`; 
         if (txtCollection) txtCollection.textContent = `₹${totalCollected.toLocaleString('en-IN')}`; 
         if (txtExpenses) txtExpenses.textContent = `₹${totalExp.toLocaleString('en-IN')}`; 
         if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
         
-        // 💰 कुल पोर्टफोलियो को बॉक्स में भेजा
+        // 💰 पोर्टफोलियो बॉक्स को लाइव वैल्यू असाइन की
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
