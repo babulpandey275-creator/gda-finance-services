@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - LOAN ID GENERATOR & TIME-BASED REAL REPORT SCRIPT (v12)
+// 🚀 GDA FINANCE - MASTER FINANCIAL REPORT ENGINE (v13.0 - FIX OD BUG)
 // ==========================================
 
 import { db } from "./firebase.js"; 
@@ -25,9 +25,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnQuarterly = document.getElementById("btnQuarterly");
     const btnYearly = document.getElementById("btnYearly");
 
-    let currentMode = "Daily"; 
+    let currentMode = "Monthly"; // डिफ़ॉल्ट रूप से Monthly मोड सेट है
 
-    // 🇮🇳 Indian Standard Time (IST) Default Date setup
+    // 🇮🇳 Timezone Fix (IST) Setup
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
@@ -35,37 +35,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (datePicker) {
         datePicker.value = todayIST;
     }
-
-    // 🆔 SMART FUNCTION: Automatically recycle deleted Customer IDs (Used during new registrations)
-    async function generateNextGdaId() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "customers"));
-            let existingNumbers = [];
-            if (!querySnapshot.empty) {
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.member_no !== undefined) {
-                        existingNumbers.push(parseInt(data.member_no, 10));
-                    }
-                });
-            }
-            existingNumbers.sort((a, b) => a - b);
-            let nextNumber = 1;
-            for (let i = 1; i <= existingNumbers.length + 1; i++) {
-                if (!existingNumbers.includes(i)) {
-                    nextNumber = i;
-                    break;
-                }
-            }
-            const formattedNumber = String(nextNumber).padStart(3, '0');
-            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
-        } catch (error) {
-            console.error("ID Generation Error:", error);
-            return { member_id: "GDA001", member_no: 1 };
-        }
-    }
-    // Globally exposing the smart ID generator for register/edit panels if required
-    window.generateNextGdaId = generateNextGdaId;
 
     // 📅 Date comparison helper function for periodic filters
     function isDateInPeriod(targetDate, filterDate, mode) {
@@ -144,7 +113,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                         periodInterestIncome += (loanAmount * 0.20);
                     }
 
-                    // Portfolio Logic: Stable, fixed lifetime real outstanding balance
+                    // Portfolio Logic: Real active outstanding balance remaining in market
                     if (data.status !== "Closed") {
                         const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                         const totalCollectedLifetime = absoluteLifetimeCollection[cId] || 0;
@@ -154,21 +123,34 @@ window.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
 
-                    // Cumulative Due Logic: Daily cumulative gap amount updates dynamically
+                    // 🧮 FIX OD BUG: Strict dashboard synchronization logic
                     if (data.status !== "Closed" && data.loanDate && data.loanDate <= filterDate) {
-                        const d1 = new Date(filterDate);
-                        const d2 = new Date(data.loanDate);
-                        const diffTime = d1 - d2;
-                        const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        // 1. लोन की तारीख से फ़िल्टर डेट तक बीते कुल दिनों की गणना करें
+                        const start = new Date(data.loanDate);
+                        const end = new Date(filterDate);
+                        
+                        // टाइम डिफ्रेंस निकालें
+                        const diffTime = Math.abs(end - start);
+                        // टाइम को दिनों में बदलें (+1 करने से शुरुआती दिन भी जुड़ जाता है)
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
 
-                        if (daysPassed > 0) {
-                            const totalDemandUpToDate = daysPassed * emi;
-                            const actualPaidUpToDate = collectionUpToFilterDate[cId] || 0;
-                            const clientDueOnThatDate = totalDemandUpToDate - actualPaidUpToDate;
-                            
-                            if (clientDueOnThatDate > 0) {
-                                totalCumulativeDueOnFilterDate += clientDueOnThatDate;
-                            }
+                        // 2. फ़िल्टर डेट तक कितना कलेक्शन होना चाहिए था (Expected)
+                        const expectedCollectionUpToDate = diffDays * emi;
+
+                        // 3. फ़िल्टर डेट तक वास्तव में कितना कलेक्शन हुआ (Actual)
+                        const actualCollectionUpToDate = collectionUpToFilterDate[cId] || 0;
+
+                        // 4. इस विशिष्ट खाते के लिए कुल देय (Total Payable Lifetime)
+                        const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
+                        
+                        // यह सुनिश्चित करें कि एक्सपेक्टेड अमाउंट कुल देय राशि से ज्यादा न हो
+                        const runningExpected = Math.min(expectedCollectionUpToDate, totalPayableLifetime);
+                        
+                        // ओवरड्यू (Due) अमाउंट निकालें
+                        const accountDue = runningExpected - actualCollectionUpToDate;
+
+                        if (accountDue > 0) {
+                            totalCumulativeDueOnFilterDate += accountDue;
                         }
                     }
                 });
@@ -177,53 +159,60 @@ window.addEventListener('DOMContentLoaded', async () => {
             // 3. Fetch data from 'expenses' table
             const expenseSnapshot = await getDocs(collection(db, "expenses"));
             let periodExpensesSum = 0;
+
             if (!expenseSnapshot.empty) {
                 expenseSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (isDateInPeriod(data.date, filterDate, currentMode)) {
+                    if (data.date && isDateInPeriod(data.date, filterDate, currentMode)) {
                         periodExpensesSum += Number(data.amount) || 0;
                     }
                 });
             }
 
-            // 4. Mathematical mapping
-            const finalPortfolioValue = absoluteCurrentOutstanding; 
-            const netProfit = periodInterestIncome - periodExpensesSum;
+            // 📊 4. UI Rendering Engine (Dashboard Update)
+            if (totalPortfolioEl) totalPortfolioEl.innerText = `₹${absoluteCurrentOutstanding.toFixed(2)}`;
+            if (disbursementEl) disbursementEl.innerText = `₹${totalDisbursement.toFixed(2)}`;
+            if (collectionEl) collectionEl.innerText = `₹${periodCollectionSum.toFixed(2)}`;
+            if (interestIncomeEl) interestIncomeEl.innerText = `₹${periodInterestIncome.toFixed(2)}`;
+            if (totalExpensesEl) totalExpensesEl.innerText = `₹${periodExpensesSum.toFixed(2)}`;
+            if (totalDueEl) totalDueEl.innerText = `₹${totalCumulativeDueOnFilterDate.toFixed(2)}`;
+            if (newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
-            // 5. Inject values safely into the UI
-            if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(finalPortfolioValue)}`;
-            if(disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
-            if(collectionEl) collectionEl.innerText = `₹${Math.round(periodCollectionSum)}`;
-            if(interestIncomeEl) interestIncomeEl.innerText = `₹${Math.round(periodInterestIncome)}`;
-            if(totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(periodExpensesSum)}`;
-            if(netProfitEl) netProfitEl.innerText = `₹${Math.round(netProfit)}`;
-            if(totalDueEl) totalDueEl.innerText = `₹${Math.round(totalCumulativeDueOnFilterDate)}`;
-            if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
+            // Net Profit Calculation: Interest Income - Expenses
+            const netProfit = periodInterestIncome - periodExpensesSum;
+            if (netProfitEl) {
+                netProfitEl.innerText = `₹${netProfit.toFixed(2)}`;
+                netProfitEl.style.color = netProfit >= 0 ? "green" : "red";
+            }
 
         } catch (error) {
-            console.error("Calculation Engine Error: ", error);
+            console.error("Error calculating financial report: ", error);
         }
     }
 
-    // Toggle Button Event Triggers
-    function switchMode(mode, activeBtn) {
-        currentMode = mode;
-        [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(b => b.classList.remove("active"));
-        activeBtn.classList.add("active");
-        
-        if (mode === "Daily") dateLabel.innerText = "Select Date for Daily Live Report:";
-        else if (mode === "Monthly") dateLabel.innerText = "Select Any Date for Monthly Report:";
-        else if (mode === "Quarterly") dateLabel.innerText = "Select Any Date for Quarterly Report:";
-        else if (mode === "Yearly") dateLabel.innerText = "Select Any Date for Yearly Report:";
-        
-        calculateFinanceReport();
+    // 🔄 Event Listeners for Date and Mode Changes
+    if (datePicker) {
+        datePicker.addEventListener("change", calculateFinanceReport);
     }
 
-    if(btnDaily) btnDaily.onclick = (e) => switchMode("Daily", e.target);
-    if(btnMonthly) btnMonthly.onclick = (e) => switchMode("Monthly", e.target);
-    if(btnQuarterly) btnQuarterly.onclick = (e) => switchMode("Quarterly", e.target);
-    if(btnYearly) btnYearly.onclick = (e) => switchMode("Yearly", e.target);
-    if(datePicker) datePicker.onchange = () => calculateFinanceReport();
+    const updateMode = (mode, activeBtn) => {
+        currentMode = mode;
+        if (dateLabel) dateLabel.innerText = `${mode} Report for:`;
+        
+        // Active Button Class Toggle
+        [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(btn => {
+            if (btn) btn.classList.remove("active");
+        });
+        if (activeBtn) activeBtn.classList.add("active");
 
+        calculateFinanceReport();
+    };
+
+    if (btnDaily) btnDaily.addEventListener("click", () => updateMode("Daily", btnDaily));
+    if (btnMonthly) btnMonthly.addEventListener("click", () => updateMode("Monthly", btnMonthly));
+    if (btnQuarterly) btnQuarterly.addEventListener("click", () => updateMode("Quarterly", btnQuarterly));
+    if (btnYearly) btnYearly.addEventListener("click", () => updateMode("Yearly", btnYearly));
+
+    // Initial Trigger on Load
     calculateFinanceReport();
 });
