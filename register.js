@@ -1,42 +1,67 @@
 // ==========================================
-// 🚀 GDA FINANCE - ACCURATE FINANCIAL REPORT ENGINE (v12.5)
+// 🚀 GDA FINANCE - NEW CUSTOMER REGISTRATION & CAMERA COMPRESSION ENGINE (v12)
 // ==========================================
 
 import { db } from "./firebase.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { 
+    collection, 
+    addDoc, 
+    getDocs,
+    updateDoc,
+    doc
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+
+// 📸 फायरबेस स्टोरेज इम्पोर्ट (लाइव डॉक्यूमेंट अपलोड के लिए)
+import { 
+    getStorage, 
+    ref, 
+    uploadBytes, 
+    getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+
+const storage = getStorage();
 
 window.addEventListener('DOMContentLoaded', async () => {
-    
-    // UI Elements Selection
-    const totalPortfolioEl = document.getElementById("totalPortfolio");
-    const disbursementEl = document.getElementById("disbursement");
-    const collectionEl = document.getElementById("collection");
-    const interestIncomeEl = document.getElementById("interestIncome");
-    const totalExpensesEl = document.getElementById("totalExpenses");
-    const netProfitEl = document.getElementById("netProfit");
-    const totalDueEl = document.getElementById("totalDue");
-    const newAccountsEl = document.getElementById("newAccounts");
-    
-    const datePicker = document.getElementById("reportDatePicker");
-    const dateLabel = document.getElementById("dateLabel");
-    
-    const btnDaily = document.getElementById("btnDaily");
-    const btnMonthly = document.getElementById("btnMonthly");
-    const btnQuarterly = document.getElementById("btnQuarterly");
-    const btnYearly = document.getElementById("btnYearly");
+    const registerForm = document.getElementById("registerForm") || document.getElementById("editForm");
+    const saveBtn = document.getElementById("saveBtn");
 
-    let currentMode = "Daily"; 
-
-    // 🇮🇳 Timezone Fix (IST) Setup
+    // 🇮🇳 Timezone Synchronizer (IST) Default Date setup - Format: YYYY-MM-DD
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
     
-    if (datePicker) {
-        datePicker.value = todayIST;
+    if (document.getElementById("loanDate")) {
+        document.getElementById("loanDate").value = todayIST;
     }
 
-    // 🆔 SMART FUNCTION: Automatically recycle deleted Customer IDs
+    // 🗜️ मोबाइल कैमरे की भारी फोटो को कंप्रेस (छोटा) करने का एडवांस फंक्शन
+    function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const maxW = 1000; // अधिकतम चौड़ाई 1000px
+                    const scale = maxW / img.width;
+                    canvas.width = maxW;
+                    canvas.height = img.height * scale;
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/jpeg', 0.7); // 70% क्वालिटी पर कंप्रेस
+                };
+            };
+        });
+    }
+
+    // 🆔 SMART FUNCTION: डिलीट की हुई आईडी को ऑटोमैटिक री-साइकिल करना
     async function generateNextGdaId() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -50,6 +75,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
             existingNumbers.sort((a, b) => a - b);
+            
             let nextNumber = 1;
             for (let i = 1; i <= existingNumbers.length + 1; i++) {
                 if (!existingNumbers.includes(i)) {
@@ -64,165 +90,99 @@ window.addEventListener('DOMContentLoaded', async () => {
             return { member_id: "GDA001", member_no: 1 };
         }
     }
-    window.generateNextGdaId = generateNextGdaId;
 
-    // 📅 Date comparison helper function for periodic filters
-    function isDateInPeriod(targetDate, filterDate, mode) {
-        if (!targetDate || !filterDate) return false;
-        
-        const tParts = targetDate.split('-');
-        const fParts = filterDate.split('-');
-        if (tParts.length < 3 || fParts.length < 3) return false;
-
-        const tYear = parseInt(tParts[0], 10);
-        const tMonth = parseInt(tParts[1], 10);
-        const fYear = parseInt(fParts[0], 10);
-        const fMonth = parseInt(fParts[1], 10);
-
-        if (mode === "Daily") return targetDate === filterDate;
-        if (mode === "Monthly") return tYear === fYear && tMonth === fMonth;
-        if (mode === "Yearly") return tYear === fYear;
-        if (mode === "Quarterly") {
-            const tQ = Math.floor((tMonth - 1) / 3);
-            const fQ = Math.floor((fMonth - 1) / 3);
-            return tYear === fYear && tQ === fQ;
-        }
-        return false;
-    }
-
-    // 📊 MASTER FUNCTION: Financial Report Calculations Engine
-    async function calculateFinanceReport() {
-        const filterDate = datePicker.value;
-        if (!filterDate) return;
-
-        try {
-            // 1. Fetch data from 'collections' table
-            const collectSnapshot = await getDocs(collection(db, "collections"));
-            let periodCollectionSum = 0;
-            let collectionUpToFilterDate = {}; 
-            let absoluteLifetimeCollection = {}; 
-
-            if (!collectSnapshot.empty) {
-                collectSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const cDate = data.date;
-                    const cId = data.customerId;
-                    const amount = Number(data.amount) || 0;
-
-                    if (cId && cDate) {
-                        if (isDateInPeriod(cDate, filterDate, currentMode)) {
-                            periodCollectionSum += amount;
-                        }
-                        if (cDate <= filterDate) {
-                            collectionUpToFilterDate[cId] = (collectionUpToFilterDate[cId] || 0) + amount;
-                        }
-                        absoluteLifetimeCollection[cId] = (absoluteLifetimeCollection[cId] || 0) + amount;
-                    }
-                });
-            }
-
-            // 2. Fetch data from 'customers' table
-            const custSnapshot = await getDocs(collection(db, "customers"));
+    // 💾 नया लोन वितरण और ग्राहक सेव करने का मास्टर बटन लॉजिक
+    if (registerForm) {
+        registerForm.onsubmit = async (e) => {
+            e.preventDefault();
             
-            let totalDisbursement = 0; 
-            let totalCumulativeDueOnFilterDate = 0; 
-            let totalAccounts = 0;
-            let periodInterestIncome = 0;
-            let absoluteCurrentOutstanding = 0; 
+            const name = document.getElementById("customerName").value.trim();
+            const mobile = document.getElementById("mobileNumber").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const photo = document.getElementById("customerPhoto") ? document.getElementById("customerPhoto").value.trim() : "";
+            const aadhaar = document.getElementById("aadhaarNumber").value.trim();
+            const pan = document.getElementById("panNumber").value.trim().toUpperCase();
+            const loanAmount = Number(document.getElementById("loanAmount").value);
+            const planDuration = Number(document.getElementById("loanPlan").value) || 60;
+            const emi = Number(document.getElementById("emi").value);
+            const loanDate = document.getElementById("loanDate").value;
 
-            if (!custSnapshot.empty) {
-                custSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const cId = doc.id;
-                    const loanAmount = Number(data.loanAmount) || 0;
-                    const emi = Number(data.dailyEmi || data.emi || 0);
+            // HTML कैमरा इनपुट फाइल्स उठाना
+            const aadharFileInput = document.getElementById("docAadharFile");
+            const panFileInput = document.getElementById("docPanFile");
 
-                    if (isDateInPeriod(data.loanDate, filterDate, currentMode)) {
-                        totalDisbursement += loanAmount;
-                        totalAccounts++;
-                        periodInterestIncome += (loanAmount * 0.20);
-                    }
+            try {
+                saveBtn.disabled = true;
+                saveBtn.innerText = "⏳ Allocating ID & Registering Loan...";
 
-                    // Portfolio Logic: Real active outstanding balance remaining in market
-                    if (data.status !== "Closed") {
-                        const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
-                        const totalCollectedLifetime = absoluteLifetimeCollection[cId] || 0;
-                        const remainingLifetimeDue = totalPayableLifetime - totalCollectedLifetime;
-                        if (remainingLifetimeDue > 0) {
-                            absoluteCurrentOutstanding += remainingLifetimeDue;
-                        }
-                    }
+                // 1. री-साइकिल सिस्टम से अगली उपलब्ध आईडी प्राप्त करना
+                const idDetails = await generateNextGdaId();
 
-                    // 🧮 FIXED SYNC LOGIC: Calculate strict cumulative overdue matching dashboard parameters
-                    if (data.status !== "Closed" && data.loanDate && data.loanDate < filterDate) {
-                        const d1 = new Date(filterDate);
-                        const d2 = new Date(data.loanDate);
-                        const diffTime = Math.abs(d1 - d2);
-                        const totalDaysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                // 2. नया कस्टमर बेस पेलोड बनाना
+                let newCustomerData = {
+                    name,
+                    mobile,
+                    address,
+                    customerPhoto: photo || null,
+                    aadharCard: aadhaar,
+                    aadhaar,
+                    panCard: pan,
+                    loanAmount,
+                    planDuration,
+                    duration: planDuration,
+                    dailyEmi: emi,
+                    emi,
+                    totalCollection: loanAmount + (loanAmount * 0.20), // 20% ब्याज जोड़कर
+                    remainingAmount: loanAmount + (loanAmount * 0.20),
+                    paidAmount: 0,
+                    paidDays: 0,
+                    loanDate,
+                    status: "Active",
+                    customerCode: idDetails.member_id,
+                    member_no: idDetails.member_no,
+                    createdAt: todayIST
+                };
 
-                        if (totalDaysPassed > 0) {
-                            const expectedCollectionUpToDate = totalDaysPassed * emi;
-                            const actualPaidUpToDate = collectionUpToFilterDate[cId] || 0;
-                            const clientDueOnThatDate = expectedCollectionUpToDate - actualPaidUpToDate;
-                            
-                            if (clientDueOnThatDate > 0) {
-                                totalCumulativeDueOnFilterDate += clientDueOnThatDate;
-                            }
-                        }
-                    }
-                });
+                // 3. डेटाबेस (Firestore) में डाक्यूमेंट्स इंसर्ट करना
+                const docRef = await addDoc(collection(db, "customers"), newCustomerData);
+                const generatedId = docRef.id;
+
+                let mediaPayload = {};
+
+                // A. अगर आधार की लाइव फोटो खींची गई है, तो कंप्रेस करके अपलोड करें
+                if (aadharFileInput && aadharFileInput.files.length > 0) {
+                    saveBtn.innerText = "⏳ Compressing & Uploading Aadhaar...";
+                    const compressedBlob = await compressImage(aadharFileInput.files[0]);
+                    const storageRef = ref(storage, `client_documents/${generatedId}_aadhar.jpg`);
+                    await uploadBytes(storageRef, compressedBlob);
+                    mediaPayload.aadharPhotoUrl = await getDownloadURL(storageRef);
+                }
+
+                // B. अगर पैन/वोटर कार्ड की लाइव फोटो खींची गई है, तो कंप्रेस करके अपलोड करें
+                if (panFileInput && panFileInput.files.length > 0) {
+                    saveBtn.innerText = "⏳ Compressing & Uploading PAN Card...";
+                    const compressedBlob = await compressImage(panFileInput.files[0]);
+                    const storageRef = ref(storage, `client_documents/${generatedId}_pan.jpg`);
+                    await uploadBytes(storageRef, compressedBlob);
+                    mediaPayload.panPhotoUrl = await getDownloadURL(storageRef);
+                }
+
+                // अगर फोटो अपलोड हुई हैं, तो कस्टमर रिकॉर्ड को मीडिया लिंक्स के साथ अपडेट करना
+                if (Object.keys(mediaPayload).length > 0) {
+                    await updateDoc(doc(db, "customers", generatedId), mediaPayload);
+                }
+
+                alert(`🎉 Customer ${idDetails.member_id} Registered Successfully!`);
+                
+                // 🚀 जादुई रीडायरेक्ट: सीधे आपके नए लोन बॉन्ड पेपर पर ट्रांसफर करना
+                window.location.href = `disbursement-bond.html?id=${generatedId}`;
+
+            } catch (error) {
+                console.error("Registration Process Failed: ", error);
+                alert("⚠️ System Error: " + error.message);
+                saveBtn.disabled = false;
+                saveBtn.innerText = "💾 Register & Disburse Loan";
             }
-
-            // 3. Fetch data from 'expenses' table
-            const expenseSnapshot = await getDocs(collection(db, "expenses"));
-            let periodExpensesSum = 0;
-            if (!expenseSnapshot.empty) {
-                expenseSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (isDateInPeriod(data.date, filterDate, currentMode)) {
-                        periodExpensesSum += Number(data.amount) || 0;
-                    }
-                });
-            }
-
-            // 4. Mathematical Mapping Equations
-            const finalPortfolioValue = absoluteCurrentOutstanding; 
-            const netProfit = periodInterestIncome - periodExpensesSum;
-
-            // 5. Inject values safely into the UI Elements
-            if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(finalPortfolioValue)}`;
-            if(disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
-            if(collectionEl) collectionEl.innerText = `₹${Math.round(periodCollectionSum)}`;
-            if(interestIncomeEl) interestIncomeEl.innerText = `₹${Math.round(periodInterestIncome)}`;
-            if(totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(periodExpensesSum)}`;
-            if(netProfitEl) netProfitEl.innerText = `₹${Math.round(netProfit)}`;
-            if(totalDueEl) totalDueEl.innerText = `₹${Math.round(totalCumulativeDueOnFilterDate)}`;
-            if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
-
-        } catch (error) {
-            console.error("Calculation Engine Error: ", error);
-        }
+        };
     }
-
-    // Toggle Button Event Triggers
-    function switchMode(mode, activeBtn) {
-        currentMode = mode;
-        [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(b => b.classList.remove("active"));
-        activeBtn.classList.add("active");
-        
-        if (mode === "Daily") dateLabel.innerText = "Select Date for Daily Live Report:";
-        else if (mode === "Monthly") dateLabel.innerText = "Select Any Date for Monthly Report:";
-        else if (mode === "Quarterly") dateLabel.innerText = "Select Any Date for Quarterly Report:";
-        else if (mode === "Yearly") dateLabel.innerText = "Select Any Date for Yearly Report:";
-        
-        calculateFinanceReport();
-    }
-
-    if(btnDaily) btnDaily.onclick = (e) => switchMode("Daily", e.target);
-    if(btnMonthly) btnMonthly.onclick = (e) => switchMode("Monthly", e.target);
-    if(btnQuarterly) btnQuarterly.onclick = (e) => switchMode("Quarterly", e.target);
-    if(btnYearly) btnYearly.onclick = (e) => switchMode("Yearly", e.target);
-    if(datePicker) datePicker.onchange = () => calculateFinanceReport();
-
-    calculateFinanceReport();
 });
