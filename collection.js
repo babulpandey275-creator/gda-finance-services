@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectionDate = document.getElementById("collectionDate"); 
     const submitCollectionBtn = document.getElementById("submitCollectionBtn"); 
 
-    // 🇮🇳 भारतीय समय (IST) के अनुसार आज की तारीख (YYYY-MM-DD फॉर्मेट में)
+    // 🇮🇳 Timezone Synchronizer (IST) - Format: YYYY-MM-DD
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const yyyy = todayParts.find(p => p.type === 'year').value;
@@ -23,12 +23,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         collectionDate.value = todayIST; 
     } 
 
-    // URL से ग्राहक की ID निकालना 
+    // Extract Parameter Bounds from URL
     const urlParams = new URLSearchParams(window.location.search); 
     const urlCustId = urlParams.get('id'); 
     let allCustomers = {}; 
 
-    // 🧮 2. चुने हुए ग्राहक की लाइव जानकारी और लेट फाइन स्क्रीन पर दिखाना 
+    // 🧮 Live Calculation Stream mapping for User Interface rendering
     function showCustomerDetails(id) { 
         const cust = allCustomers[id]; 
         if (!cust) return; 
@@ -39,21 +39,22 @@ window.addEventListener('DOMContentLoaded', async () => {
         const dynamicRemaining = totalPayableWithInterest - totalCollected; 
         const emi = Number(cust.dailyEmi || cust.emi || 0);
 
-        // लेट फाइन (Penalty) और गैप दिन की गणना
+        // Gap Tracker Analysis Configuration
         let gapDays = 0;
         let penaltyAmount = 0;
 
         if (cust.loanDate && cust.loanDate < todayIST) {
             const date1 = new Date(todayIST);
             const date2 = new Date(cust.loanDate);
-            const diffTime = Math.abs(date1 - date2);
-            const totalDaysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffTime = date1 - date2;
+            let totalDaysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (totalDaysPassed < 0) totalDaysPassed = 0;
             
             const paidDaysCount = Number(cust.paidDays || 0);
             gapDays = totalDaysPassed - paidDaysCount;
             if (gapDays < 0) gapDays = 0;
 
-            // 60-80 दिन पर 10% रोज, 80+ दिन पर 15% रोज का फाइन नियम
+            // Late Penalty Matrix Processing Core Logic
             if (gapDays > 60 && gapDays <= 80) {
                 penaltyAmount = (gapDays - 60) * (emi * 0.10);
             } else if (gapDays > 80) {
@@ -65,25 +66,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         if (txtEmi) txtEmi.textContent = `₹${emi}`; 
         
-        // स्क्रीन पर कुल बकाया (मूल + जुर्माना) दिखाना
         if (txtRemaining) {
             if (penaltyAmount > 0) {
-                txtRemaining.innerHTML = `₹${Math.round(totalPayableNow)} <span style="font-size:12px; color:#d32f2f; display:block; margin-top:4px;">(शामिल लेट फाइन: ₹${Math.round(penaltyAmount)})</span>`;
+                txtRemaining.innerHTML = `₹${Math.round(totalPayableNow)} <span style="font-size:12px; color:#d32f2f; display:block; margin-top:4px;">(Includes Penalty: ₹${Math.round(penaltyAmount)})</span>`;
             } else {
                 txtRemaining.textContent = `₹${Math.round(totalPayableNow)}`;
             }
         }
         
-        if (txtPaidDays) txtPaidDays.textContent = `${cust.paidDays || 0} दिन`; 
+        if (txtPaidDays) txtPaidDays.textContent = `${cust.paidDays || 0} Days`; 
         if (collectAmount) collectAmount.value = emi || ""; 
         if (customerDetailsBox) customerDetailsBox.style.display = "block"; 
     } 
 
-    // 3. डेटाबेस से सभी एक्टिव ग्राहकों को ड्रापडाउन में लोड करना 
+    // 3. Dropdown Stream Aggregator Pipeline
     async function loadCustomersDropdown() { 
         try { 
             const querySnapshot = await getDocs(collection(db, "customers")); 
-            customerSelect.innerHTML = '<option value="" disabled selected>--- ग्राहक चुनें ---</option>'; 
+            customerSelect.innerHTML = '<option value="" disabled selected>--- Select Customer ---</option>'; 
             querySnapshot.forEach((docSnap) => { 
                 const data = docSnap.data(); 
                 if (data.status !== "Closed") { 
@@ -100,8 +100,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 showCustomerDetails(urlCustId); 
             } 
         } catch (err) { 
-            console.error("कस्टमर लोड एरर:", err); 
-            customerSelect.innerHTML = '<option value="" disabled>⚠️ डेटा लोड करने में एरर</option>'; 
+            console.error("Data pipeline processing failure: ", err); 
+            customerSelect.innerHTML = '<option value="" disabled>⚠️ Error loading customer lists.</option>'; 
         } 
     } 
 
@@ -111,7 +111,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }; 
     } 
 
-    // 4. किस्त जमा करने का बटन क्लिक एक्शन 
+    // 4. Collection Entry Submission Module
     if (submitCollectionBtn) { 
         submitCollectionBtn.onclick = async (e) => { 
             e.preventDefault(); 
@@ -124,19 +124,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             } 
 
             if (!selectedId) { 
-                alert("⚠️ कृपया पहले किसी ग्राहक को चुनें!"); 
+                alert("⚠️ Please select a valid customer first!"); 
                 return; 
             } 
             if (!amount || amount <= 0) { 
-                alert("⚠️ कृपया सही किस्त राशि दर्ज करें!"); 
+                alert("⚠️ Please enter a valid installment amount!"); 
                 return; 
             } 
 
             try { 
                 submitCollectionBtn.disabled = true; 
-                submitCollectionBtn.innerText = "⏳ जमा हो रहा है..."; 
+                submitCollectionBtn.innerText = "⏳ Submitting Installment..."; 
 
-                // A. कलेक्शन टेबल में एंट्री सेव करना
+                // A. Add Entry Stream to Collections Collection
                 await addDoc(collection(db, "collections"), { 
                     customerId: selectedId, 
                     amount: amount, 
@@ -145,7 +145,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     timestamp: new Date() 
                 }); 
 
-                // B. कस्टमर के मास्टर रिकॉर्ड को अपडेट करना
+                // B. Synchronize Master Ledger Balance Fields
                 const custDocRef = doc(db, "customers", selectedId); 
                 const custSnap = await getDoc(custDocRef); 
                 if (custSnap.exists()) { 
@@ -163,13 +163,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                     }); 
                 } 
 
-                alert("🎉 किस्त सफलतापूर्वक जमा हो गई है!"); 
+                alert("🎉 Installment synchronized and verified successfully!"); 
                 window.location.href = "customer-list.html"; 
             } catch (err) { 
-                console.error("किस्त जमा एरर:", err); 
-                alert("⚠️ किस्त जमा करने में तकनीकी समस्या आई।"); 
+                console.error("Transaction commit failed: ", err); 
+                alert("⚠️ Technical exception encountered during submission pipeline."); 
                 submitCollectionBtn.disabled = false; 
-                submitCollectionBtn.innerText = "💸 किस्त जमा करें"; 
+                submitCollectionBtn.innerText = "💸 Submit Installment"; 
             } 
         }; 
     } 
