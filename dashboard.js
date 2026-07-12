@@ -1,21 +1,9 @@
 // ==========================================
-// 🚀 GDA FINANCE - SECURE REAL-TIME DASHBOARD CORE (DATE & OLD ID ACCURACY)
+// 🚀 GDA FINANCE - SECURE REAL-TIME DASHBOARD CORE (STRICT FIELD FIX)
 // ==========================================
 
 import { db, auth } from "./firebase.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-
-// 🧼 Helper function to clean and normalize codes like GDA1, GDA01, GDA001 to a single format
-function normalizeGdaId(idStr) {
-    if (!idStr) return "";
-    const clean = idStr.toString().trim().toUpperCase();
-    const match = clean.match(/^GDA\s*0*(\d+)$/);
-    if (match) {
-        // Formats everything strictly to GDA001, GDA002 etc. for unified mapping
-        return "GDA" + match[1].padStart(3, '0');
-    }
-    return clean;
-}
 
 export async function loadDashboard() {
     auth.onAuthStateChanged(async (user) => {
@@ -34,7 +22,7 @@ export async function loadDashboard() {
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         try {
-            // 1. Fetch All Collections and Map Date-Wise with Normalized IDs
+            // 1. Fetch All Collections and Aggregate by clean keys
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let todayCollected = 0;
             let collectionMap = {}; 
@@ -43,9 +31,8 @@ export async function loadDashboard() {
                 const data = doc.data();
                 const colDate = data.date || "";
                 
-                // Extract possible identifiers
-                const rawCode = data.customerCode || data.customerId || data.customerName || data.name || "";
-                const cId = normalizeGdaId(rawCode);
+                // Pure direct matching without aggressive numeric truncation
+                const cId = (data.customerCode || data.customerId || data.customerName || data.name || "").toString().trim().toUpperCase();
                 const amount = Number(data.amount || data.emiPaid || 0);
 
                 if (cId && colDate) {
@@ -53,13 +40,12 @@ export async function loadDashboard() {
                         todayCollected += amount;
                     }
                     if (colDate <= todayIST) {
-                        // Cumulative ledger aggregation until current date bounds
                         collectionMap[cId] = (collectionMap[cId] || 0) + amount;
                     }
                 }
             });
 
-            // 2. Fetch Customers and Evaluate True Missed Installment Days
+            // 2. Fetch Active Customers and map against literal string constraints
             const custSnapshot = await getDocs(collection(db, "customers"));
             let active = 0;
             let totalDemand = 0;
@@ -75,7 +61,6 @@ export async function loadDashboard() {
                     active++;
                     totalDemand += emi;
 
-                    // Date-wise timeline validation pipeline
                     if (cust.loanDate && cust.loanDate <= todayIST) {
                         const start = new Date(cust.loanDate);
                         const end = new Date(todayIST);
@@ -88,12 +73,11 @@ export async function loadDashboard() {
                         const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                         const runningExpected = Math.min(expected, totalPayableLifetime);
 
-                        // Normalize all variations of customer profile keys
-                        const primaryDocId = normalizeGdaId(doc.id);
-                        const customCode = normalizeGdaId(cust.customerCode);
+                        const primaryDocId = doc.id.toString().trim().toUpperCase();
+                        const customCode = (cust.customerCode || "").toString().trim().toUpperCase();
                         const custName = (cust.name || "").toString().trim().toUpperCase();
 
-                        // Multi-key matching fallback lookup loop
+                        // Exact direct mapping check across all three raw variants
                         const paid = collectionMap[customCode] || collectionMap[primaryDocId] || collectionMap[custName] || 0;
                         
                         const accountDue = runningExpected - paid;
@@ -106,7 +90,7 @@ export async function loadDashboard() {
                 }
             });
 
-            // UI Render Mapping to English Templates
+            // Safe UI Render update bounds
             if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected} / ₹${totalDemand}`;
             if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand}`;
             if (txtTodayMissed) txtTodayMissed.innerText = `₹${totalOverdue}`;
@@ -114,7 +98,7 @@ export async function loadDashboard() {
             if (lblDueCount) lblDueCount.innerText = missedCount;
 
         } catch (err) { 
-            console.error("Dashboard Safe Load Pipeline Error:", err); 
+            console.error("Dashboard Render Pipeline Crash:", err); 
         }
     });
 }
