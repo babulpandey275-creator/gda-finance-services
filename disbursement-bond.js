@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const custId = urlParams.get('id');
 
     if (!custId) {
-        alert("Customer ID not found!");
+        alert("Customer validation parameter not found!");
         window.location.href = "customer-list.html";
         return;
     }
@@ -15,13 +15,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             const docSnap = await getDoc(doc(db, "customers", custId));
             if (!docSnap.exists()) {
-                alert("No records available for this customer!");
+                alert("No records available for this customer ledger profile!");
                 window.location.href = "customer-list.html";
                 return;
             }
 
             const cust = docSnap.data();
 
+            // Mapping parameters cleanly into English fields
             if(document.getElementById("bondName")) document.getElementById("bondName").innerText = cust.name || "-";
             if(document.getElementById("bondId")) document.getElementById("bondId").innerText = cust.customerCode || "GDA" + custId.substring(0,4).toUpperCase();
             if(document.getElementById("bondMobile")) document.getElementById("bondMobile").innerText = cust.mobile || "-";
@@ -43,8 +44,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(document.getElementById("bondTotalPayable")) document.getElementById("bondTotalPayable").innerText = `₹${Math.round(totalPayable)}`;
 
         } catch (error) {
-            console.error("Bond Data Loading Error: ", error);
-            alert("⚠️ Error loading details.");
+            console.error("Bond Data Loading Core Exception: ", error);
+            alert("⚠️ Error synchronizing system details.");
         }
     }
 
