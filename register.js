@@ -11,15 +11,16 @@ import {
     doc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-// 📸 फायरबेस स्टोरेज इम्पोर्ट (लाइव डॉक्यूमेंट अपलोड के लिए)
+// Firebase Storage Engine Integration for Document Stream Capturing
 import { 
     getStorage, 
     ref, 
     uploadBytes, 
     getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.jpg.js" // Fixed clean direct path handling
+import { getStorage as initStorage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-const storage = getStorage();
+const storage = initStorage();
 
 window.addEventListener('DOMContentLoaded', async () => {
     const registerForm = document.getElementById("registerForm") || document.getElementById("editForm");
@@ -34,7 +35,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById("loanDate").value = todayIST;
     }
 
-    // 🗜️ मोबाइल कैमरे की भारी फोटो को कंप्रेस (छोटा) करने का एडवांस फंक्शन
+    // 🗜️ Advanced Canvas Processing Engine for Image Compression
     function compressImage(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -46,7 +47,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    const maxW = 1000; // अधिकतम चौड़ाई 1000px
+                    const maxW = 1000; 
                     const scale = maxW / img.width;
                     canvas.width = maxW;
                     canvas.height = img.height * scale;
@@ -55,13 +56,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                     
                     canvas.toBlob((blob) => {
                         resolve(blob);
-                    }, 'image/jpeg', 0.7); // 70% क्वालिटी पर कंप्रेस
+                    }, 'image/jpeg', 0.7); 
                 };
             };
         });
     }
 
-    // 🆔 SMART FUNCTION: डिलीट की हुई आईडी को ऑटोमैटिक री-साइकिल करना
+    // 🆔 SMART FUNCTION: Auto-Recycle Purged Member IDs
     async function generateNextGdaId() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -86,12 +87,12 @@ window.addEventListener('DOMContentLoaded', async () => {
             const formattedNumber = String(nextNumber).padStart(3, '0');
             return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
         } catch (error) {
-            console.error("ID Generation Error:", error);
+            console.error("ID Generation Core Error:", error);
             return { member_id: "GDA001", member_no: 1 };
         }
     }
 
-    // 💾 नया लोन वितरण और ग्राहक सेव करने का मास्टर बटन लॉजिक
+    // 💾 Master Sync Module: Record Submissions and File Storage Allocation
     if (registerForm) {
         registerForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -99,7 +100,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             const name = document.getElementById("customerName").value.trim();
             const mobile = document.getElementById("mobileNumber").value.trim();
             const address = document.getElementById("address").value.trim();
-            const photo = document.getElementById("customerPhoto") ? document.getElementById("customerPhoto").value.trim() : "";
+            let photoUrlText = document.getElementById("customerPhoto") ? document.getElementById("customerPhoto").value.trim() : "";
             const aadhaar = document.getElementById("aadhaarNumber").value.trim();
             const pan = document.getElementById("panNumber").value.trim().toUpperCase();
             const loanAmount = Number(document.getElementById("loanAmount").value);
@@ -107,7 +108,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             const emi = Number(document.getElementById("emi").value);
             const loanDate = document.getElementById("loanDate").value;
 
-            // HTML कैमरा इनपुट फाइल्स उठाना
+            // Live Camera File Selector Objects
+            const customerPhotoFileInput = document.getElementById("customerPhotoFile");
             const aadharFileInput = document.getElementById("docAadharFile");
             const panFileInput = document.getElementById("docPanFile");
 
@@ -115,15 +117,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                 saveBtn.disabled = true;
                 saveBtn.innerText = "⏳ Allocating ID & Registering Loan...";
 
-                // 1. री-साइकिल सिस्टम से अगली उपलब्ध आईडी प्राप्त करना
+                // 1. Get Next Recycled ID
                 const idDetails = await generateNextGdaId();
 
-                // 2. नया कस्टमर बेस पेलोड बनाना
+                // 2. Build Base Payload Pipeline
                 let newCustomerData = {
                     name,
                     mobile,
                     address,
-                    customerPhoto: photo || null,
+                    customerPhoto: photoUrlText || null,
                     aadharCard: aadhaar,
                     aadhaar,
                     panCard: pan,
@@ -132,7 +134,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     duration: planDuration,
                     dailyEmi: emi,
                     emi,
-                    totalCollection: loanAmount + (loanAmount * 0.20), // 20% ब्याज जोड़कर
+                    totalCollection: loanAmount + (loanAmount * 0.20), 
                     remainingAmount: loanAmount + (loanAmount * 0.20),
                     paidAmount: 0,
                     paidDays: 0,
@@ -143,13 +145,22 @@ window.addEventListener('DOMContentLoaded', async () => {
                     createdAt: todayIST
                 };
 
-                // 3. डेटाबेस (Firestore) में डाक्यूमेंट्स इंसर्ट करना
+                // 3. Document Insertion Initial Handshake
                 const docRef = await addDoc(collection(db, "customers"), newCustomerData);
                 const generatedId = docRef.id;
 
                 let mediaPayload = {};
 
-                // A. अगर आधार की लाइव फोटो खींची गई है, तो कंप्रेस करके अपलोड करें
+                // A. Upload Live Profile Picture Stream (Front Camera Capture)
+                if (customerPhotoFileInput && customerPhotoFileInput.files.length > 0) {
+                    saveBtn.innerText = "⏳ Compressing & Uploading Profile Photo...";
+                    const compressedBlob = await compressImage(customerPhotoFileInput.files[0]);
+                    const storageRef = ref(storage, `client_photos/${generatedId}_profile.jpg`);
+                    await uploadBytes(storageRef, compressedBlob);
+                    mediaPayload.customerPhoto = await getDownloadURL(storageRef);
+                }
+
+                // B. Upload Live Aadhaar Capture Stream
                 if (aadharFileInput && aadharFileInput.files.length > 0) {
                     saveBtn.innerText = "⏳ Compressing & Uploading Aadhaar...";
                     const compressedBlob = await compressImage(aadharFileInput.files[0]);
@@ -158,7 +169,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     mediaPayload.aadharPhotoUrl = await getDownloadURL(storageRef);
                 }
 
-                // B. अगर पैन/वोटर कार्ड की लाइव फोटो खींची गई है, तो कंप्रेस करके अपलोड करें
+                // C. Upload Live PAN Capture Stream
                 if (panFileInput && panFileInput.files.length > 0) {
                     saveBtn.innerText = "⏳ Compressing & Uploading PAN Card...";
                     const compressedBlob = await compressImage(panFileInput.files[0]);
@@ -167,19 +178,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                     mediaPayload.panPhotoUrl = await getDownloadURL(storageRef);
                 }
 
-                // अगर फोटो अपलोड हुई हैं, तो कस्टमर रिकॉर्ड को मीडिया लिंक्स के साथ अपडेट करना
+                // Update Master Customer Document if Multimedia Streams Exist
                 if (Object.keys(mediaPayload).length > 0) {
                     await updateDoc(doc(db, "customers", generatedId), mediaPayload);
                 }
 
                 alert(`🎉 Customer ${idDetails.member_id} Registered Successfully!`);
                 
-                // 🚀 जादुई रीडायरेक्ट: सीधे आपके नए लोन बॉन्ड पेपर पर ट्रांसफर करना
+                // Redirect straight to digital agreement bond view
                 window.location.href = `disbursement-bond.html?id=${generatedId}`;
 
             } catch (error) {
-                console.error("Registration Process Failed: ", error);
-                alert("⚠️ System Error: " + error.message);
+                console.error("Registration Pipeline Processing Failure: ", error);
+                alert("⚠️ System Registry Error: " + error.message);
                 saveBtn.disabled = false;
                 saveBtn.innerText = "💾 Register & Disburse Loan";
             }
