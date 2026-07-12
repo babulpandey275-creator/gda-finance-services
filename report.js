@@ -100,12 +100,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (cust.status === "Active" || cust.status === "active") {
                 grandTotalLoanAllTime += (Number(cust.loanAmount) || Number(cust.amount) || 0);
                 
-                // ⚡ अर्जुन और बाकी सभी ग्राहकों का ड्यू (بकाया) निकालने के लिए सभी नाम जोड़ दिए हैं
+                // ⚡ यहाँ बदलाव: पूरे लाइफटाइम बैलेंस को हटाकर सिर्फ वही नाम रखे हैं जो किस्त टूटने का पेंडिंग ड्यू बताते हैं
+                // इससे सिर्फ वही अमाउंट प्लस होगा जो रुका हुआ है, पूरा ₹1,22,000 गायब हो जाएगा।
                 const customerSpecificDue = Number(cust.dueAmount) || 
                                            Number(cust.overdueAmount) || 
-                                           Number(cust.due) || 
-                                           Number(cust.remainingAmount) || 
-                                           Number(cust.pendingAmount) || 0;
+                                           Number(cust.due) || 0;
                 runningMarketDue += customerSpecificDue;
             }
 
@@ -197,13 +196,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             } 
         }); 
 
-        // 🧮 ब्याज की गणना
         const interestEarned = Math.round(totalCollected / 6);
-        
-        // ⚡ खर्चे सीधे शुद्ध मुनाफे (NET PROFIT) से माइनस होंगे
         const netProfit = interestEarned - totalExp;
         
-        // ⚡ पोर्टफोलियो का फॉर्मूला: (लोन + 20% ब्याज) - कुल वसूली
+        // पोर्टफोलियो = (कुल लोन अमाउंट * 1.2) - कुल वसूली
         const totalPortfolio = (grandTotalLoanAllTime * 1.2) - grandTotalCollectAllTime;
 
         // UI स्क्रीन अपडेट्स
@@ -215,7 +211,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio >= 0 ? Math.round(totalPortfolio).toLocaleString('en-IN') : 0}`;
         
-        // Live Overdue Due Amount
+        // ⚡ अब यहाँ सिर्फ ग्राहकों का पेंडिंग किस्त का लाइव ड्यू अमाउंट ही दिखेगा!
         if (txtTotalDue) txtTotalDue.textContent = `₹${runningMarketDue.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
