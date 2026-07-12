@@ -1,14 +1,13 @@
 // ==========================================
-// 🚀 GDA FINANCE - LIVE FINANCIAL REPORT SCRIPT
+// 🚀 GDA FINANCE - ADVANCED & CRASH-PROOF REPORT SCRIPT
 // ==========================================
 
-// फ़ायरबेस कनेक्शन फ़ाइल से db इम्पोर्ट करना
 import { db } from "./firebase.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
     
-    // 📱 HTML के सभी वित्तीय रिपोर्ट वाले एलिमेंट्स को सेलेक्ट करना
+    // 📱 HTML UI Elements Selection
     const totalPortfolioEl = document.getElementById("totalPortfolio");
     const disbursementEl = document.getElementById("disbursement");
     const collectionEl = document.getElementById("collection");
@@ -18,10 +17,45 @@ window.addEventListener('DOMContentLoaded', async () => {
     const totalDueEl = document.getElementById("totalDue");
     const newAccountsEl = document.getElementById("newAccounts");
 
-    // Live वित्तीय रिपोर्ट जनरेट करने का मुख्य फंक्शन
+    // 🆔 [BONUS] डिलीटेड कस्टमर आईडी को री-साइकिल करने वाला स्मार्ट फंक्शन
+    // इसे आप अपने कस्टमर ऐड करने वाले फॉर्म में भी इस्तेमाल कर सकते हैं
+    async function generateNextGdaId() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "customers"));
+            let existingNumbers = [];
+
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.member_no !== undefined) {
+                        existingNumbers.push(parseInt(data.member_no, 10));
+                    }
+                });
+            }
+
+            // नंबरों को छोटे से बड़े क्रम में सॉर्ट करना
+            existingNumbers.sort((a, b) => a - b);
+
+            let nextNumber = 1;
+            // लूप चलाकर देखना कि बीच में कौन सा नंबर गायब (डिलीट) हुआ है
+            for (let i = 1; i <= existingNumbers.length + 1; i++) {
+                if (!existingNumbers.includes(i)) {
+                    nextNumber = i;
+                    break;
+                }
+            }
+
+            const formattedNumber = String(nextNumber).padStart(3, '0');
+            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
+        } catch (error) {
+            console.error("ID जेनरेट करने में समस्या:", error);
+            return { member_id: "GDA001", member_no: 1 };
+        }
+    }
+
+    // 📊 लाइव वित्तीय रिपोर्ट कैलकुलेट और लोड करने का मुख्य फंक्शन
     async function fetchRealtimeReport() {
         try {
-            // 1. Customers कलेक्शन से लाइव डेटा रीड करना
             const querySnapshot = await getDocs(collection(db, "customers"));
             
             let totalDisbursement = 0; 
@@ -31,27 +65,28 @@ window.addEventListener('DOMContentLoaded', async () => {
             let totalAccounts = 0; 
 
             if (!querySnapshot.empty) {
-                totalAccounts = querySnapshot.size; // कुल खातों की संख्या (New Accounts)
+                // एक्टिव खातों की सटीक संख्या (डिलीटेड कस्टमर इसमें काउंट नहीं होंगे)
+                totalAccounts = querySnapshot.size; 
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
 
-                    // मूलधन (Loan Amount)
+                    // डेटा न होने पर क्रैश से बचाने के लिए '|| 0' सुरक्षा कवच
                     const loanAmount = Number(data.loanAmount) || 0;
                     
-                    // आपके कैलकुलेटर के अनुसार 20% ब्याज जोड़कर कुल कलेक्शन अमाउंट
+                    // कुल कलेक्शन = मूलधन + 20% ब्याज (अगर रिमेनिंग अमाउंट पहले से सेव नहीं है तो)
                     const fullCollectionAmount = Number(data.remainingAmount) || (loanAmount + (loanAmount * 0.20));
                     
-                    // 20% के हिसाब से ब्याज की शुद्ध कमाई
+                    // ब्याज कमाई
                     const interest = fullCollectionAmount - loanAmount;
 
-                    // कलेक्शन में जो अमाउंट रिकवर/जमा हो चुका है (paidAmount)
+                    // वसूली कलेक्शन (जो पैसा अब तक कस्टमर चुका चुका है)
                     const paidAmount = Number(data.paidAmount) || 0; 
                     
-                    // मार्केट बकाया राशि की गणना (कुल कलेक्शन - जमा राशि)
+                    // मार्केट बकाया (कुल देना - जो चुका दिया)
                     const dueAmount = fullCollectionAmount - paidAmount;
 
-                    // सभी ग्राहकों का डेटा आपस में जोड़ना (Sum)
+                    // सभी का सम (Total Sum)
                     totalDisbursement += loanAmount;
                     totalInterestIncome += interest;
                     totalCollection += paidAmount;
@@ -59,7 +94,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 2. Expenses कलेक्शन से सभी खर्चों का टोटल निकालना
+            // 2. Expenses (खर्चों) का लाइव डेटा लाना
             const expenseSnapshot = await getDocs(collection(db, "expenses"));
             let totalExpenses = 0;
 
@@ -70,14 +105,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 3. फाइनल मैथ कैलकुलेशन
-            // शुद्ध मुनाफा = कुल ब्याज कमाई - कुल खर्चे 
+            // 3. शुद्ध मुनाफा = कुल ब्याज - कुल खर्चे 
             const netProfit = totalInterestIncome - totalExpenses;
             
             // कुल पोर्टफोलियो = वितरित लोन + मार्केट बकाया
             const totalPortfolio = totalDisbursement + totalDue;
 
-            // 4. स्क्रीन (UI) को लाइव डेटा से अपडेट करना
+            // 4. बिना रुकावट UI स्क्रीन को अपडेट करना
             if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${totalPortfolio}`;
             if(disbursementEl) disbursementEl.innerText = `₹${totalDisbursement}`;
             if(collectionEl) collectionEl.innerText = `₹${totalCollection}`;
@@ -88,10 +122,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
         } catch (error) {
-            console.error("डेटाबेस से लाइव रिपोर्ट लोड करने में दिक्कत आई है:", error);
+            console.error("लाइव वित्तीय रिपोर्ट लोड करने में गड़बड़ हुई:", error);
+            alert("⚠️ डेटाबेस से कनेक्ट नहीं हो पा रहा है। इंटरनेट या फायरबेस रूल्स चेक करें।");
         }
     }
 
-    // पेज लोड होते ही डेटा सिंक करने के लिए फंक्शन को कॉल करें
+    // लोड होते ही रन करें
     fetchRealtimeReport();
 });
