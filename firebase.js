@@ -12,9 +12,11 @@ const firebaseConfig = {
   measurementId: "G-92D8JNBHBF"
 };
 
+// Initialize Firebase Cloud Instance
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-console.log("Firebase Connected Successfully");
+console.log("🚀 Firebase Core Architecture Connected Successfully.");
+
 export { db, auth };
