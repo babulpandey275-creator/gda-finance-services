@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Customer - GDA Finance</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -36,6 +37,12 @@
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .label-icon {
+            font-size: 16px;
         }
         input, select {
             width: 100%;
@@ -122,6 +129,11 @@
             <label>📷 Customer Profile Photo URL:</label>
             <input type="text" id="customerPhoto" placeholder="Image link or storage path">
 
+            <label><span class="material-icons label-icon">account_circle</span> Capture Customer Photo (Live Camera):</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="customerPhotoFile" accept="image/*" capture="user">
+            </div>
+
             <label>💳 Aadhaar Number:</label>
             <input type="text" id="aadhaarNumber" placeholder="Enter Aadhaar details">
 
@@ -140,19 +152,16 @@
             <label>📆 Loan Disbursed Date:</label>
             <input type="date" id="loanDate" required>
 
-            <!-- 📸 नया हाई-टेक कैमरा इनपुट: आधार कार्ड फोटो -->
             <label>🪪 Upload Aadhaar Card (Live Camera):</label>
             <div class="file-input-wrapper">
                 <input type="file" id="docAadharFile" accept="image/*" capture="environment">
             </div>
 
-            <!-- 📸 नया हाई-टेक कैमरा इनपुट: पैन/वोटर कार्ड फोटो -->
             <label>📄 Upload PAN / Voter Card (Live Camera):</label>
             <div class="file-input-wrapper">
                 <input type="file" id="docPanFile" accept="image/*" capture="environment">
             </div>
 
-            <!-- बटन एक्शन्स -->
             <button type="submit" class="btn-submit" id="saveBtn">💾 Update & Save Records</button>
             <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete This Customer</button>
             <a href="customer-list.html" class="btn-back">⬅ Cancel & Go Back</a>
