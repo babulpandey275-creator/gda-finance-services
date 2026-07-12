@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - REAL OUTSTANDING PORTFOLIO & CUMULATIVE DUE SCRIPT (v12)
+// 🚀 GDA FINANCE - LOAN ID GENERATOR & TIME-BASED REAL REPORT SCRIPT (v12)
 // ==========================================
 
 import { db } from "./firebase.js"; 
@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let currentMode = "Daily"; 
 
-    // 🇮🇳 भारतीय समय (IST) के अनुसार आज की तारीख डिफ़ॉल्ट सेट करना
+    // 🇮🇳 Indian Standard Time (IST) Default Date setup
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
@@ -36,7 +36,38 @@ window.addEventListener('DOMContentLoaded', async () => {
         datePicker.value = todayIST;
     }
 
-    // 📅 तारीख अवधि फ़िल्टर मैच करने का फंक्शन
+    // 🆔 SMART FUNCTION: Automatically recycle deleted Customer IDs (Used during new registrations)
+    async function generateNextGdaId() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "customers"));
+            let existingNumbers = [];
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.member_no !== undefined) {
+                        existingNumbers.push(parseInt(data.member_no, 10));
+                    }
+                });
+            }
+            existingNumbers.sort((a, b) => a - b);
+            let nextNumber = 1;
+            for (let i = 1; i <= existingNumbers.length + 1; i++) {
+                if (!existingNumbers.includes(i)) {
+                    nextNumber = i;
+                    break;
+                }
+            }
+            const formattedNumber = String(nextNumber).padStart(3, '0');
+            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
+        } catch (error) {
+            console.error("ID Generation Error:", error);
+            return { member_id: "GDA001", member_no: 1 };
+        }
+    }
+    // Globally exposing the smart ID generator for register/edit panels if required
+    window.generateNextGdaId = generateNextGdaId;
+
+    // 📅 Date comparison helper function for periodic filters
     function isDateInPeriod(targetDate, filterDate, mode) {
         if (!targetDate || !filterDate) return false;
         
@@ -60,17 +91,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         return false;
     }
 
-    // 📊 लाइव रिपोर्ट गणना करने का मास्टर फ़ंक्शन
+    // 📊 MASTER FUNCTION: Financial Report Calculations Engine
     async function calculateFinanceReport() {
         const filterDate = datePicker.value;
         if (!filterDate) return;
 
         try {
-            // 1. कलेक्शन टेबल से पूरा डेटा रीड करना
+            // 1. Fetch data from 'collections' table
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let periodCollectionSum = 0;
-            let collectionUpToFilterDate = {}; // फिल्टर तारीख तक का संचयी कलेक्शन
-            let absoluteLifetimeCollection = {}; // आज की तारीख तक का कुल लाइफटाइम कलेक्शन
+            let collectionUpToFilterDate = {}; 
+            let absoluteLifetimeCollection = {}; 
 
             if (!collectSnapshot.empty) {
                 collectSnapshot.forEach((doc) => {
@@ -80,29 +111,24 @@ window.addEventListener('DOMContentLoaded', async () => {
                     const amount = Number(data.amount) || 0;
 
                     if (cId && cDate) {
-                        // बटन फ़िल्टर मोड (Daily/Monthly) के अनुसार कलेक्शन
                         if (isDateInPeriod(cDate, filterDate, currentMode)) {
                             periodCollectionSum += amount;
                         }
-                        // चुनी गई फिल्टर तारीख तक का संचयी कलेक्शन (तारीख-वाइज ड्यू निकालने के लिए)
                         if (cDate <= filterDate) {
                             collectionUpToFilterDate[cId] = (collectionUpToFilterDate[cId] || 0) + amount;
                         }
-                        // वर्तमान समय तक का कुल लाइफटाइम कलेक्शन (स्थिर पोर्टफोलियो के लिए)
                         absoluteLifetimeCollection[cId] = (absoluteLifetimeCollection[cId] || 0) + amount;
                     }
                 });
             }
 
-            // 2. ग्राहकों का मास्टर डेटा रीड करना
+            // 2. Fetch data from 'customers' table
             const custSnapshot = await getDocs(collection(db, "customers"));
             
             let totalDisbursement = 0; 
             let totalCumulativeDueOnFilterDate = 0; 
             let totalAccounts = 0;
             let periodInterestIncome = 0;
-            
-            // 🎯 पोर्टफोलियो वेरिएबल्स (जो हमेशा आज की करंट स्थिति पर फिक्स रहेंगे)
             let absoluteCurrentOutstanding = 0; 
 
             if (!custSnapshot.empty) {
@@ -112,40 +138,32 @@ window.addEventListener('DOMContentLoaded', async () => {
                     const loanAmount = Number(data.loanAmount) || 0;
                     const emi = Number(data.dailyEmi || data.emi || 0);
 
-                    // A. वितरित लोन और खाता काउंट (अवधि के अनुसार)
                     if (isDateInPeriod(data.loanDate, filterDate, currentMode)) {
                         totalDisbursement += loanAmount;
                         totalAccounts++;
                         periodInterestIncome += (loanAmount * 0.20);
                     }
 
-                    // B. 🎯 [पोर्टफोलियो नियम] आज तक मार्केट में फंसा हुआ कुल वास्तविक पैसा (स्थिर रहेगा)
+                    // Portfolio Logic: Stable, fixed lifetime real outstanding balance
                     if (data.status !== "Closed") {
                         const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                         const totalCollectedLifetime = absoluteLifetimeCollection[cId] || 0;
-                        const clientOutstanding = totalPayableWithInterest - totalCollectedLifetime; // (मूलधन + ब्याज) - जो आ चुका है
-                        
                         const remainingLifetimeDue = totalPayableLifetime - totalCollectedLifetime;
                         if (remainingLifetimeDue > 0) {
                             absoluteCurrentOutstanding += remainingLifetimeDue;
                         }
                     }
 
-                    // C. 💸 [दैनिक संचयी बकाया नियम] चुनी गई फिल्टर तारीख तक का कुल पेंडिंग रुका हुआ पैसा
+                    // Cumulative Due Logic: Daily cumulative gap amount updates dynamically
                     if (data.status !== "Closed" && data.loanDate && data.loanDate <= filterDate) {
                         const d1 = new Date(filterDate);
                         const d2 = new Date(data.loanDate);
                         const diffTime = d1 - d2;
-                        // लोन शुरू होने से फिल्टर तारीख तक बीते हुए कुल दिन
                         const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
                         if (daysPassed > 0) {
-                            // उस तारीख तक कुल आनी चाहिए थी इतनी किस्तें (Demand)
                             const totalDemandUpToDate = daysPassed * emi;
-                            // उस तारीख तक असल में ग्राहक ने दी इतनी किस्तें
                             const actualPaidUpToDate = collectionUpToFilterDate[cId] || 0;
-                            
-                            // बकाया = जो आना चाहिए था - जो आया
                             const clientDueOnThatDate = totalDemandUpToDate - actualPaidUpToDate;
                             
                             if (clientDueOnThatDate > 0) {
@@ -156,7 +174,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 3. एक्सपेंस टेबल से खर्चे निकालना
+            // 3. Fetch data from 'expenses' table
             const expenseSnapshot = await getDocs(collection(db, "expenses"));
             let periodExpensesSum = 0;
             if (!expenseSnapshot.empty) {
@@ -168,12 +186,11 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 4. बिज़नेस आंकड़े असाइन करना
-            // 🎯 कुल पोर्टफोलियो = हमेशा आज की डेट का कुल शुद्ध आउटस्टैंडिंग (स्थिर)
+            // 4. Mathematical mapping
             const finalPortfolioValue = absoluteCurrentOutstanding; 
             const netProfit = periodInterestIncome - periodExpensesSum;
 
-            // 5. स्क्रीन UI अपडेट करना
+            // 5. Inject values safely into the UI
             if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(finalPortfolioValue)}`;
             if(disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
             if(collectionEl) collectionEl.innerText = `₹${Math.round(periodCollectionSum)}`;
@@ -184,20 +201,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
         } catch (error) {
-            console.error("कैलकुलेशन एरर:", error);
+            console.error("Calculation Engine Error: ", error);
         }
     }
 
-    // मोड स्विचिंग लिसनर्स
+    // Toggle Button Event Triggers
     function switchMode(mode, activeBtn) {
         currentMode = mode;
         [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(b => b.classList.remove("active"));
         activeBtn.classList.add("active");
         
-        if (mode === "Daily") dateLabel.innerText = "तारीख के अनुसार दैनिक लाइव रिपोर्ट चुनें:";
-        else if (mode === "Monthly") dateLabel.innerText = "महीने के अनुसार रिपोर्ट देखें (कोई भी तारीख चुनें):";
-        else if (mode === "Quarterly") dateLabel.innerText = "तिमाही के अनुसार रिपोर्ट देखें (कोई भी तारीख चुनें):";
-        else if (mode === "Yearly") dateLabel.innerText = "साल के अनुसार रिपोर्ट देखें (कोई भी तारीख चुनें):";
+        if (mode === "Daily") dateLabel.innerText = "Select Date for Daily Live Report:";
+        else if (mode === "Monthly") dateLabel.innerText = "Select Any Date for Monthly Report:";
+        else if (mode === "Quarterly") dateLabel.innerText = "Select Any Date for Quarterly Report:";
+        else if (mode === "Yearly") dateLabel.innerText = "Select Any Date for Yearly Report:";
         
         calculateFinanceReport();
     }
