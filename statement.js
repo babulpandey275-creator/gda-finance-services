@@ -1,15 +1,29 @@
+// ==========================================
+// 🚀 GDA FINANCE - CUSTOMER LEDGER STATEMENT & ACTION HANDLER (v13)
+// ==========================================
+
 import { db } from "./firebase.js"; 
-import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { 
+    doc, 
+    getDoc, 
+    collection, 
+    getDocs, 
+    query, 
+    where, 
+    deleteDoc, 
+    updateDoc 
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-window.addEventListener('DOMContentLoaded', async () => { 
-    const urlParams = new URLSearchParams(window.location.search); 
-    const custId = urlParams.get('id'); 
-    if (!custId) { 
-        window.location.href = "customer-list.html"; 
-        return; 
-    } 
+window.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const custId = urlParams.get('id');
 
-    // 🇮🇳 टाइमज़ोन फिक्स
+    if (!custId) {
+        window.location.href = "customer-list.html";
+        return;
+    }
+
+    // 🇮🇳 Indian Standard Time (IST) Date Configurator (YYYY-MM-DD)
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const yyyy = todayParts.find(p => p.type === 'year').value;
@@ -17,66 +31,71 @@ window.addEventListener('DOMContentLoaded', async () => {
     const dd = todayParts.find(p => p.type === 'day').value;
     const todayIST = `${yyyy}-${mm}-${dd}`;
 
-    async function loadFullStatement() { 
-        try { 
-            const custDoc = await getDoc(doc(db, "customers", custId)); 
-            if (!custDoc.exists()) { 
-                alert("रिकॉर्ड उपलब्ध नहीं है!"); 
-                return; 
-            } 
-            const cust = custDoc.data(); 
+    async function loadFullStatement() {
+        try {
+            const custDoc = await getDoc(doc(db, "customers", custId));
+            if (!custDoc.exists()) {
+                alert("Customer ledger record not found in system databases!");
+                return;
+            }
+            const cust = custDoc.data();
+
+            // 1. Injecting Profile Data Into English Fields Safely
+            if (document.getElementById("lblName")) document.getElementById("lblName").innerText = cust.name || "-";
+            if (document.getElementById("lblId")) document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
+            if (document.getElementById("lblMobile")) document.getElementById("lblMobile").innerText = cust.mobile || "-";
+            if (document.getElementById("lblAadhar")) document.getElementById("lblAadhar").innerText = cust.aadharCard || cust.aadhaar || "-";
+            if (document.getElementById("lblPan")) document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
+            if (document.getElementById("lblAddress")) document.getElementById("lblAddress").innerText = cust.address || "-";
             
-            // बेसिक डिटेल्स रेंडर करना
-            if (document.getElementById("lblName")) document.getElementById("lblName").innerText = cust.name || "-"; 
-            if (document.getElementById("lblId")) document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase(); 
-            if (document.getElementById("lblMobile")) document.getElementById("lblMobile").innerText = cust.mobile || "-"; 
-            if (document.getElementById("lblAadhar")) document.getElementById("lblAadhar").innerText = cust.aadharCard || cust.aadhar || "-"; 
-            if (document.getElementById("lblPan")) document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-"; 
-            if (document.getElementById("lblAddress")) document.getElementById("lblAddress").innerText = cust.address || "-"; 
+            const baseLoan = Number(cust.loanAmount) || 0;
+            if (document.getElementById("lblLoanAmount")) document.getElementById("lblLoanAmount").innerText = `₹${baseLoan}`;
             
-            const baseLoan = Number(cust.loanAmount) || 0; 
-            if (document.getElementById("lblLoanAmount")) document.getElementById("lblLoanAmount").innerText = `₹${baseLoan}`; 
-            
-            const rawDuration = cust.planDuration || cust.duration || "60"; 
-            if (document.getElementById("lblPlan")) document.getElementById("lblPlan").innerText = rawDuration.toString().includes("Days") ? rawDuration : `${rawDuration} Days`; 
+            const rawDuration = cust.planDuration || cust.duration || "60";
+            if (document.getElementById("lblPlan")) document.getElementById("lblPlan").innerText = rawDuration.toString().includes("Days") ? rawDuration : `${rawDuration} Days`;
             
             const emi = Number(cust.dailyEmi || cust.emi || 0);
-            if (document.getElementById("lblEmi")) document.getElementById("lblEmi").innerText = `₹${emi}`; 
-            if (document.getElementById("lblLoanDate")) document.getElementById("lblLoanDate").innerText = cust.loanDate || "-"; 
+            if (document.getElementById("lblEmi")) document.getElementById("lblEmi").innerText = `₹${emi}`;
+            if (document.getElementById("lblLoanDate")) document.getElementById("lblLoanDate").innerText = cust.loanDate || "-";
             
             if (cust.customerPhoto && document.getElementById("custPhoto")) {
-                document.getElementById("custPhoto").src = cust.customerPhoto; 
+                document.getElementById("custPhoto").src = cust.customerPhoto;
             }
 
-            // कलेक्शन हिस्ट्री लोड करना
-            let totalCollected = 0; 
-            let rowsHtml = ""; 
-            const colRef = collection(db, "collections"); 
-            const q = query(colRef, where("customerId", "==", custId)); 
-            const querySnapshot = await getDocs(q); 
-            let logs = []; 
-            
-            querySnapshot.forEach(d => logs.push({ colId: d.id, ...d.data() })); 
-            logs.sort((a,b) => new Date(b.date) - new Date(a.date)); 
+            // 2. Load and Accumulate Complete Collection Logs
+            let totalCollected = 0;
+            let rowsHtml = "";
+            const colRef = collection(db, "collections");
+            const q = query(colRef, where("customerId", "==", custId));
+            const querySnapshot = await getDocs(q);
+            let logs = [];
 
-            if (logs.length === 0) { 
-                rowsHtml = `<tr><td colspan="4" style="text-align:center;color:#64748b;">कोई किस्त जमा नहीं हुई है।</td></tr>`; 
-            } else { 
-                logs.forEach((log) => { 
-                    const amt = Number(log.amount) || 0; 
-                    totalCollected += amt; 
-                    rowsHtml += `<tr><td>📅 ${log.date}</td><td>${log.note || 'EMI Received'}</td><td style="text-align:right;font-weight:bold;color:#22c55e;">+₹${amt}</td><td><button class="btn-row-del" data-colid="${log.colId}" data-amount="${amt}">🗑️</button></td></tr>`; 
-                }); 
-            } 
+            querySnapshot.forEach(d => logs.push({ colId: d.id, ...d.data() }));
+            logs.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-            const paidDaysCount = logs.length; 
-            if (document.getElementById("lblPaidDays")) document.getElementById("lblPaidDays").innerText = `${paidDaysCount} दिन`; 
-            if (document.getElementById("lblTotalCollected")) document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`; 
+            if (logs.length === 0) {
+                rowsHtml = `<tr><td colspan="4" style="text-align:center; color:#64748b;">No installments recorded yet.</td></tr>`;
+            } else {
+                logs.forEach((log) => {
+                    const amt = Number(log.amount) || 0;
+                    totalCollected += amt;
+                    rowsHtml += `<tr>
+                        <td>📅 ${log.date}</td>
+                        <td>${log.note || 'EMI Received'}</td>
+                        <td style="text-align:right; font-weight:bold; color:#22c55e;">+₹${amt}</td>
+                        <td><button class="btn-row-del" data-colid="${log.colId}" data-amount="${amt}">🗑️</button></td>
+                    </tr>`;
+                });
+            }
 
-            const totalWithInterest = baseLoan + (baseLoan * 0.20); 
-            const dynamicRemaining = totalWithInterest - totalCollected; 
+            const paidDaysCount = logs.length;
+            if (document.getElementById("lblPaidDays")) document.getElementById("lblPaidDays").innerText = `${paidDaysCount} Days`;
+            if (document.getElementById("lblTotalCollected")) document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
 
-            // 🧮 गैप दिन और लेट फाइन का गणित
+            const totalWithInterest = baseLoan + (baseLoan * 0.20);
+            const dynamicRemaining = totalWithInterest - totalCollected;
+
+            // 🧮 Pure Mathematical Engine for Gap Days & Late Penalty Processing
             let gapDays = 0;
             let penaltyAmount = 0;
 
@@ -98,64 +117,65 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             const finalPayableNow = dynamicRemaining + penaltyAmount;
 
-            // 🛑 SAFE UI UPDATE: क्रैश से बचने का सही तरीका
+            // 🖥️ UI Warning Rendering Panel (Converted to Crisp Technical English Messages)
             const lblRemaining = document.getElementById("lblRemaining");
             if (lblRemaining) {
                 lblRemaining.innerText = `₹${Math.round(finalPayableNow)}`;
-                
                 let gapRow = document.getElementById("lblGapDaysRow");
+                
                 if (!gapRow) {
                     gapRow = document.createElement("div");
                     gapRow.id = "lblGapDaysRow";
                     gapRow.style = "margin-top:6px; font-size:12px; font-weight:bold;";
-                    // HTML में जहाँ lblRemaining है, उसी के डिब्बे में इसे सुरक्षित रूप से जोड़ेंगे
                     lblRemaining.parentNode.appendChild(gapRow);
                 }
-                
+
                 if (penaltyAmount > 0) {
-                    gapRow.innerHTML = `<span style="color:#d32f2f;">⚠️ गैप: ${gapDays} दिन | शामिल फाइन: ₹${Math.round(penaltyAmount)}</span>`;
+                    gapRow.innerHTML = `<span style="color:#d32f2f;">⚠️ GAP DETECTED: ${gapDays} Days | Fine Charged: ₹${Math.round(penaltyAmount)}</span>`;
                 } else {
-                    gapRow.innerHTML = `<span style="color:#2e7d32;">✅ गैप: ${gapDays} दिन (कोई फाइन नहीं)</span>`;
+                    gapRow.innerHTML = `<span style="color:#2e7d32;">✅ GAP ANALYSIS: ${gapDays} Days (No Penalty Imposed)</span>`;
                 }
             }
 
             if (document.getElementById("historyRows")) {
-                document.getElementById("historyRows").innerHTML = rowsHtml; 
+                document.getElementById("historyRows").innerHTML = rowsHtml;
             }
 
-            // 🗑️ किस्त लॉग डिलीट करने का सिस्टम
-            document.querySelectorAll(".btn-row-del").forEach(btn => { 
-                btn.onclick = async (e) => { 
-                    e.stopPropagation(); 
-                    const colId = e.currentTarget.getAttribute("data-colid"); 
-                    const amt = Number(e.currentTarget.getAttribute("data-amount")); 
-                    const adminPassword = prompt("🔐 सुरक्षा लॉक: एंट्री डिलीट करने के लिए एडमिन पासवर्ड डालें:"); 
-                    if (adminPassword === "GDA@2026") { 
-                        if (confirm(`⚠️ क्या आप सच में ₹${amt} की यह किस्त डिलीट करना चाहते हैं?`)) { 
-                            try { 
-                                await deleteDoc(doc(db, "collections", colId)); 
-                                const updatedCollected = totalCollected - amt; 
-                                const newRemaining = totalWithInterest - updatedCollected; 
-                                const newPaidDays = paidDaysCount - 1; 
+            // 🗑️ Secure Action: Rollback/Delete Specific Installment Entry
+            document.querySelectorAll(".btn-row-del").forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const colId = e.currentTarget.getAttribute("data-colid");
+                    const amt = Number(e.currentTarget.getAttribute("data-amount"));
+                    
+                    const adminPassword = prompt("🔐 Security Access Gate: Enter Admin Password to delete this log:");
+                    if (adminPassword === "GDA@2026") {
+                        if (confirm(`⚠️ Warning! Are you sure you want to delete this recorded payment of ₹${amt}? Ledger will be updated.`)) {
+                            try {
+                                await deleteDoc(doc(db, "collections", colId));
+                                const updatedCollected = totalCollected - amt;
+                                const newRemaining = totalWithInterest - updatedCollected;
+                                const newPaidDays = paidDaysCount - 1;
 
-                                await updateDoc(doc(db, "customers", custId), { 
-                                    remainingAmount: newRemaining, 
-                                    totalCollected: updatedCollected, 
-                                    paidDays: newPaidDays >= 0 ? newPaidDays : 0 
-                                }); 
-                                alert("🗑️ किस्त डिलीट हो गई और ग्राहक का खाता अपडेट कर दिया गया है!"); 
-                                loadFullStatement(); 
-                            } catch (err) { 
-                                alert("⚠️ एरर आया।"); 
-                            } 
-                        } 
-                    } else if (adminPassword !== null) { 
-                        alert("❌ गलत पासवर्ड!"); 
-                    } 
-                }; 
-            }); 
+                                await updateDoc(doc(db, "customers", custId), {
+                                    remainingAmount: newRemaining,
+                                    totalCollected: updatedCollected,
+                                    paidDays: newPaidDays >= 0 ? newPaidDays : 0
+                                });
 
-            // 🤝 SAFE BUTTON INSERTION: खाता सेटलमेंट बटन 
+                                alert("🗑️ Transaction logs deleted and customer profile updated successfully!");
+                                loadFullStatement();
+                            } catch (err) {
+                                alert("⚠️ System Error during deletion process.");
+                            }
+                        }
+                    } else if (adminPassword !== null) {
+                        alert("❌ Access Denied! Incorrect administrator credentials.");
+                    }
+                };
+            });
+
+            // 🤝 Settlement Panel Functionality Injection
             const btnPdf = document.getElementById("btnPdf");
             if (btnPdf) {
                 let btnSettlement = document.getElementById("btnSettlement");
@@ -163,19 +183,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                     btnSettlement = document.createElement("button");
                     btnSettlement.id = "btnSettlement";
                     btnSettlement.innerText = "🤝 Close Account (Settlement)";
-                    btnSettlement.style = "padding:10px; background:#d32f2f; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:12px;";
-                    // PDF बटन वाले एरिया में सुरक्षित रूप से बटन जोड़ना
+                    btnSettlement.style = "padding:12px; background:#d32f2f; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; width:100%; margin-top:12px; font-size:14px; transition: 0.2s;";
+                    
                     btnPdf.parentNode.appendChild(btnSettlement);
-
+                    
                     btnSettlement.onclick = async () => {
-                        const settleAmountStr = prompt(`💰 कुल देय ₹${Math.round(finalPayableNow)} है।\nफाइनल सेटलमेंट राशि (Settlement Amount) डालें:`);
+                        const settleAmountStr = prompt(`💰 Net current system liability is ₹${Math.round(finalPayableNow)}.\nEnter Final One-Time Settlement (OTS) Amount:`);
                         if (!settleAmountStr) return;
                         
                         const settleAmount = Number(settleAmountStr);
-                        const adminPassword = prompt("🔐 वन-टाइम सेटलमेंट के लिए एडमिन पासवर्ड डालें:");
+                        const adminPassword = prompt("🔐 Security Access Gate: Enter Admin Password for Account Settlement:");
                         
                         if (adminPassword === "GDA@2026") {
-                            if (confirm(`⚠️ क्या आप ₹${settleAmount} लेकर ${cust.name} का खाता हमेशा के लिए बंद (Closed) करना चाहते हैं?`)) {
+                            if (confirm(`⚠️ Warning! Are you sure you want to close ${cust.name}'s account permanently by accepting an OTS of ₹${settleAmount}?`)) {
                                 try {
                                     const updatedCollected = totalCollected + settleAmount;
                                     await updateDoc(doc(db, "customers", custId), {
@@ -184,50 +204,58 @@ window.addEventListener('DOMContentLoaded', async () => {
                                         remainingAmount: 0,
                                         settlementNote: `Closed via OTS. Paid ₹${settleAmount} instead of ₹${Math.round(finalPayableNow)}`
                                     });
-                                    alert("🎉 खाता सफलतापूर्वक सेटल करके बंद कर दिया गया है!");
+                                    alert("🎉 Account status changed to CLOSED. Profile settled successfully.");
                                     window.location.href = "customer-list.html";
                                 } catch (err) {
-                                    alert("⚠️ सेटलमेंट करने में एरर आया।");
+                                    alert("⚠️ Settlement execution failed.");
                                 }
                             }
                         } else if (adminPassword !== null) {
-                            alert("❌ गलत पासवर्ड!");
+                            alert("❌ Access Denied! Invalid admin credentials.");
                         }
                     };
                 }
             }
 
-            // PDF एक्शन
-            if (btnPdf) {
-                btnPdf.onclick = () => { window.print(); }; 
-            }
-
-            // 📲 वॉट्सऐप शेयर
-            const btnWhatsapp = document.getElementById("btnWhatsapp");
-            if (btnWhatsapp) {
-                btnWhatsapp.onclick = () => { 
-                    let historyText = ""; 
-                    if (logs.length > 0) { 
-                        logs.forEach((log, index) => { 
-                            const displayIndex = logs.length - index; 
-                            historyText += `\n${displayIndex}. 🗓️ ${log.date} ➡️ ₹${log.amount}`; 
-                        }); 
-                    } else { 
-                        historyText = "\nकोई किस्त विवरण नहीं है।"; 
-                    } 
-                    
-                    const msg = encodeURIComponent(`🏦 *GDA Finance Services*\n*Account Statement*\n\n👤 *नाम:* ${cust.name}\n🆔 *ID:* ${cust.customerCode || 'GDA'}\n🗓️ *लोन तारीख:* ${cust.loanDate || '-'}\n💵 *कुल लोन राशि:* ₹${baseLoan}\n✅ *कुल प्राप्त दिन:* ${paidDaysCount} दिन\n⚠️ *कुल बकाया (गैप) दिन:* ${gapDays} दिन\n💰 *कुल जमा राशि:* ₹${totalCollected}\n🔥 *शामिल लेट फाइन:* ₹${Math.round(penaltyAmount)}\n🔻 *कुल देय राशि (Net Payable):* ₹${Math.round(finalPayableNow)}\n\n📊 *किस्त जमा इतिहास (History):*${historyText}`); 
-                    window.open(`https://api.whatsapp.com/send?phone=91${cust.mobile}&text=${msg}`); 
+            // 📜 ACTION LINK TRIGGER: Open Live Disbursement Bond Paper
+            const btnOpenBond = document.getElementById("btnOpenBond");
+            if (btnOpenBond) {
+                btnOpenBond.onclick = () => {
+                    window.open(`disbursement-bond.html?id=${custId}`, '_blank');
                 };
             }
 
-        } catch (err) { 
-            console.error("Statement Load Error: ", err); 
-            if (document.getElementById("historyRows")) {
-                document.getElementById("historyRows").innerHTML = "<tr><td colspan='4'>डेटा लोड एरर! कृपया कंसोल चेक करें।</td></tr>"; 
+            // 🖨️ PDF Printing Action
+            if (btnPdf) {
+                btnPdf.onclick = () => { window.print(); };
             }
-        } 
-    } 
 
-    loadFullStatement(); 
+            // 📲 WhatsApp Statement Exporter Module
+            const btnWhatsapp = document.getElementById("btnWhatsapp");
+            if (btnWhatsapp) {
+                btnWhatsapp.onclick = () => {
+                    let historyText = "";
+                    if (logs.length > 0) {
+                        logs.forEach((log, index) => {
+                            const displayIndex = logs.length - index;
+                            historyText += `\n${displayIndex}. 🗓️ ${log.date} ➡️ ₹${log.amount}`;
+                        });
+                    } else {
+                        historyText = "\nNo payment history available.";
+                    }
+
+                    const msg = encodeURIComponent(`🏦 *GDA Finance Services*\n*Account Statement*\n\n👤 *Name:* ${cust.name}\n🆔 *Account ID:* ${cust.customerCode || 'GDA'}\n🗓 *Disbursal Date:* ${cust.loanDate || '-'}\n💵 *Principal Loan:* ₹${baseLoan}\n✅ *Paid Installments:* ${paidDaysCount} Days\n⚠️ *Defaulter Gap Days:* ${gapDays} Days\n💰 *Total Recovered:* ₹${totalCollected}\n🔥 *Accrued Penalty:* ₹${Math.round(penaltyAmount)}\n🔻 *Net Outstanding Due:* ₹${Math.round(finalPayableNow)}\n\n📊 *EMI Logs History:*${historyText}`);
+                    window.open(`https://api.whatsapp.com/send?phone=91${cust.mobile}&text=${msg}`);
+                };
+            }
+
+        } catch (err) {
+            console.error("Statement Load Error: ", err);
+            if (document.getElementById("historyRows")) {
+                document.getElementById("historyRows").innerHTML = "<tr><td colspan='4'>Ledger synchronization failed! Please check cloud network logs.</td></tr>";
+            }
+        }
+    }
+
+    loadFullStatement();
 });
