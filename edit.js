@@ -14,7 +14,7 @@ import {
     getDocs 
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-// 📸 फायरबेस स्टोरेज इम्पोर्ट (कैमरा डॉक्यूमेंट अपलोड के लिए)
+// Firebase Storage Engine Integration for Document Stream Capturing
 import { 
     getStorage, 
     ref, 
@@ -29,25 +29,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     const custId = urlParams.get('id');
 
     if (!custId) {
-        alert("Customer ID not found!");
+        alert("Customer validation parameter not found!");
         window.location.href = "customer-list.html";
         return;
     }
 
-    // 🔐 Admin Security Lock Gate
+    // 🔐 Admin Security Access Gate
     const adminPassword = prompt("🔐 Security Lock: Enter Admin Password to Edit Records:");
     if (adminPassword !== "GDA@2026") {
-        alert("❌ Access Denied! Incorrect Password.");
+        alert("❌ Access Denied! Incorrect administrative credentials.");
         window.location.href = "customer-list.html";
         return;
     }
 
-    // 🔄 डेटाबेस से ग्राहक का पुराना डेटा लोड करना
+    // Load Existing Profile Data Stream from Database
     async function loadCustomerData() {
         try {
             const docSnap = await getDoc(doc(db, "customers", custId));
             if (!docSnap.exists()) {
-                alert("Customer record not found in database!");
+                alert("Customer ledger profile not found in system storage!");
                 window.location.href = "customer-list.html";
                 return;
             }
@@ -65,13 +65,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(document.getElementById("loanDate")) document.getElementById("loanDate").value = cust.loanDate || "";
             
         } catch (err) {
-            console.error(err);
-            alert("⚠️ Error loading customer records.");
+            console.error("Data fetch exception: ", err);
+            alert("⚠️ Synchronization Error loading customer records.");
         }
     }
     await loadCustomerData();
 
-    // 🗜️ मोबाइल कैमरे की भारी फोटो को कंप्रेस (छोटा) करने का फंक्शन
+    // 🗜️ Mathematical Canvas Processing Engine for Image Compression
     function compressImage(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -83,7 +83,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // अधिकतम चौड़ाई 1000px सेट करके साइज कंट्रोल करना
                     const maxW = 1000;
                     const scale = maxW / img.width;
                     canvas.width = maxW;
@@ -91,16 +90,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                     
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
-                    // 0.7 क्वालिटी यानी फोटो का साइज 80% तक छोटा हो जाएगा
                     canvas.toBlob((blob) => {
                         resolve(blob);
-                    }, 'image/jpeg', 0.7);
+                    }, 'image/jpeg', 0.7); // Compression metrics scaled to 70% bounds
                 };
             };
         });
     }
 
-    // 💾 रिकॉर्ड अपडेट और फोटो सुरक्षित सेव करने का बटन लॉजिक
+    // 💾 Master Sync Module: Record Updates and File Storage Engine
     const saveBtn = document.getElementById("saveBtn");
     if (saveBtn) {
         saveBtn.onclick = async (e) => {
@@ -109,7 +107,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             const name = document.getElementById("customerName").value.trim();
             const mobile = document.getElementById("mobileNumber").value.trim();
             const address = document.getElementById("address").value.trim();
-            const photo = document.getElementById("customerPhoto").value.trim();
+            let photoUrlText = document.getElementById("customerPhoto").value.trim();
             const aadhaar = document.getElementById("aadhaarNumber").value.trim();
             const pan = document.getElementById("panNumber").value.trim().toUpperCase();
             const loanAmount = Number(document.getElementById("loanAmount").value);
@@ -117,7 +115,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             const emi = Number(document.getElementById("emi").value);
             const loanDate = document.getElementById("loanDate").value;
 
-            // HTML कैमरा इनपुट एलिमेंट्स उठाना
+            // Live Camera File Selector Objects
+            const customerPhotoFileInput = document.getElementById("customerPhotoFile");
             const aadharFileInput = document.getElementById("docAadharFile");
             const panFileInput = document.getElementById("docPanFile");
 
@@ -125,72 +124,80 @@ window.addEventListener('DOMContentLoaded', async () => {
                 saveBtn.disabled = true;
                 saveBtn.innerText = "⏳ Uploading Documents & Saving...";
 
+                // A. Process Live Customer Profile Picture (Front Camera)
+                if (customerPhotoFileInput && customerPhotoFileInput.files.length > 0) {
+                    const compressedBlob = await compressImage(customerPhotoFileInput.files[0]);
+                    const storageRef = ref(storage, `client_photos/${custId}_profile.jpg`);
+                    await uploadBytes(storageRef, compressedBlob);
+                    photoUrlText = await getDownloadURL(storageRef);
+                }
+
                 let updatePayload = {
-                    name, mobile, address, customerPhoto: photo || null, aadharCard: aadhaar, aadhaar, panCard: pan,
+                    name, mobile, address, customerPhoto: photoUrlText || null, aadharCard: aadhaar, aadhaar, panCard: pan,
                     loanAmount, planDuration, duration: planDuration, dailyEmi: emi, emi, 
                     totalCollection: loanAmount + (loanAmount * 0.20), loanDate
                 };
 
-                // A. अगर आधार की लाइव फोटो खींची गई है, तो उसे कंप्रेस करके अपलोड करें
+                // B. Process Live Aadhaar Capture Stream
                 if (aadharFileInput && aadharFileInput.files.length > 0) {
                     const compressedBlob = await compressImage(aadharFileInput.files[0]);
                     const storageRef = ref(storage, `client_documents/${custId}_aadhar.jpg`);
                     await uploadBytes(storageRef, compressedBlob);
                     const downloadUrl = await getDownloadURL(storageRef);
-                    updatePayload.aadharPhotoUrl = downloadUrl; // डेटाबेस में लिंक सुरक्षित ऐड
+                    updatePayload.aadharPhotoUrl = downloadUrl;
                 }
 
-                // B. अगर पैन/वोटर कार्ड की लाइव फोटो खींची गई है, तो उसे कंप्रेस करके अपलोड करें
+                // C. Process Live PAN Capture Stream
                 if (panFileInput && panFileInput.files.length > 0) {
                     const compressedBlob = await compressImage(panFileInput.files[0]);
                     const storageRef = ref(storage, `client_documents/${custId}_pan.jpg`);
                     await uploadBytes(storageRef, compressedBlob);
                     const downloadUrl = await getDownloadURL(storageRef);
-                    updatePayload.panPhotoUrl = downloadUrl; // डेटाबेस में लिंक सुरक्षित ऐड
+                    updatePayload.panPhotoUrl = downloadUrl;
                 }
 
-                // फाइनल मास्टर डेटाबेस को अपडेट फायर करना
+                // Execute Final Update Push to Firestore Cloud Instance
                 await updateDoc(doc(db, "customers", custId), updatePayload);
                 
-                alert("🎉 Customer records and documents updated successfully!");
+                alert("🎉 Customer records and multimedia documents synchronized successfully!");
                 window.location.href = "customer-list.html";
                 
             } catch (error) {
-                console.error(error);
-                alert("⚠️ Update Process Failed: " + error.message);
+                console.error("Runtime commit rejection: ", error);
+                alert("⚠️ Update Process Rejected: " + error.message);
                 saveBtn.disabled = false;
                 saveBtn.innerText = "💾 Update & Save Records";
             }
         };
     }
 
-    // 🗑️ ग्राहक का पूरा इतिहास एक क्लिक में डिलीट करने का मास्टर एक्शन
+    // 🗑️ Master Purge System Action
     const deleteBtn = document.getElementById("deleteBtn");
     if (deleteBtn) {
         deleteBtn.onclick = async (e) => {
             e.preventDefault();
             
-            if (!confirm("🚨 Warning! Are you sure you want to permanently delete this customer? This will wipe out all EMI collection history logs!")) return;
+            if (!confirm("🚨 Critical System Warning! Are you sure you want to permanently delete this customer? This will wipe out all tracking ledgers and historical records!")) return;
             
             try {
                 deleteBtn.disabled = true;
                 
-                // ग्राहक की पूरी किस्त हिस्ट्री (collections) साफ करना
+                // Clear linked collections logs sub-streams
                 const q = query(collection(db, "collections"), where("customerId", "==", custId));
                 const querySnapshot = await getDocs(q);
                 const deletePromises = [];
                 querySnapshot.forEach((cDoc) => deletePromises.push(deleteDoc(doc(db, "collections", cDoc.id))));
                 await Promise.all(deletePromises);
                 
-                // मास्टर कस्टमर रिकॉर्ड डिलीट करना
+                // Pure master record removal execution
                 await deleteDoc(doc(db, "customers", custId));
                 
-                alert("🗑️ Customer profile and history logs cleared from systems!");
+                alert("🗑️ Profile architecture and associated files purged successfully.");
                 window.location.href = "customer-list.html";
                 
             } catch (error) {
-                console.error(error);
-                alert("⚠️ Deletion Error occurred.");
+                console.error("Purge failure exception: ", error);
+                alert("⚠️ System error encountered during data purge.");
                 deleteBtn.disabled = false;
             }
         };
