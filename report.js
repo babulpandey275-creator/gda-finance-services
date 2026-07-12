@@ -1,182 +1,97 @@
+// ==========================================
+// 🚀 GDA FINANCE - LIVE FINANCIAL REPORT SCRIPT
+// ==========================================
+
+// फ़ायरबेस कनेक्शन फ़ाइल से db इम्पोर्ट करना
 import { db } from "./firebase.js"; 
-// ⚡ यहाँ फ़ायरबेस के लोड होने वाले वर्ज़न को स्थिर (Stable) कर दिया गया है ताकि कोड कभी न अटके
-import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const reTakeBtn = document.getElementById("reTakeBtn");
-    let capturedImageData = null;
+    
+    // 📱 HTML के सभी वित्तीय रिपोर्ट वाले एलिमेंट्स को सेलेक्ट करना
+    const totalPortfolioEl = document.getElementById("totalPortfolio");
+    const disbursementEl = document.getElementById("disbursement");
+    const collectionEl = document.getElementById("collection");
+    const interestIncomeEl = document.getElementById("interestIncome");
+    const totalExpensesEl = document.getElementById("totalExpenses");
+    const netProfitEl = document.getElementById("netProfit");
+    const totalDueEl = document.getElementById("totalDue");
+    const newAccountsEl = document.getElementById("newAccounts");
 
-    const loanAmountInput = document.getElementById("loanAmount");
-    const loanPlanSelect = document.getElementById("loanPlan");
-    const totalCollectionInput = document.getElementById("remainingAmount");
-    const emiInput = document.getElementById("emi");
-    const saveBtn = document.getElementById("saveBtn");
-
-    // 🆔 ऑटोमैटिक GDA आईडी जेनरेट करने का बिना-इंडेक्स वाला नया और सुरक्षित फंक्शन
-    async function generateNextGdaId() {
+    // Live वित्तीय रिपोर्ट जनरेट करने का मुख्य फंक्शन
+    async function fetchRealtimeReport() {
         try {
-            // बिना orderBy के सीधे पूरा कलेक्शन मँगाया ताकि फायरबेस इंडेक्स की जरूरत न पड़े
+            // 1. Customers कलेक्शन से लाइव डेटा रीड करना
             const querySnapshot = await getDocs(collection(db, "customers"));
-            let nextNumber = 1;
             
+            let totalDisbursement = 0; 
+            let totalInterestIncome = 0; 
+            let totalCollection = 0; 
+            let totalDue = 0; 
+            let totalAccounts = 0; 
+
             if (!querySnapshot.empty) {
-                let maxNo = 0;
-                // कोड के अंदर ही लूप चलाकर सबसे बड़ी member_no ढूंढना
+                totalAccounts = querySnapshot.size; // कुल खातों की संख्या (New Accounts)
+
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.member_no !== undefined) {
-                        const currentNo = parseInt(data.member_no, 10);
-                        if (currentNo > maxNo) {
-                            maxNo = currentNo;
-                        }
-                    }
+
+                    // मूलधन (Loan Amount)
+                    const loanAmount = Number(data.loanAmount) || 0;
+                    
+                    // आपके कैलकुलेटर के अनुसार 20% ब्याज जोड़कर कुल कलेक्शन अमाउंट
+                    const fullCollectionAmount = Number(data.remainingAmount) || (loanAmount + (loanAmount * 0.20));
+                    
+                    // 20% के हिसाब से ब्याज की शुद्ध कमाई
+                    const interest = fullCollectionAmount - loanAmount;
+
+                    // कलेक्शन में जो अमाउंट रिकवर/जमा हो चुका है (paidAmount)
+                    const paidAmount = Number(data.paidAmount) || 0; 
+                    
+                    // मार्केट बकाया राशि की गणना (कुल कलेक्शन - जमा राशि)
+                    const dueAmount = fullCollectionAmount - paidAmount;
+
+                    // सभी ग्राहकों का डेटा आपस में जोड़ना (Sum)
+                    totalDisbursement += loanAmount;
+                    totalInterestIncome += interest;
+                    totalCollection += paidAmount;
+                    totalDue += dueAmount;
                 });
-                nextNumber = maxNo + 1;
             }
+
+            // 2. Expenses कलेक्शन से सभी खर्चों का टोटल निकालना
+            const expenseSnapshot = await getDocs(collection(db, "expenses"));
+            let totalExpenses = 0;
+
+            if (!expenseSnapshot.empty) {
+                expenseSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    totalExpenses += Number(data.amount) || 0;
+                });
+            }
+
+            // 3. फाइनल मैथ कैलकुलेशन
+            // शुद्ध मुनाफा = कुल ब्याज कमाई - कुल खर्चे 
+            const netProfit = totalInterestIncome - totalExpenses;
             
-            const formattedNumber = String(nextNumber).padStart(3, '0');
-            return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
-        } catch (error) {
-            console.error("Error generating GDA ID:", error);
-            alert("⚠️ डेटाबेस नियमों (Rules) या कनेक्शन की गड़बड़ी है।");
-            return null;
-        }
-    }
+            // कुल पोर्टफोलियो = वितरित लोन + मार्केट बकाया
+            const totalPortfolio = totalDisbursement + totalDue;
 
-    // 📷 आपका असली कैमरा चालू करने का लॉजिक
-    if (video) {
-        const constraints = { video: { facingMode: { exact: "environment" } }, audio: false };
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((err) => {
-                console.warn("Exact back camera failed, trying normal environment...", err);
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
-                    .then((stream) => {
-                        video.srcObject = stream;
-                    })
-                    .catch((e) => {
-                        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                            .then(stream => {
-                                video.srcObject = stream;
-                            })
-                            .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
-                    });
-            });
-    }
-
-    // 📸 फ़ोटो कैप्चर बटन
-    if (captureBtn) {
-        captureBtn.onclick = () => {
-            const context = canvas.getContext("2d");
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImageData = canvas.toDataURL("image/jpeg");
-            video.style.display = "none";
-            canvas.style.display = "block";
-            captureBtn.style.display = "none";
-            reTakeBtn.style.display = "block";
-        };
-    }
-
-    // 🔄 दोबारा फ़ोटो लेने का बटन
-    if (reTakeBtn) {
-        reTakeBtn.onclick = () => {
-            capturedImageData = null;
-            canvas.style.display = "none";
-            video.style.display = "block";
-            reTakeBtn.style.display = "none";
-            captureBtn.style.display = "block";
-        };
-    }
-
-    // 🧮 आपका 20% ब्याज वाला असली कैलकुलेटर फंक्शन
-    function doCalculation() {
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value);
-
-        if (!loanAmount || loanAmount <= 0) {
-            totalCollectionInput.value = "";
-            emiInput.value = "";
-            return;
-        }
-
-        const totalCollection = loanAmount + (loanAmount * 0.20);
-        const dailyEmi = totalCollection / selectedPlan;
-
-        totalCollectionInput.value = Math.round(totalCollection);
-        emiInput.value = Math.round(dailyEmi);
-    }
-
-    if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation);
-    if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation);
-
-    // 💾 फ़ायरबेस में ग्राहक का पूरा डेटा सुरक्षित सेव करने का लॉजिक
-    saveBtn.onclick = async () => {
-        const name = document.getElementById("customerName").value.trim();
-        const mobile = document.getElementById("mobileNumber").value.trim();
-        const address = document.getElementById("address").value.trim();
-        const aadhaar = document.getElementById("aadhaarNumber").value.trim();
-        const pan = document.getElementById("panNumber") ? document.getElementById("panNumber").value.trim().toUpperCase() : "-";
-        
-        const loanAmount = Number(loanAmountInput.value);
-        const selectedPlan = Number(loanPlanSelect.value);
-        const totalCollection = Number(totalCollectionInput.value);
-        const emi = Number(emiInput.value);
-
-        if (!name || !mobile || !address || !aadhaar || !loanAmount) {
-            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, आधार कार्ड, लोन राशि) दर्ज करें!");
-            return;
-        }
-
-        try {
-            saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ ग्राहक जोड़ा जा रहा है...";
-
-            const idObj = await generateNextGdaId();
-            if (!idObj) {
-                throw new Error("GDA ID जेनरेट नहीं हो सकी।");
-            }
-
-            const todayDate = new Date().toISOString().split('T')[0];
-
-            // आपके डेटाबेस स्ट्रक्चर के अनुसार हूबहू एंट्री
-            await addDoc(collection(db, "customers"), {
-                customerCode: idObj.member_id,
-                member_no: idObj.member_no,
-                name: name,
-                mobile: mobile,
-                address: address,
-                aadharCard: aadhaar,
-                panCard: pan,
-                loanAmount: loanAmount,
-                planDuration: selectedPlan,
-                duration: selectedPlan,
-                totalCollection: totalCollection,
-                remainingAmount: totalCollection,
-                totalCollected: 0,
-                dailyEmi: emi,
-                emi: emi,
-                paidDays: 0,
-                status: "Active",
-                customerPhoto: capturedImageData || null,
-                loanDate: todayDate,
-                createdAt: new Date().toISOString()
-            });
-
-            alert(`🎉 ग्राहक सफलतापूर्वक रजिस्टर हो गया है!\nMember ID: ${idObj.member_id}`);
-            window.location.href = "customer-list.html";
+            // 4. स्क्रीन (UI) को लाइव डेटा से अपडेट करना
+            if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${totalPortfolio}`;
+            if(disbursementEl) disbursementEl.innerText = `₹${totalDisbursement}`;
+            if(collectionEl) collectionEl.innerText = `₹${totalCollection}`;
+            if(interestIncomeEl) interestIncomeEl.innerText = `₹${totalInterestIncome}`;
+            if(totalExpensesEl) totalExpensesEl.innerText = `₹${totalExpenses}`;
+            if(netProfitEl) netProfitEl.innerText = `₹${netProfit}`;
+            if(totalDueEl) totalDueEl.innerText = `₹${totalDue}`;
+            if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
         } catch (error) {
-            console.error("कस्टमर सेव करने में तकनीकी एरर:", error);
-            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।");
-            saveBtn.disabled = false;
-            saveBtn.innerText = "💰 ग्राहक सुरक्षित करें";
+            console.error("डेटाबेस से लाइव रिपोर्ट लोड करने में दिक्कत आई है:", error);
         }
-    };
+    }
+
+    // पेज लोड होते ही डेटा सिंक करने के लिए फंक्शन को कॉल करें
+    fetchRealtimeReport();
 });
