@@ -10,22 +10,22 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     async function loadAllCollectionHistory() { 
         try { 
-            // Spinner loading display 
-            historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-spinner fa-spin"></i> डेटा लोड हो रहा है (Loading)...</td></tr>`; 
+            // Converted Spinner loading display to English
+            historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Synchronizing ledger logs...</td></tr>`; 
             
-            // 🎯 pehle 'customers' collection load karein taaki naam aur mobile mil sake
+            // Fetch customer collection stream for relation mapping
             const custSnap = await getDocs(collection(db, "customers"));
             let customerMap = {}; 
             custSnap.forEach((cDoc) => {
                 customerMap[cDoc.id] = cDoc.data();
             });
 
-            // Ab 'collections' collection load karein
+            // Fetch primary transaction logs
             const qSnap = await getDocs(collection(db, "collections")); 
             historyList.innerHTML = ""; 
             
             if (qSnap.empty) { 
-                historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">🎉 कोई लेनदेन इतिहास उपलब्ध नहीं है।</td></tr>`; 
+                historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">🎉 No transaction history available yet.</td></tr>`; 
                 return; 
             } 
 
@@ -34,14 +34,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                 logArray.push({ id: docSnap.id, ...docSnap.data() }); 
             }); 
 
-            // Naye entries ko sabse upar dikhane ke liye sort karein
+            // Sort array dynamically by timestamp bounds
             logArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)); 
 
             logArray.forEach((collect) => { 
-                // 🔍 customerId ke zariye uski details nikalna
                 const linkedCustomer = customerMap[collect.customerId] || {};
                 
-                // 📅 Tarikh nikalne ka logic
+                // Date extraction mapping
                 let finalDateDisplay = "-"; 
                 if (collect.date) { 
                     finalDateDisplay = collect.date; 
@@ -49,15 +48,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                     finalDateDisplay = collect.createdAt.split("T")[0]; 
                 } 
 
-                // 👤 📞 Naam aur mobile number jo database se match karega
+                // Resolve parameters cleanly to match frontend architecture
                 let finalNameDisplay = collect.customerName || linkedCustomer.name || "Unknown Customer";
-                let finalMobileDisplay = collect.customerMobile || collect.mobile || linkedCustomer.mobile || "दर्ज नहीं"; 
-                let memberIdDisplay = collect.memberId || linkedCustomer.memberId || "";
+                let finalMobileDisplay = collect.customerMobile || collect.mobile || linkedCustomer.mobile || "Not Recorded"; 
+                let memberIdDisplay = collect.customerCode || collect.memberId || linkedCustomer.customerCode || linkedCustomer.memberId || "";
 
                 let paymentMode = collect.mode || "Cash"; 
                 let transactionNote = collect.note || "EMI Collection"; 
 
-                // HTML row banana
+                // Append row matrix to dashboard view
                 const tr = document.createElement("tr"); 
                 tr.innerHTML = ` 
                     <td style="padding: 12px 8px; font-weight: 500;">${finalDateDisplay}</td> 
@@ -74,7 +73,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             }); 
         } catch (error) { 
             console.error("Technical operational log issue:", error); 
-            historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--danger); font-weight: 600;">⚠️ इतिहास लोड करने में तकनीकी समस्या आई।</td></tr>`; 
+            historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--danger); font-weight: 600;">⚠️ Technical exception encountered while retrieving transaction data.</td></tr>`; 
         } 
     } 
 
