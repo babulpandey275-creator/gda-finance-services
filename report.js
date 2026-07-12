@@ -16,8 +16,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
     const txtInterestEarned = document.getElementById("txtInterestEarned"); 
     const txtNetProfit = document.getElementById("txtNetProfit"); 
-    
-    // ⚡ नए HTML ड्यू बॉक्स का कनेक्शन यहाँ जोड़ा है
     const txtTotalDue = document.getElementById("txtTotalDue"); 
 
     let allCustomers = []; 
@@ -65,16 +63,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
         if (dObj && !isNaN(dObj.getTime())) {
             try {
-                const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dObj);
-                const y = parts.find(p => p.year ? p.value : p.type === 'year' ? p.value : '');
-                const m = parts.find(p => p.month ? p.value : p.type === 'month' ? p.value : '');
-                const d = parts.find(p => p.day ? p.value : p.type === 'day' ? p.value : '');
-                
-                // fallback for parts structure
-                let yVal = parts.find(p => p.type === 'year')?.value || dObj.getFullYear();
-                let mVal = parts.find(p => p.type === 'month')?.value || String(dObj.getMonth() + 1).padStart(2, '0');
-                let dVal = parts.find(p => p.type === 'day')?.value || String(dObj.getDate()).padStart(2, '0');
-                
+                let yVal = dObj.getFullYear();
+                let mVal = String(dObj.getMonth() + 1).padStart(2, '0');
+                let dVal = String(dObj.getDate()).padStart(2, '0');
                 return `${yVal}-${mVal}-${dVal}`;
             } catch(e) {
                 return dObj.toISOString().split('T')[0];
@@ -101,7 +92,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         let newCustCount = 0; 
         let runningMarketDue = 0; 
 
-        // 1. Loans / Customers / Due Calculation
+        // 1. Loans / Customers Calculation
         allCustomers.forEach(cust => { 
             const dStr = cust.loanDate || cust.date || cust.createdAt;
             if (!dStr) return; 
@@ -130,8 +121,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (match) { 
                 totalDisbursed += (Number(cust.loanAmount) || Number(cust.amount) || 0); 
                 newCustCount++; 
-                // ⚡ ग्राहकों का बचा हुआ बकाया पैसा (remainingAmount) चुने गए फ़िल्टर के हिसाब से जोड़ेगा
-                runningMarketDue += (Number(cust.remainingAmount) || 0);
+                
+                // ⚡ यहाँ बदलाव: अगर डैशबोर्ड पर कस्टमर का ओवरड्यू/ड्यू अमाउंट सेव है, तो केवल वही रुका हुआ पैसा जुड़ेगा
+                // यह आपके फ़ील्ड के नाम के हिसाब से cust.dueAmount, cust.overdueAmount या cust.due को जोड़ेगा
+                const customerSpecificDue = Number(cust.dueAmount) || Number(cust.overdueAmount) || Number(cust.due) || 0;
+                runningMarketDue += customerSpecificDue;
             } 
         }); 
 
@@ -203,7 +197,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
         if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
         
-        // ⚡ कैलकुलेट किया हुआ ड्यू अमाउंट स्क्रीन वाले डिब्बे में यहाँ से भेजा जा रहा है
+        // ⚡ अब यहाँ सिर्फ रुका हुआ लाइव ओवरड्यू अमाउंट ही डिस्प्ले होगा!
         if (txtTotalDue) txtTotalDue.textContent = `₹${runningMarketDue.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
