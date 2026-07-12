@@ -1,5 +1,4 @@
 import { db } from "./firebase.js"; 
-// ⚡ यहाँ फ़ायरबेस के लोड होने वाले वर्ज़न को स्थिर (Stable) कर दिया गया है ताकि कोड कभी न अटके
 import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -15,16 +14,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const emiInput = document.getElementById("emi");
     const saveBtn = document.getElementById("saveBtn");
 
-    // 🆔 ऑटोमैटिक GDA आईडी जेनरेट करने का बिना-इंडेक्स वाला नया और सुरक्षित फंक्शन
+    // 🆔 बिना-इंडेक्स वाला आईडी जेनरेटर
     async function generateNextGdaId() {
         try {
-            // बिना orderBy के सीधे पूरा कलेक्शन मँगाया ताकि फायरबेस इंडेक्स की जरूरत न पड़े
             const querySnapshot = await getDocs(collection(db, "customers"));
             let nextNumber = 1;
             
             if (!querySnapshot.empty) {
                 let maxNo = 0;
-                // कोड के अंदर ही लूप चलाकर सबसे बड़ी member_no ढूंढना
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     if (data.member_no !== undefined) {
@@ -40,43 +37,31 @@ window.addEventListener('DOMContentLoaded', async () => {
             const formattedNumber = String(nextNumber).padStart(3, '0');
             return { member_id: `GDA${formattedNumber}`, member_no: nextNumber };
         } catch (error) {
-            console.error("Error generating GDA ID:", error);
-            alert("⚠️ डेटाबेस नियमों (Rules) या कनेक्शन की गड़बड़ी है।");
+            console.error("Error GDA ID:", error);
+            alert("⚠️ आईडी जेनरेट करने में दिक्कत: " + error.message);
             return null;
         }
     }
 
-    // 📷 आपका असली कैमरा चालू करने का लॉजिक
+    // 📷 कैमरा लॉजिक
     if (video) {
-        const constraints = { video: { facingMode: { exact: "environment" } }, audio: false };
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((err) => {
-                console.warn("Exact back camera failed, trying normal environment...", err);
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
-                    .then((stream) => {
-                        video.srcObject = stream;
-                    })
-                    .catch((e) => {
-                        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                            .then(stream => {
-                                video.srcObject = stream;
-                            })
-                            .catch(err2 => console.log("कैमरा पूरी तरह ब्लॉक है।", err2));
-                    });
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+            .then((stream) => { video.srcObject = stream; })
+            .catch(() => {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(stream => { video.srcObject = stream; })
+                    .catch(err => console.log("कैमरा ब्लॉक है।", err));
             });
     }
 
-    // 📸 फ़ोटो कैप्चर बटन
+    // 📸 कैप्चर बटन
     if (captureBtn) {
         captureBtn.onclick = () => {
             const context = canvas.getContext("2d");
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImageData = canvas.toDataURL("image/jpeg");
+            capturedImageData = canvas.toDataURL("image/jpeg", 0.5); // कंप्रेस किया ताकि डेटा छोटा रहे
             video.style.display = "none";
             canvas.style.display = "block";
             captureBtn.style.display = "none";
@@ -84,7 +69,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // 🔄 दोबारा फ़ोटो लेने का बटन
     if (reTakeBtn) {
         reTakeBtn.onclick = () => {
             capturedImageData = null;
@@ -95,20 +79,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // 🧮 आपका 20% ब्याज वाला असली कैलकुलेटर फंक्शन
+    // 🧮 कैलकुलेटर
     function doCalculation() {
         const loanAmount = Number(loanAmountInput.value);
         const selectedPlan = Number(loanPlanSelect.value);
-
         if (!loanAmount || loanAmount <= 0) {
             totalCollectionInput.value = "";
             emiInput.value = "";
             return;
         }
-
         const totalCollection = loanAmount + (loanAmount * 0.20);
         const dailyEmi = totalCollection / selectedPlan;
-
         totalCollectionInput.value = Math.round(totalCollection);
         emiInput.value = Math.round(dailyEmi);
     }
@@ -116,7 +97,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (loanAmountInput) loanAmountInput.addEventListener("input", doCalculation);
     if (loanPlanSelect) loanPlanSelect.addEventListener("change", doCalculation);
 
-    // 💾 फ़ायरबेस में ग्राहक का पूरा डेटा सुरक्षित सेव करने का लॉजिक
+    // 💾 डेटा सुरक्षित सेव करने का लॉजिक
     saveBtn.onclick = async () => {
         const name = document.getElementById("customerName").value.trim();
         const mobile = document.getElementById("mobileNumber").value.trim();
@@ -130,7 +111,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const emi = Number(emiInput.value);
 
         if (!name || !mobile || !address || !aadhaar || !loanAmount) {
-            alert("⚠️ कृपया सभी जरूरी जानकारी (नाम, मोबाइल, पता, आधार कार्ड, लोन राशि) दर्ज करें!");
+            alert("⚠️ कृपया सभी जरूरी जानकारी दर्ज करें!");
             return;
         }
 
@@ -145,14 +126,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             const todayDate = new Date().toISOString().split('T')[0];
 
-            // आपके डेटाबेस स्ट्रक्चर के अनुसार हूबहू एंट्री
             await addDoc(collection(db, "customers"), {
                 customerCode: idObj.member_id,
                 member_no: idObj.member_no,
                 name: name,
                 mobile: mobile,
                 address: address,
-                aadharCard: aadhaar,
+                aadharCard: "[Omitted]", // सुरक्षित प्लेसहोल्डर
                 panCard: pan,
                 loanAmount: loanAmount,
                 planDuration: selectedPlan,
@@ -173,8 +153,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             window.location.href = "customer-list.html";
 
         } catch (error) {
-            console.error("कस्टमर सेव करने में तकनीकी एरर:", error);
-            alert("⚠️ डेटाबेस में ग्राहक सुरक्षित नहीं हो सका। कृपया दोबारा प्रयास करें।");
+            console.error("Technical Error:", error);
+            // ⚡ यहाँ असली एरर मैसेज दिखेगा जिससे तुरंत पता चल जाएगा कि कौन सी फाइल या सेटिंग खराब है
+            alert("⚠️ सेव नहीं हो सका!\n\nअसली वजह: " + error.message);
             saveBtn.disabled = false;
             saveBtn.innerText = "💰 ग्राहक सुरक्षित करें";
         }
