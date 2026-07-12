@@ -5,102 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDA Finance - Add Customer</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #eef3f8;
-            font-family: 'Poppins', sans-serif;
-            color: #1e293b;
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: #eef3f8; 
+            font-family: 'Poppins', sans-serif; 
+            color: #1e293b; 
         }
-        .card {
-            max-width: 450px;
-            margin: auto;
-            background: #fff;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        .card { 
+            max-width: 450px; 
+            margin: auto; 
+            background: #fff; 
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,.08); 
         }
-        .heading {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #1565c0;
-            font-weight: 700;
+        .heading { 
+            text-align: center; 
+            font-size: 24px; 
+            margin-bottom: 20px; 
+            color: #1565c0; 
+            font-weight: 700; 
         }
-        label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #475569;
-            display: block;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        label { 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: #475569; 
+            display: block; 
+            margin-top: 12px; 
+            margin-bottom: 6px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            background: #f8fafc;
-            transition: 0.2s;
-        }
-        input:focus {
-            outline: none;
-            border-color: #1565c0;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
-        }
-        .file-input-wrapper {
-            position: relative;
-            margin-bottom: 5px;
-        }
-        button.save-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
+        .label-icon {
             font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            background: #28a745;
-            color: white;
-            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);
-            margin-top: 15px;
-            transition: 0.2s;
         }
-        button.save-btn:hover {
-            background: #218838;
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            border: 1px solid #cbd5e1; 
+            margin-bottom: 15px; 
+            box-sizing: border-box; 
+            background: #f8fafc; 
+            transition: 0.2s; 
         }
-        .backBtn {
-            display: block;
-            margin-top: 12px;
-            background: #475569;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 14px;
-            transition: 0.2s;
+        input:focus { 
+            outline: none; 
+            border-color: #1565c0; 
+            background: #fff; 
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15); 
         }
-        .backBtn:hover {
-            background: #334155;
+        .file-input-wrapper { 
+            position: relative; 
+            margin-bottom: 5px; 
+        }
+        button.save-btn { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            background: #28a745; 
+            color: white; 
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2); 
+            margin-top: 15px; 
+            transition: 0.2s; 
+        }
+        button.save-btn:hover { 
+            background: #218838; 
+        }
+        .backBtn { 
+            display: block; 
+            margin-top: 12px; 
+            background: #475569; 
+            color: white; 
+            text-decoration: none; 
+            text-align: center; 
+            padding: 12px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            transition: 0.2s; 
+        }
+        .backBtn:hover { 
+            background: #334155; 
         }
     </style>
 </head>
 <body>
-
     <div class="card">
         <div class="heading">👤 New Customer Registration</div>
-        
         <form id="registerForm" onsubmit="return false;">
-            
             <label>Customer Name:</label>
             <input type="text" id="customerName" placeholder="Enter full name" required>
 
@@ -131,6 +135,12 @@
             <label>Daily EMI Installment:</label>
             <input type="number" id="emi" placeholder="Daily EMI" readonly style="background:#e9ecef; font-weight:bold; color:#28a745;">
 
+            <!-- 📸 NEW: CUSTOMER LIVE PHOTO CAPTURE OPTION (FRONT CAMERA) -->
+            <label><span class="material-icons label-icon">account_circle</span> Capture Customer Photo (Live Camera):</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="customerPhotoFile" accept="image/*" capture="user">
+            </div>
+
             <label>🪪 Capture Aadhaar Card (Live Camera):</label>
             <div class="file-input-wrapper">
                 <input type="file" id="docAadharFile" accept="image/*" capture="environment">
@@ -145,6 +155,39 @@
             <a href="customer-list.html" class="backBtn">⬅ Back to Customer List</a>
         </form>
     </div>
+
+    <!-- 🧮 AUTOMATIC REAL-TIME LOAN CALCULATION LOGIC -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const loanAmountInput = document.getElementById("loanAmount");
+            const loanPlanSelect = document.getElementById("loanPlan");
+            const totalCollectionInput = document.getElementById("remainingAmount");
+            const emiInput = document.getElementById("emi");
+
+            function calculateLoan() {
+                const amount = parseFloat(loanAmountInput.value);
+                const days = parseInt(loanPlanSelect.value);
+
+                if (!isNaN(amount) && amount > 0) {
+                    // 20% Interest Logic (10000 का 12000)
+                    const totalCollection = amount + (amount * 0.20);
+                    
+                    // Daily EMI calculation (Total / Days)
+                    const dailyEmi = Math.round(totalCollection / days);
+
+                    totalCollectionInput.value = totalCollection;
+                    emiInput.value = dailyEmi;
+                } else {
+                    totalCollectionInput.value = "";
+                    emiInput.value = "";
+                }
+            }
+
+            // Listeners to trigger calculation automatically on input or select change
+            loanAmountInput.addEventListener("input", calculateLoan);
+            loanPlanSelect.addEventListener("change", calculateLoan);
+        });
+    </script>
 
     <script type="module" src="register.js?v=12"></script>
 </body>
