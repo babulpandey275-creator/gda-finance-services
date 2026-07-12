@@ -13,9 +13,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const reTakeBtn = document.getElementById("reTakeBtn");
 
     let streamInstance = null;
-    let capturedBlobUri = null; // Base64 Data Holder
+    let capturedBlobUri = null; 
 
-    // 🇮🇳 Timezone Synchronizer (IST) Date Setup
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
@@ -24,35 +23,39 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById("loanDate").value = todayIST;
     }
 
-    // 📸 SELFIE/FRONT CAMERA ONLY START LOGIC
-    async function startSelfieCamera() {
+    // 📸 REAR/BACK CAMERA ONLY START LOGIC
+    async function startRearCamera() {
         try {
             if (streamInstance) {
                 streamInstance.getTracks().forEach(track => track.stop());
             }
-            // Strict facingMode set to 'user' to enforce front camera activation
+            // Strict environment setup to enforce back camera rendering
             streamInstance = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" },
+                video: { facingMode: { exact: "environment" } },
                 audio: false
+            }).catch(async () => {
+                // Safe fallback in case exact constraint is blocked on old webviews
+                return await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" },
+                    audio: false
+                });
             });
+            
             if (video) {
                 video.srcObject = streamInstance;
             }
         } catch (err) {
-            console.error("Camera access failed:", err);
+            console.error("Rear camera activation failure:", err);
         }
     }
 
-    // Capture Image Action
     if (captureBtn && video && canvas) {
         captureBtn.onclick = () => {
             const ctx = canvas.getContext('2d');
             canvas.width = video.videoWidth || 480;
             canvas.height = video.videoHeight || 640;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.7); // Compressed to 70% quality base64
-            
+            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.7); 
             video.style.display = "none";
             canvas.style.display = "block";
             captureBtn.style.display = "none";
@@ -60,7 +63,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // Retake Action
     if (reTakeBtn && video && canvas && captureBtn) {
         reTakeBtn.onclick = () => {
             capturedBlobUri = null;
@@ -71,7 +73,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // Dynamic Interest and EMI Autocalculator
     const loanAmountInput = document.getElementById("loanAmount");
     const loanPlanSelect = document.getElementById("loanPlan");
     const remainingAmountInput = document.getElementById("remainingAmount");
@@ -91,7 +92,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (loanAmountInput) loanAmountInput.oninput = calculateFinance;
     if (loanPlanSelect) loanPlanSelect.onchange = calculateFinance;
 
-    // Smart Recycled ID Generation Loop
     async function generateNextGdaId() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -114,9 +114,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Save Customer Data Form Trigger
-    if (saveBtn) {
-        saveBtn.onclick = async (e) => {
+    if (registerForm) {
+        registerForm.onsubmit = async (e) => {
             e.preventDefault();
             saveBtn.disabled = true;
             saveBtn.innerText = "⏳ Saving Data...";
@@ -151,12 +150,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                     customerPhoto: null
                 };
 
-                // Add document first
                 const docRef = await addDoc(collection(db, "customers"), newCustomerData);
 
-                // If selfie image string is available, upload to storage bucket
                 if (capturedBlobUri) {
-                    saveBtn.innerText = "⏳ Uploading Selfie Picture...";
+                    saveBtn.innerText = "⏳ Uploading Photo...";
                     const storageRef = ref(storage, `photos/${docRef.id}.jpg`);
                     await uploadString(storageRef, capturedBlobUri, 'data_url');
                     const downloadUrl = await getDownloadURL(storageRef);
@@ -170,13 +167,16 @@ window.addEventListener('DOMContentLoaded', async () => {
                 alert(`🎉 Customer ${idDetails.member_id} Registered Successfully!`);
                 window.location.href = `disbursement-bond.html?id=${docRef.id}`;
             } catch (err) {
-                console.error("Submission crash: ", err);
                 alert("Error: " + err.message);
                 saveBtn.disabled = false;
                 saveBtn.innerText = "💰 Save Customer";
             }
         };
+        
+        if (saveBtn) {
+            saveBtn.onclick = () => { registerForm.requestSubmit(); };
+        }
     }
 
-    await startSelfieCamera();
+    await startRearCamera();
 });
