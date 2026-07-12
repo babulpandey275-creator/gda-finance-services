@@ -1,1 +1,175 @@
-<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Customer List - GDA Finance</title><style>body{margin:0;padding:15px;background:#eef3f8;font-family:Arial,sans-serif;padding-bottom:80px;}.card{max-width:500px;margin:auto;background:#fff;border-radius:15px;padding:15px;box-shadow:0 5px 15px rgba(0,0,0,.15);}.title{font-size:20px;font-weight:bold;color:#1565c0;text-align:center;margin-bottom:15px;}.status-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;}.tab-btn{padding:12px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px;background:#e2e8f0;color:#475569;}.tab-btn.active{background:#1565c0;color:white;}.tab-btn.closed-active{background:#dc3545;color:white;}.search-box{width:100%;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-bottom:15px;box-sizing:border-box;font-size:14px;}.cust-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:12px;display:flex;gap:12px;align-items:center;position:relative;}.cust-avatar{width:55px;height:55px;border-radius:50%;object-fit:cover;background:#cbd5e1;}.cust-info{flex:1;}.cust-info h4{margin:0 0 4px 0;font-size:16px;color:#0f172a;}.cust-info p{margin:0 0 2px 0;font-size:12px;color:#64748b;font-weight:500;}.cust-actions{display:flex;flex-direction:column;gap:5px;}.btn-action{padding:8px 12px;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;text-decoration:none;text-align:center;}.btn-edit{background:#ffb703;color:black;}.btn-delete{background:#ef4444;color:white;}.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:65px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;box-shadow:0 -4px 20px rgba(0,0,0,.04);z-index:1000;}.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:#94a3b8;font-size:10px;}.nav-item.active{color:#1565c0;font-weight:600;}.nav-item span{font-size:24px;margin-bottom:2px;}</style><link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></head><body><div class="card"><div class="title">👥 ग्राहक प्रबंधन (Customer Directory)</div><div class="status-tabs"><button class="tab-btn active" id="tabActive">🟢 Active Accounts</button><button class="tab-btn" id="tabClosed">🔴 Closed Accounts</button></div><input type="text" id="searchInp" class="search-box" placeholder="🔍 नाम या मोबाइल नंबर से खोजें..."> <div id="listContainer">⏳ लोड हो रहा है...</div></div><nav class="bottom-nav"><a href="index.html" class="nav-item"><span class="material-icons">home</span>Home</a><a href="customer-list.html" class="nav-item active"><span class="material-icons">group</span>Customers</a><a href="collection.html" class="nav-item"><span class="material-icons">paid</span>Collect</a><a href="report.html" class="nav-item"><span class="material-icons">analytics</span>Reports</a><a href="login.html" class="nav-item" style="color:#f43f5e;"><span class="material-icons">logout</span>Logout</a></nav><script type="module" src="customer-list.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer List - GDA Finance</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 15px;
+            background: #eef3f8;
+            font-family: Arial, sans-serif;
+            padding-bottom: 80px;
+        }
+        .card {
+            max-width: 500px;
+            margin: auto;
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.15);
+        }
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1565c0;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .status-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            background: #e2e8f0;
+            color: #475569;
+        }
+        .tab-btn.active {
+            background: #1565c0;
+            color: white;
+        }
+        .tab-btn.closed-active {
+            background: #dc3545;
+            color: white;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .cust-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+        }
+        .cust-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #cbd5e1;
+        }
+        .cust-info {
+            flex: 1;
+        }
+        .cust-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #0f172a;
+        }
+        .cust-info p {
+            margin: 0 0 2px 0;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .cust-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .btn-action {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-edit {
+            background: #ffb703;
+            color: black;
+        }
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,.04);
+            z-index: 1000;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #94a3b8;
+            font-size: 10px;
+        }
+        .nav-item.active {
+            color: #1565c0;
+            font-weight: 600;
+        }
+        .nav-item span {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="card">
+        <div class="title">👥 Customer Management Directory</div>
+        
+        <div class="status-tabs">
+            <button class="tab-btn active" id="tabActive">🟢 Active Accounts</button>
+            <button class="tab-btn" id="tabClosed">🔴 Closed Accounts</button>
+        </div>
+        
+        <input type="text" id="searchInp" class="search-box" placeholder="🔍 Search by name or mobile number..."> 
+        
+        <div id="listContainer">⏳ Loading customers data...</div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span class="material-icons">home</span>Home</a>
+        <a href="customer-list.html" class="nav-item active"><span class="material-icons">group</span>Customers</a>
+        <a href="collection.html" class="nav-item"><span class="material-icons">paid</span>Collect</a>
+        <a href="report.html" class="nav-item"><span class="material-icons">analytics</span>Reports</a>
+        <a href="login.html" class="nav-item" style="color:#f43f5e;"><span class="material-icons">logout</span>Logout</a>
+    </nav>
+
+    <script type="module" src="customer-list.js"></script>
+</body>
+</html>
