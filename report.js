@@ -1,9 +1,10 @@
 // ==========================================
-// 🚀 GDA FINANCE - ADVANCED & CRASH-PROOF REPORT SCRIPT
+// 🚀 GDA FINANCE - FINAL & CORRECTED REPORT SCRIPT (v12)
 // ==========================================
 
 import { db } from "./firebase.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+// ⚡ वर्ज़न को 12.0.0 कर दिया गया है ताकि firebase.js से पूरी तरह सिंक रहे
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
     
@@ -17,8 +18,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const totalDueEl = document.getElementById("totalDue");
     const newAccountsEl = document.getElementById("newAccounts");
 
-    // 🆔 [BONUS] डिलीटेड कस्टमर आईडी को री-साइकिल करने वाला स्मार्ट फंक्शन
-    // इसे आप अपने कस्टमर ऐड करने वाले फॉर्म में भी इस्तेमाल कर सकते हैं
+    // 🆔 डिलीटेड कस्टमर आईडी को री-साइकिल करने वाला स्मार्ट फंक्शन
     async function generateNextGdaId() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -33,11 +33,9 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // नंबरों को छोटे से बड़े क्रम में सॉर्ट करना
             existingNumbers.sort((a, b) => a - b);
 
             let nextNumber = 1;
-            // लूप चलाकर देखना कि बीच में कौन सा नंबर गायब (डिलीट) हुआ है
             for (let i = 1; i <= existingNumbers.length + 1; i++) {
                 if (!existingNumbers.includes(i)) {
                     nextNumber = i;
@@ -56,6 +54,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 📊 लाइव वित्तीय रिपोर्ट कैलकुलेट और लोड करने का मुख्य फंक्शन
     async function fetchRealtimeReport() {
         try {
+            // 1. Customers कलेक्शन से डेटा रीड करना
             const querySnapshot = await getDocs(collection(db, "customers"));
             
             let totalDisbursement = 0; 
@@ -65,36 +64,37 @@ window.addEventListener('DOMContentLoaded', async () => {
             let totalAccounts = 0; 
 
             if (!querySnapshot.empty) {
-                // एक्टिव खातों की सटीक संख्या (डिलीटेड कस्टमर इसमें काउंट नहीं होंगे)
                 totalAccounts = querySnapshot.size; 
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
 
-                    // डेटा न होने पर क्रैश से बचाने के लिए '|| 0' सुरक्षा कवच
-                    const loanAmount = Number(data.loanAmount) || 0;
-                    
-                    // कुल कलेक्शन = मूलधन + 20% ब्याज (अगर रिमेनिंग अमाउंट पहले से सेव नहीं है तो)
-                    const fullCollectionAmount = Number(data.remainingAmount) || (loanAmount + (loanAmount * 0.20));
-                    
-                    // ब्याज कमाई
-                    const interest = fullCollectionAmount - loanAmount;
+                    // केवल उन्हीं कस्टमर्स का हिसाब जोड़ें जिनका खाता बंद (Closed) नहीं है
+                    if (data.status !== "Closed") {
+                        const loanAmount = Number(data.loanAmount) || 0;
+                        
+                        // 🛠️ आपकी collection.js के अनुसार फ़ील्ड का नाम totalCollected है
+                        const collectedAmount = Number(data.totalCollected || 0);
+                        
+                        // कुल कलेक्शन राशि = मूलधन + 20% ब्याज
+                        const totalPayableWithInterest = loanAmount + (loanAmount * 0.20);
+                        
+                        // 20% के हिसाब से ब्याज की शुद्ध कमाई
+                        const interest = totalPayableWithInterest - loanAmount;
+                        
+                        // मार्केट बकाया राशि (कुल पेएबल - जो पैसा जमा हो चुका है)
+                        const dueAmount = totalPayableWithInterest - collectedAmount;
 
-                    // वसूली कलेक्शन (जो पैसा अब तक कस्टमर चुका चुका है)
-                    const paidAmount = Number(data.paidAmount) || 0; 
-                    
-                    // मार्केट बकाया (कुल देना - जो चुका दिया)
-                    const dueAmount = fullCollectionAmount - paidAmount;
-
-                    // सभी का सम (Total Sum)
-                    totalDisbursement += loanAmount;
-                    totalInterestIncome += interest;
-                    totalCollection += paidAmount;
-                    totalDue += dueAmount;
+                        // सभी का टोटल सम (Total Sum) करना
+                        totalDisbursement += loanAmount;
+                        totalInterestIncome += interest;
+                        totalCollection += collectedAmount;
+                        totalDue += dueAmount >= 0 ? dueAmount : 0;
+                    }
                 });
             }
 
-            // 2. Expenses (खर्चों) का लाइव डेटा लाना
+            // 2. Expenses कलेक्शन से खर्चों का लाइव डेटा सम (Sum) करना
             const expenseSnapshot = await getDocs(collection(db, "expenses"));
             let totalExpenses = 0;
 
@@ -105,25 +105,26 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 3. शुद्ध मुनाफा = कुल ब्याज - कुल खर्चे 
+            // 3. फाइनल मैथ कैलकुलेशन
             const netProfit = totalInterestIncome - totalExpenses;
             
             // कुल पोर्टफोलियो = वितरित लोन + मार्केट बकाया
             const totalPortfolio = totalDisbursement + totalDue;
 
-            // 4. बिना रुकावट UI स्क्रीन को अपडेट करना
-            if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${totalPortfolio}`;
-            if(disbursementEl) disbursementEl.innerText = `₹${totalDisbursement}`;
-            if(collectionEl) collectionEl.innerText = `₹${totalCollection}`;
-            if(interestIncomeEl) interestIncomeEl.innerText = `₹${totalInterestIncome}`;
-            if(totalExpensesEl) totalExpensesEl.innerText = `₹${totalExpenses}`;
-            if(netProfitEl) netProfitEl.innerText = `₹${netProfit}`;
-            if(totalDueEl) totalDueEl.innerText = `₹${totalDue}`;
+            // 4. बिना किसी रुकावट के स्क्रीन (UI) को अपडेट करना
+            if(totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(totalPortfolio)}`;
+            if(disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
+            if(collectionEl) collectionEl.innerText = `₹${Math.round(totalCollection)}`;
+            if(interestIncomeEl) interestIncomeEl.innerText = `₹${Math.round(interestIncome)}`;
+            if(totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(totalExpenses)}`;
+            if(netProfitEl) netProfitEl.innerText = `₹${Math.round(netProfit)}`;
+            if(totalDueEl) totalDueEl.innerText = `₹${Math.round(totalDue)}`;
             if(newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
         } catch (error) {
             console.error("लाइव वित्तीय रिपोर्ट लोड करने में गड़बड़ हुई:", error);
-            alert("⚠️ डेटाबेस से कनेक्ट नहीं हो पा रहा है। इंटरनेट या फायरबेस रूल्स चेक करें।");
+            // 💡 यहाँ सीधा असली एरर दिखेगा कि फायरबेस कहाँ अटक रहा है
+            alert("⚠️ फायरबेस एरर: " + error.message);
         }
     }
 
