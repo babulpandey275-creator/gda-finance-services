@@ -90,10 +90,25 @@ window.addEventListener('DOMContentLoaded', async () => {
         let totalCollected = 0; 
         let totalExp = 0; 
         let newCustCount = 0; 
-        let runningMarketDue = 0; 
+        
+        let grandTotalLoanWithInterestAllTime = 0; // ऑल-टाइम लोन + ब्याज राशि
+        let grandTotalCollectAllTime = 0;         // ऑल-टाइम कुल वसूली
+        let grandTotalExpensesAllTime = 0;        // ऑल-टाइम कुल खर्चे
+        let runningMarketDue = 0;                 // मार्केट में रुका हुआ ओवरड्यू
 
-        // 1. Loans / Customers Calculation
-        allCustomers.forEach(cust => { 
+        // 1. Customers / Loans Calculation
+        allCustomers.forEach(cust => {
+            // एक्टिव ग्राहकों का पूरा हिसाब ऑल-टाइम गणना के लिए
+            if (cust.status === "Active" || cust.status === "active") {
+                // ⚡ आपकी मांग के अनुसार: लोन बटने पर कुल वसूली अमाउंट (लोन + ब्याज) को सीधे पोर्टफोलियो बेस में जोड़ा
+                const totalCollectionTarget = Number(cust.totalCollection) || Number(cust.remainingAmount) || ((Number(cust.loanAmount) || 0) * 1.2);
+                grandTotalLoanWithInterestAllTime += totalCollectionTarget;
+                
+                // लाइव ओवरड्यू ड्यू अमाउंट
+                const customerSpecificDue = Number(cust.dueAmount) || Number(cust.overdueAmount) || Number(cust.due) || 0;
+                runningMarketDue += customerSpecificDue;
+            }
+
             const dStr = cust.loanDate || cust.date || cust.createdAt;
             if (!dStr) return; 
             const custDateStr = cleanDateToYYYYMMDD(dStr);
@@ -121,16 +136,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (match) { 
                 totalDisbursed += (Number(cust.loanAmount) || Number(cust.amount) || 0); 
                 newCustCount++; 
-                
-                // ⚡ यहाँ बदलाव: अगर डैशबोर्ड पर कस्टमर का ओवरड्यू/ड्यू अमाउंट सेव है, तो केवल वही रुका हुआ पैसा जुड़ेगा
-                // यह आपके फ़ील्ड के नाम के हिसाब से cust.dueAmount, cust.overdueAmount या cust.due को जोड़ेगा
-                const customerSpecificDue = Number(cust.dueAmount) || Number(cust.overdueAmount) || Number(cust.due) || 0;
-                runningMarketDue += customerSpecificDue;
             } 
         }); 
 
-        // 2. Collections
+        // 2. Collections Calculation
         allCollections.forEach(col => { 
+            grandTotalCollectAllTime += (Number(col.amount) || Number(col.collectedAmount) || 0);
+
             const colDateStr = cleanDateToYYYYMMDD(col.date || col.createdAt);
             if (!colDateStr) return; 
 
@@ -157,9 +169,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             } 
         }); 
 
-        // 3. Expenses
+        // 3. Expenses Calculation
         allExpenses.forEach(exp => { 
-            if (!exp.date) return; 
+            // ऑल-टाइम खर्चे (पोर्टफोलियो से माइनस करने के लिए)
+            grandTotalExpensesAllTime += (Number(exp.amount) || 0);
+
             const expDateStr = cleanDateToYYYYMMDD(exp.date);
             if (!expDateStr) return;
 
@@ -188,16 +202,20 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         const interestEarned = Math.round(totalCollected / 6);
         const netProfit = interestEarned - totalExp;
-        const totalPortfolio = totalDisbursed + totalCollected;
+        
+        // ⚡ मास्टर फॉर्मूला: कुल पोर्टफोलियो = (लोन + ब्याज) - कुल वसूली - कुल खर्चे
+        const totalPortfolio = grandTotalLoanWithInterestAllTime - grandTotalCollectAllTime - grandTotalExpensesAllTime;
 
+        // UI स्क्रीन अपडेट्स
         if (txtDisbursement) txtDisbursement.textContent = `₹${totalDisbursed.toLocaleString('en-IN')}`; 
         if (txtCollection) txtCollection.textContent = `₹${totalCollected.toLocaleString('en-IN')}`; 
         if (txtExpenses) txtExpenses.textContent = `₹${totalExp.toLocaleString('en-IN')}`; 
         if (txtNewCustomers) txtNewCustomers.textContent = newCustCount; 
         if (txtInterestEarned) txtInterestEarned.textContent = `₹${interestEarned.toLocaleString('en-IN')}`;
-        if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio.toLocaleString('en-IN')}`;
         
-        // ⚡ अब यहाँ सिर्फ रुका हुआ लाइव ओवरड्यू अमाउंट ही डिस्प्ले होगा!
+        // 💰 लाइव अपडेटेड पोर्टफोलियो वैल्यू
+        if (txtTotalPortfolio) txtTotalPortfolio.textContent = `₹${totalPortfolio >= 0 ? totalPortfolio.toLocaleString('en-IN') : 0}`;
+        
         if (txtTotalDue) txtTotalDue.textContent = `₹${runningMarketDue.toLocaleString('en-IN')}`;
 
         if (txtNetProfit) {
