@@ -3,85 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Reports - GDA Finance</title>
+    <title>वित्तीय रिपोर्ट (Financial Reports) - GDA Finance</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body{margin:0;padding:15px;background:#eef3f8;font-family:Arial,sans-serif;}
-        .card{max-width:500px;margin:auto;background:#fff;border-radius:15px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.15); position: relative;}
-        
-        .logo-container { text-align: center; margin-bottom: 10px; margin-top: 5px; }
-        .company-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #d4af37; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: #0f172a; }
-        .heading{text-align:center;font-size:20px;margin-bottom:20px;color:#1565c0;font-weight:bold;}
-        .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
-        .tab-btn{padding:10px 4px;background:#e2e8f0;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:12px;text-align:center;}
-        .tab-btn.active{background:#1565c0;color:white;}
-        
-        .date-picker-box{background:#f1f5f9;padding:12px;border-radius:10px;margin-bottom:15px;text-align:center;display:none;border:1px solid #cbd5e1;}
-        .date-picker-box label{font-weight:bold;font-size:13px;color:#475569;margin-right:8px;}
-        .date-picker-box input{padding:8px;font-size:14px;border-radius:6px;border:1px solid #cbd5e1;font-weight:bold;text-align:center;}
-        
-        .portfolio-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 2px solid #d4af37; border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .portfolio-card p { margin: 0; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
-        .portfolio-card h1 { margin: 5px 0; font-size: 26px; color: #fbf5b7; font-weight: bold; }
-
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stats-box { background:#f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .stats-left p{margin:0;font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase; line-height: 1.2;}
-        .stats-left h2{margin:5px 0 0 0;font-size:16px;color:#0f172a;}
-        .icon{font-size:18px;}
-        .full-width { grid-column: span 2; padding: 15px; }
-
-        .back-btn{display:block;text-align:center;background:#475569;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px;}
-        .manage-exp-btn{display:block;text-align:center;background:#dc3545;color:white;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:10px;}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+        }
     </style>
 </head>
-<body>
+<body class="flex justify-center items-center min-h-screen p-4">
 
-    <div class="card" id="mainContent">
-        <div class="logo-container">
-            <img src="logo.png" alt="GDA Finance Service" class="company-logo" onerror="this.src='https://via.placeholder.com/80?text=GDA';">
-        </div>
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col pt-6 pb-4 px-4">
         
-        <div class="heading">📊 वित्तीय रिपोर्ट (Financial Reports)</div>
-        
-        <div class="tabs">
-            <button class="tab-btn active" id="btnDaily">Daily</button>
-            <button class="tab-btn" id="btnMonthly">Monthly</button>
-            <button class="tab-btn" id="btnQuarterly">Quarterly</button>
-            <button class="tab-btn" id="btnYearly">Yearly</button>
+        <div class="flex justify-center mb-4">
+            <div class="w-28 h-28 bg-[#0b2545] rounded-full border-4 border-amber-400 flex flex-col justify-center items-center shadow-lg p-2 text-center">
+                <span class="text-white font-black text-2xl tracking-wider leading-none">GDA</span>
+                <span class="text-amber-400 font-bold text-[8px] tracking-widest uppercase mt-0.5">FINANCE SERVICES</span>
+                <div class="w-12 h-[1px] bg-white my-1"></div>
+                <span class="text-white text-[6px] italic opacity-75">Trust & Prosperity</span>
+            </div>
         </div>
 
-        <div id="dateFilterBox" class="date-picker-box">
-            <label>तारीख चुनें:</label>
-            <input type="date" id="inpReportDate">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-extrabold text-[#0f4c81] flex justify-center items-center gap-2">
+                📊 वित्तीय रिपोर्ट (Financial Reports)
+            </h1>
         </div>
 
-        <div id="reportTitle" style="font-weight:bold;color:#475569;margin-bottom:15px;font-size:15px;text-align:center;">तारीख के अनुसार दैनिक लाइव रिपोर्ट</div>
-
-        <div class="portfolio-card">
-            <p>💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)</p>
-            <h1 id="txtTotalPortfolio">₹0</h1>
+        <div class="grid grid-cols-4 gap-2 mb-6 bg-gray-100 p-1.5 rounded-xl">
+            <button class="bg-[#0f4c81] text-white py-2 px-1 text-sm font-bold rounded-lg shadow text-center">Daily</button>
+            <button class="text-gray-600 py-2 px-1 text-sm font-semibold rounded-lg text-center hover:bg-gray-200">Monthly</button>
+            <button class="text-gray-600 py-2 px-1 text-sm font-semibold rounded-lg text-center hover:bg-gray-200">Quarterly</button>
+            <button class="text-gray-600 py-2 px-1 text-sm font-semibold rounded-lg text-center hover:bg-gray-200">Yearly</button>
         </div>
 
-        <div class="grid-container">
-            <div class="stats-box" style="border-left:4px solid #1565c0;"><div class="stats-left"><p>वितरित लोन<br>(Disbursement)</p><h2 id="txtDisbursement">₹0</h2></div><div class="icon">💵</div></div>
-            <div class="stats-box" style="border-left:4px solid #22c55e;"><div class="stats-left"><p>वसूली कलेक्शन<br>(Collection)</p><h2 id="txtCollection">₹0</h2></div><div class="icon">💰</div></div>
-            <div class="stats-box" style="border-left:4px solid #6366f1; background: #f5f3ff;"><div class="stats-left"><p style="color:#6366f1;">ब्याज कमाई<br>(Interest Income)</p><h2 id="txtInterestEarned" style="color:#4338ca;">₹0</h2></div><div class="icon">📈</div></div>
-            <div class="stats-box" style="border-left:4px solid #f43f5e;"><div class="stats-left"><p>कुल खर्चे<br>(Total Expenses)</p><h2 id="txtExpenses">₹0</h2></div><div class="icon">📉</div></div>
+        <p class="text-center text-[#1d3557] font-bold text-base mb-4">
+            तारीख के अनुसार दैनिक लाइव रिपोर्ट
+        </p>
+
+        <div class="bg-[#0b1b3d] text-white rounded-2xl p-5 mb-5 shadow-md border-2 border-amber-400 relative overflow-hidden">
+            <div class="flex items-center gap-1.5 text-gray-300 text-xs font-semibold tracking-wide uppercase">
+                💰 कुल पोर्टफोलियो (TOTAL PORTFOLIO)
+            </div>
+            <div id="totalPortfolio" class="text-3xl font-black mt-2 text-white">₹0</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
             
-            <!-- ⚡ शुद्ध मुनाफा वाला डिब्बा अब छोटा (1x1) कर दिया गया है -->
-            <div class="stats-box" style="border-left:4px solid #10b981; background: #f0fdf4;"><div class="stats-left"><p style="color:#047857; font-weight:bold;">🎉 शुद्ध मुनाफा<br>(NET PROFIT)</p><h2 id="txtNetProfit" style="color:#065f46; font-size:16px; font-weight:bold;">₹0</h2></div><div class="icon">🏆</div></div>
-            
-            <!-- 🛑 यह रहा आपका नया ड्यू बॉक्स (Remaining Due Amount) जो गायब था -->
-            <div class="stats-box" style="border-left:4px solid #e11d48; background: #fff1f2;"><div class="stats-left"><p style="color:#be123c; font-weight:bold;">⚠️ मार्केट बकाया<br>(TOTAL DUE)</p><h2 id="txtTotalDue" style="color:#9f1239; font-size:16px; font-weight:bold;">₹0</h2></div><div class="icon">🛑</div></div>
-            
-            <div class="stats-box full-width" style="border-left:5px solid #ffb703;"><div class="stats-left"><p>नए पंजीकृत ग्राहक (NEW ACCOUNTS)</p><h2 id="txtNewAccounts">0</h2></div><div class="icon">👥</div></div>
+            <div class="bg-white rounded-xl p-3 border-l-4 border-blue-500 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 leading-tight">वितरित लोन</p>
+                    <p class="text-[9px] font-medium text-gray-400 uppercase tracking-tight">(DISBURSEMENT)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="disbursement" class="text-xl font-bold text-gray-800">₹0</span>
+                    <span class="text-xl">💵</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-3 border-l-4 border-emerald-500 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 leading-tight">वसूली कलेक्शन</p>
+                    <p class="text-[9px] font-medium text-gray-400 uppercase tracking-tight">(COLLECTION)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="collection" class="text-xl font-bold text-gray-800">₹0</span>
+                    <span class="text-xl">💰</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-3 border-l-4 border-indigo-500 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-indigo-600 leading-tight">ब्याज कमाई</p>
+                    <p class="text-[9px] font-medium text-indigo-400 uppercase tracking-tight">(INTEREST INCOME)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="interestIncome" class="text-xl font-bold text-gray-800">₹0</span>
+                    <span class="text-xl">📈</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-3 border-l-4 border-rose-500 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 leading-tight">कुल खर्चे</p>
+                    <p class="text-[9px] font-medium text-gray-400 uppercase tracking-tight">(TOTAL EXPENSES)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="totalExpenses" class="text-xl font-bold text-gray-800">₹0</span>
+                    <span class="text-xl">📉</span>
+                </div>
+            </div>
+
+            <div class="bg-[#f0fdf4] rounded-xl p-3 border-l-4 border-green-500 shadow-sm border border-emerald-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-emerald-700 leading-tight">🎉 शुद्ध मुनाफा</p>
+                    <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-tight">(NET PROFIT)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="netProfit" class="text-xl font-bold text-emerald-800">₹0</span>
+                    <span class="text-xl">🏆</span>
+                </div>
+            </div>
+
+            <div class="bg-[#fff5f5] rounded-xl p-3 border-l-4 border-red-500 shadow-sm border border-red-100 flex flex-col justify-between min-h-[85px]">
+                <div>
+                    <p class="text-[10px] font-bold text-red-600 leading-tight">⚠️ मार्केट बकाया</p>
+                    <p class="text-[9px] font-bold text-red-500 uppercase tracking-tight">(TOTAL DUE)</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <span id="totalDue" class="text-xl font-bold text-red-800">₹0</span>
+                    <span class="w-4 h-4 bg-red-600 rounded-sm inline-block mb-1"></span>
+                </div>
+            </div>
+
         </div>
 
-        <a href="expense-manager.html" class="manage-exp-btn">💸 खर्चे ENTRY व सुधार (Manage Expenses)</a>
-        <a href="index.html" class="back-btn">⬅ डैशबोर्ड पर वापस जाएं</a>
+        <div class="bg-white rounded-xl p-3 border-l-4 border-amber-500 shadow-sm border border-gray-100 flex justify-between items-center mb-5">
+            <div>
+                <p class="text-xs font-bold text-gray-500">नए पंजीकृत ग्राहक <span class="text-[10px] font-medium text-gray-400 uppercase">(NEW ACCOUNTS)</span></p>
+                <p id="newAccounts" class="text-2xl font-bold text-gray-800 mt-1">0</p>
+            </div>
+            <div class="text-blue-500 text-2xl">
+                👥
+            </div>
+        </div>
+
+        <button class="w-full bg-[#e63946] hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200 flex justify-center items-center gap-2 text-base">
+            💸 खर्चे ENTRY व सुधार (Manage Expenses)
+        </button>
+
     </div>
 
-    <!-- ⚡ ब्राउज़र को मजबूर करने के लिए स्क्रिप्ट लिंक के पीछे एक नया वर्ज़न लगा दिया है -->
-    <script type="module" src="./report.js?v=force_refresh_v3"></script>
+    <script type="module" src="./report.js"></script>
 </body>
 </html>
