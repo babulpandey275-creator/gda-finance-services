@@ -1,14 +1,21 @@
 import { db } from "./firebase.js"; 
 import { collection, addDoc, updateDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
 const storage = getStorage();
 
 window.addEventListener('DOMContentLoaded', async () => {
     const registerForm = document.getElementById("registerForm");
     const saveBtn = document.getElementById("saveBtn");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const captureBtn = document.getElementById("captureBtn");
+    const reTakeBtn = document.getElementById("reTakeBtn");
 
-    // 🇮🇳 IST Current Date Setup
+    let streamInstance = null;
+    let capturedBlobUri = null; // Base64 Data Holder
+
+    // 🇮🇳 Timezone Synchronizer (IST) Date Setup
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
@@ -17,7 +24,74 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById("loanDate").value = todayIST;
     }
 
-    // Smart Recycled ID Generation
+    // 📸 SELFIE/FRONT CAMERA ONLY START LOGIC
+    async function startSelfieCamera() {
+        try {
+            if (streamInstance) {
+                streamInstance.getTracks().forEach(track => track.stop());
+            }
+            // Strict facingMode set to 'user' to enforce front camera activation
+            streamInstance = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false
+            });
+            if (video) {
+                video.srcObject = streamInstance;
+            }
+        } catch (err) {
+            console.error("Camera access failed:", err);
+        }
+    }
+
+    // Capture Image Action
+    if (captureBtn && video && canvas) {
+        captureBtn.onclick = () => {
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth || 480;
+            canvas.height = video.videoHeight || 640;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.7); // Compressed to 70% quality base64
+            
+            video.style.display = "none";
+            canvas.style.display = "block";
+            captureBtn.style.display = "none";
+            if (reTakeBtn) reTakeBtn.style.display = "block";
+        };
+    }
+
+    // Retake Action
+    if (reTakeBtn && video && canvas && captureBtn) {
+        reTakeBtn.onclick = () => {
+            capturedBlobUri = null;
+            canvas.style.display = "none";
+            video.style.display = "block";
+            reTakeBtn.style.display = "none";
+            captureBtn.style.display = "block";
+        };
+    }
+
+    // Dynamic Interest and EMI Autocalculator
+    const loanAmountInput = document.getElementById("loanAmount");
+    const loanPlanSelect = document.getElementById("loanPlan");
+    const remainingAmountInput = document.getElementById("remainingAmount");
+    const emiInput = document.getElementById("emi");
+
+    function calculateFinance() {
+        const amt = Number(loanAmountInput.value) || 0;
+        const days = Number(loanPlanSelect.value) || 60;
+        if (amt > 0) {
+            const total = amt + (amt * 0.20);
+            const daily = total / days;
+            if (remainingAmountInput) remainingAmountInput.value = Math.round(total);
+            if (emiInput) emiInput.value = Math.round(daily);
+        }
+    }
+
+    if (loanAmountInput) loanAmountInput.oninput = calculateFinance;
+    if (loanPlanSelect) loanPlanSelect.onchange = calculateFinance;
+
+    // Smart Recycled ID Generation Loop
     async function generateNextGdaId() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -32,10 +106,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             
             let nextNumber = 1;
             for (let i = 1; i <= existingNumbers.length + 1; i++) {
-                if (!existingNumbers.includes(i)) {
-                    nextNumber = i;
-                    break;
-                }
+                if (!existingNumbers.includes(i)) { nextNumber = i; break; }
             }
             return { member_id: `GDA${String(nextNumber).padStart(3, '0')}`, member_no: nextNumber };
         } catch (error) {
@@ -43,8 +114,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    if (registerForm) {
-        registerForm.onsubmit = async (e) => {
+    // Save Customer Data Form Trigger
+    if (saveBtn) {
+        saveBtn.onclick = async (e) => {
             e.preventDefault();
             saveBtn.disabled = true;
             saveBtn.innerText = "⏳ Saving Data...";
@@ -52,14 +124,15 @@ window.addEventListener('DOMContentLoaded', async () => {
             try {
                 const idDetails = await generateNextGdaId();
                 const loanAmount = Number(document.getElementById("loanAmount").value);
-                const planDuration = Number(document.getElementById("loanPlan")?.value) || 60;
+                const planDuration = Number(document.getElementById("loanPlan").value) || 60;
                 const emi = Number(document.getElementById("emi").value);
 
-                const data = {
+                const newCustomerData = {
                     name: document.getElementById("customerName").value.trim(),
                     mobile: document.getElementById("mobileNumber").value.trim(),
-                    address: document.getElementById("address") ? document.getElementById("address").value.trim() : "",
-                    aadharCard: document.getElementById("aadhaarNumber") ? document.getElementById("aadhaarNumber").value.trim() : "",
+                    address: document.getElementById("address").value.trim(),
+                    aadharCard: document.getElementById("aadhaarNumber").value.trim(),
+                    aadhaar: document.getElementById("aadhaarNumber").value.trim(),
                     panCard: document.getElementById("panNumber") ? document.getElementById("panNumber").value.trim().toUpperCase() : "",
                     loanAmount: loanAmount,
                     planDuration: planDuration,
@@ -74,42 +147,36 @@ window.addEventListener('DOMContentLoaded', async () => {
                     status: "Active",
                     customerCode: idDetails.member_id,
                     member_no: idDetails.member_no,
-                    createdAt: todayIST
+                    createdAt: todayIST,
+                    customerPhoto: null
                 };
 
-                // Save initial payload
-                const docRef = await addDoc(collection(db, "customers"), data);
-                let mediaPayload = {};
+                // Add document first
+                const docRef = await addDoc(collection(db, "customers"), newCustomerData);
 
-                // A. Customer Photo File Handle (Fixed Backticks Error)
-                const photoInput = document.getElementById("customerPhotoFile");
-                if (photoInput && photoInput.files.length > 0) {
+                // If selfie image string is available, upload to storage bucket
+                if (capturedBlobUri) {
+                    saveBtn.innerText = "⏳ Uploading Selfie Picture...";
                     const storageRef = ref(storage, `photos/${docRef.id}.jpg`);
-                    await uploadBytes(storageRef, photoInput.files[0]);
-                    mediaPayload.customerPhoto = await getDownloadURL(storageRef);
+                    await uploadString(storageRef, capturedBlobUri, 'data_url');
+                    const downloadUrl = await getDownloadURL(storageRef);
+                    await updateDoc(doc(db, "customers", docRef.id), { customerPhoto: downloadUrl });
                 }
 
-                // B. Aadhaar Document File Handle
-                const aadharInput = document.getElementById("docAadharFile");
-                if (aadharInput && aadharInput.files.length > 0) {
-                    const storageRef = ref(storage, `documents/${docRef.id}_aadhar.jpg`);
-                    await uploadBytes(storageRef, aadharInput.files[0]);
-                    mediaPayload.aadharPhotoUrl = await getDownloadURL(storageRef);
-                }
-
-                // Update database if media files exist
-                if (Object.keys(mediaPayload).length > 0) {
-                    await updateDoc(doc(db, "customers", docRef.id), mediaPayload);
+                if (streamInstance) {
+                    streamInstance.getTracks().forEach(track => track.stop());
                 }
 
                 alert(`🎉 Customer ${idDetails.member_id} Registered Successfully!`);
                 window.location.href = `disbursement-bond.html?id=${docRef.id}`;
             } catch (err) {
-                console.error("Submission failed:", err);
+                console.error("Submission crash: ", err);
                 alert("Error: " + err.message);
                 saveBtn.disabled = false;
-                saveBtn.innerText = "Save";
+                saveBtn.innerText = "💰 Save Customer";
             }
         };
     }
+
+    await startSelfieCamera();
 });
