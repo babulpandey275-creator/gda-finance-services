@@ -6,7 +6,6 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
-    
     // UI Elements Selection
     const totalPortfolioEl = document.getElementById("totalPortfolio");
     const disbursementEl = document.getElementById("disbursement");
@@ -16,7 +15,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const netProfitEl = document.getElementById("netProfit");
     const totalDueEl = document.getElementById("totalDue");
     const newAccountsEl = document.getElementById("newAccounts");
-    
     const datePicker = document.getElementById("reportDatePicker");
     const dateLabel = document.getElementById("dateLabel");
     
@@ -24,22 +22,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnMonthly = document.getElementById("btnMonthly");
     const btnQuarterly = document.getElementById("btnQuarterly");
     const btnYearly = document.getElementById("btnYearly");
-
-    let currentMode = "Monthly"; // डिफ़ॉल्ट रूप से Monthly मोड सेट है
+    
+    let currentMode = "Monthly"; // Default Mode
 
     // 🇮🇳 Timezone Fix (IST) Setup
     const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
     const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
     const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
-    
-    if (datePicker) {
+
+    if (datePicker && !datePicker.value) {
         datePicker.value = todayIST;
     }
 
     // 📅 Date comparison helper function for periodic filters
     function isDateInPeriod(targetDate, filterDate, mode) {
         if (!targetDate || !filterDate) return false;
-        
         const tParts = targetDate.split('-');
         const fParts = filterDate.split('-');
         if (tParts.length < 3 || fParts.length < 3) return false;
@@ -69,8 +66,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             // 1. Fetch data from 'collections' table
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let periodCollectionSum = 0;
-            let collectionUpToFilterDate = {}; 
-            let absoluteLifetimeCollection = {}; 
+            let collectionUpToFilterDate = {};
+            let absoluteLifetimeCollection = {};
 
             if (!collectSnapshot.empty) {
                 collectSnapshot.forEach((doc) => {
@@ -93,12 +90,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // 2. Fetch data from 'customers' table
             const custSnapshot = await getDocs(collection(db, "customers"));
-            
-            let totalDisbursement = 0; 
-            let totalCumulativeDueOnFilterDate = 0; 
+            let totalDisbursement = 0;
+            let totalCumulativeDueOnFilterDate = 0;
             let totalAccounts = 0;
             let periodInterestIncome = 0;
-            let absoluteCurrentOutstanding = 0; 
+            let absoluteCurrentOutstanding = 0;
 
             if (!custSnapshot.empty) {
                 custSnapshot.forEach((doc) => {
@@ -113,40 +109,33 @@ window.addEventListener('DOMContentLoaded', async () => {
                         periodInterestIncome += (loanAmount * 0.20);
                     }
 
-                    // Portfolio Logic: Real active outstanding balance remaining in market
+                    // Portfolio Logic: Real active principal + interest remaining in market
                     if (data.status !== "Closed") {
                         const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                         const totalCollectedLifetime = absoluteLifetimeCollection[cId] || 0;
                         const remainingLifetimeDue = totalPayableLifetime - totalCollectedLifetime;
+                        
                         if (remainingLifetimeDue > 0) {
                             absoluteCurrentOutstanding += remainingLifetimeDue;
                         }
                     }
 
-                    // 🧮 FIX OD BUG: Strict dashboard synchronization logic
+                    // 🧮 FIXED OD LOGIC: Synchronized day tracker execution
                     if (data.status !== "Closed" && data.loanDate && data.loanDate <= filterDate) {
-                        // 1. लोन की तारीख से फ़िल्टर डेट तक बीते कुल दिनों की गणना करें
                         const start = new Date(data.loanDate);
                         const end = new Date(filterDate);
                         
-                        // टाइम डिफ्रेंस निकालें
-                        const diffTime = Math.abs(end - start);
-                        // टाइम को दिनों में बदलें (+1 करने से शुरुआती दिन भी जुड़ जाता है)
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+                        const diffTime = end - start;
+                        // Math.floor will ensure we don't count today as overdue prematurely
+                        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
+                        if (diffDays < 0) diffDays = 0;
 
-                        // 2. फ़िल्टर डेट तक कितना कलेक्शन होना चाहिए था (Expected)
+                        // Calculate expected collections up to selected date
                         const expectedCollectionUpToDate = diffDays * emi;
-
-                        // 3. फ़िल्टर डेट तक वास्तव में कितना कलेक्शन हुआ (Actual)
                         const actualCollectionUpToDate = collectionUpToFilterDate[cId] || 0;
-
-                        // 4. इस विशिष्ट खाते के लिए कुल देय (Total Payable Lifetime)
                         const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                         
-                        // यह सुनिश्चित करें कि एक्सपेक्टेड अमाउंट कुल देय राशि से ज्यादा न हो
                         const runningExpected = Math.min(expectedCollectionUpToDate, totalPayableLifetime);
-                        
-                        // ओवरड्यू (Due) अमाउंट निकालें
                         const accountDue = runningExpected - actualCollectionUpToDate;
 
                         if (accountDue > 0) {
@@ -170,18 +159,18 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
 
             // 📊 4. UI Rendering Engine (Dashboard Update)
-            if (totalPortfolioEl) totalPortfolioEl.innerText = `₹${absoluteCurrentOutstanding.toFixed(2)}`;
-            if (disbursementEl) disbursementEl.innerText = `₹${totalDisbursement.toFixed(2)}`;
-            if (collectionEl) collectionEl.innerText = `₹${periodCollectionSum.toFixed(2)}`;
-            if (interestIncomeEl) interestIncomeEl.innerText = `₹${periodInterestIncome.toFixed(2)}`;
-            if (totalExpensesEl) totalExpensesEl.innerText = `₹${periodExpensesSum.toFixed(2)}`;
-            if (totalDueEl) totalDueEl.innerText = `₹${totalCumulativeDueOnFilterDate.toFixed(2)}`;
+            if (totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(absoluteCurrentOutstanding)}`;
+            if (disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
+            if (collectionEl) collectionEl.innerText = `₹${Math.round(periodCollectionSum)}`;
+            if (interestIncomeEl) interestIncomeEl.innerText = `₹${Math.round(periodInterestIncome)}`;
+            if (totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(periodExpensesSum)}`;
+            if (totalDueEl) totalDueEl.innerText = `₹${Math.round(totalCumulativeDueOnFilterDate)}`;
             if (newAccountsEl) newAccountsEl.innerText = totalAccounts;
 
             // Net Profit Calculation: Interest Income - Expenses
             const netProfit = periodInterestIncome - periodExpensesSum;
             if (netProfitEl) {
-                netProfitEl.innerText = `₹${netProfit.toFixed(2)}`;
+                netProfitEl.innerText = `₹${Math.round(netProfit)}`;
                 netProfitEl.style.color = netProfit >= 0 ? "green" : "red";
             }
 
@@ -198,13 +187,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     const updateMode = (mode, activeBtn) => {
         currentMode = mode;
         if (dateLabel) dateLabel.innerText = `${mode} Report for:`;
-        
-        // Active Button Class Toggle
+
         [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(btn => {
             if (btn) btn.classList.remove("active");
         });
         if (activeBtn) activeBtn.classList.add("active");
-
+        
         calculateFinanceReport();
     };
 
