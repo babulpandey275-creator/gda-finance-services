@@ -254,7 +254,7 @@
                 <p>Finance Services</p>
             </div>
         </div>
-        <button class="refresh-btn" onclick="window.location.reload();" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s;">
+        <button class="refresh-btn" onclick="if(window.refreshApp){ window.refreshApp(); }else{ window.location.reload(); }" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s;">
             Refresh
         </button>
     </header>
@@ -340,6 +340,6 @@
         <a href="login.html" id="logoutBtn" class="nav-item" style="color:#f43f5e;"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
-    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
