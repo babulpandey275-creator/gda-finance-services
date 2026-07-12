@@ -4,29 +4,109 @@
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Daily Collection - GDA Finance</title> 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> 
     <style> 
-        body { margin: 0; padding: 20px; background: #eef3f8; font-family: Arial, sans-serif; } 
-        .card { max-width: 450px; margin: auto; background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,.15); } 
-        .heading { text-align: center; font-size: 24px; margin-bottom: 20px; color: #1565c0; font-weight: bold; } 
-        label { font-size: 14px; font-weight: bold; color: #444; display: block; margin-bottom: 5px; } 
-        input, select { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; background: #f9f9f9; } 
-        .customer-info-box { background: #f0f4f8; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #1565c0; display: none; } 
-        .info-p { margin: 5px 0; font-size: 14px; color: #333; } 
-        button.collect-btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; font-weight: bold; background: #1565c0; color: white; } 
-        .backBtn { display: block; margin-top: 15px; background: #555; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; } 
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: #eef3f8; 
+            font-family: 'Poppins', sans-serif; 
+        } 
+        .card { 
+            max-width: 450px; 
+            margin: auto; 
+            background: #fff; 
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,.08); 
+        } 
+        .heading { 
+            text-align: center; 
+            font-size: 24px; 
+            margin-bottom: 20px; 
+            color: #1565c0; 
+            font-weight: 700; 
+        } 
+        label { 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: #475569; 
+            display: block; 
+            margin-top: 12px;
+            margin-bottom: 6px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        } 
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            border: 1px solid #cbd5e1; 
+            margin-bottom: 15px; 
+            box-sizing: border-box; 
+            background: #f8fafc; 
+        } 
+        /* 📊 Dynamic Info Display Card Style */
+        .customer-info-box { 
+            background: #f0fdf4; 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            border-left: 5px solid #28a745; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        } 
+        .info-p { 
+            margin: 6px 0; 
+            font-size: 14px; 
+            color: #334155; 
+            display: flex;
+            justify-content: space-between;
+        } 
+        .info-value {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        button.collect-btn { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            background: #1565c0; 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.2);
+        } 
+        .backBtn { 
+            display: block; 
+            margin-top: 15px; 
+            background: #64748b; 
+            color: white; 
+            text-decoration: none; 
+            text-align: center; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 14px; 
+        } 
     </style> 
 </head> 
 <body> 
     <div class="card">
         <div class="heading">💰 Collect Daily EMI</div>
 
-        <!-- ℹ️ Smart Dynamic Info Display Board -->
-        <div id="infoBox" class="customer-info-box">
-            <p class="info-p"><strong>Customer Name:</strong> <span id="lblCustName">-</span></p>
-            <p class="info-p"><strong>Code:</strong> <span id="lblCustCode">-</span></p>
-            <p class="info-p"><strong>Daily EMI Amount:</strong> ₹<span id="lblDailyEmi">-</span></p>
-            <p class="info-p"><strong>Remaining Balance:</strong> ₹<span id="lblRemaining">-</span></p>
+        <label>Select Target Customer</label>
+        <select id="customerSelect" required>
+            <option value="" disabled selected>--- Select Customer ---</option>
+        </select>
+
+        <div id="customerDetailsBox" class="customer-info-box" style="display: none;">
+            <div class="info-p"><span>Fixed Daily EMI:</span> <span class="info-value" id="txtEmi">₹0</span></div>
+            <div class="info-p"><span>Total Payable / Remaining:</span> <span class="info-value" id="txtRemaining">₹0</span></div>
+            <div class="info-p"><span>Active Paid Counter:</span> <span class="info-value" id="txtPaidDays">0 Days</span></div>
         </div>
 
         <form id="collectionForm" onsubmit="return false;">
@@ -34,14 +114,13 @@
             <input type="date" id="collectionDate" required>
 
             <label>Amount to Collect (₹)</label>
-            <input type="number" id="collectAmount" placeholder="Enter amount" required>
+            <input type="number" id="collectAmount" placeholder="Enter installment amount" required>
 
-            <button type="button" id="collectBtn" class="collect-btn">💾 Post Payment Record</button>
-            <a href="customer-list.html" class="backBtn">⬅ Back to Customer Directory</a>
+            <button type="button" id="submitCollectionBtn" class="collect-btn">💾 Post Payment Record</button>
+            <a href="customer-list.html" class="backBtn">⬅ Return to Customer Directory</a>
         </form>
     </div>
 
-    <!-- Script Injection Link -->
     <script type="module" src="collection.js"></script>
 </body>
 </html>
