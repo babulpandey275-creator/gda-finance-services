@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,37 +85,4 @@
 <body>
 
 <div class="card">
-    <div class="heading">💰 दैनिक किस्त कलेक्शन</div>
     
-    <form id="collectionForm" onsubmit="return false;">
-        <!-- 👤 एक्टिव ग्राहक चुनने की ड्रापडाउन लिस्ट -->
-        <label>ग्राहक चुनें (Select Customer):</label>
-        <select id="customerSelect" required>
-            <option value="" disabled selected>लोड हो रहा है, कृपया रुकें...</option>
-        </select>
-
-        <!-- 📊 चुने हुए ग्राहक की लाइव जानकारी यहाँ दिखेगी -->
-        <div id="customerDetailsBox" class="customer-info-box">
-            <p class="info-p"><strong>📦 रोज़ाना किस्त (EMI):</strong> <span id="txtEmi" style="color:#28a745; font-weight:bold;">₹0</span></p>
-            <p class="info-p"><strong>🔻 शेष बकाया राशि:</strong> <span id="txtRemaining" style="color:#dc3545; font-weight:bold;">₹0</span></p>
-            <p class="info-p"><strong>🗓️ कुल जमा दिन:</strong> <span id="txtPaidDays">0 दिन</span></p>
-        </div>
-
-        <!-- किस्त जमा करने की राशि -->
-        <label>जमा राशि (Amount to Collect):</label>
-        <input type="number" id="collectAmount" placeholder="किस्त राशि दर्ज करें" required>
-
-        <!-- कलेक्शन की तारीख -->
-        <label>कलेक्शन की तारीख (Date):</label>
-        <input type="date" id="collectionDate" required>
-
-        <button type="button" id="submitCollectionBtn" class="collect-btn">💸 किस्त जमा करें</button>
-        <a href="index.html" class="backBtn">⬅ डैशबोर्ड पर वापस जाएं</a>
-    </form>
-</div>
-
-<!-- Script Connection -->
-<script type="module" src="collection.js"></script>
-
-</body>
-</html>
