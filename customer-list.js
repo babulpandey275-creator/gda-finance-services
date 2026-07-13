@@ -1,138 +1,106 @@
+// ==========================================
+// 🚀 GDA FINANCE - CUSTOMER LIST MASTER ENGINE
+// ==========================================
+
 import { db } from "./firebase.js"; 
-import { collection, getDocs, doc, deleteDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, getDocs, deleteDoc, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-window.addEventListener('DOMContentLoaded', async () => { 
-    const listContainer = document.getElementById("listContainer"); 
-    const searchInp = document.getElementById("searchInp"); 
-    const tabActive = document.getElementById("tabActive"); 
-    const tabClosed = document.getElementById("tabClosed"); 
-    
-    let allCustomers = []; 
-    let currentFilter = "Active"; 
-    
-    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }; 
-    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date()); 
-    const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`; 
+let allCustomers = [];
+let currentStatus = "Active";
 
-    async function fetchCustomers() { 
-        try { 
-            listContainer.innerHTML = "⏳ Loading data..."; 
-            allCustomers = []; 
-            const querySnapshot = await getDocs(collection(db, "customers")); 
-            querySnapshot.forEach((docSnap) => { 
-                allCustomers.push({ id: docSnap.id, ...docSnap.data() }); 
-            }); 
-            renderList(); 
-        } catch (err) { 
-            listContainer.innerHTML = "⚠️ Error loading customer records."; 
-        } 
-    } 
+const listContainer = document.getElementById("listContainer");
+const tabActive = document.getElementById("tabActive");
+const tabClosed = document.getElementById("tabClosed");
+const searchInp = document.getElementById("searchInp");
 
-    function renderList() { 
-        listContainer.innerHTML = ""; 
-        const searchText = searchInp.value.trim().toLowerCase(); 
+async function loadCustomers() {
+    listContainer.innerHTML = "⏳ Loading...";
+    const querySnapshot = await getDocs(collection(db, "customers"));
+    allCustomers = [];
+    querySnapshot.forEach((doc) => {
+        allCustomers.push({ id: doc.id, ...doc.data() });
+    });
+    renderList();
+}
+
+function renderList() {
+    const searchTerm = searchInp.value.toLowerCase();
+    const filtered = allCustomers.filter(c => 
+        (c.status === currentStatus) && 
+        (c.name.toLowerCase().includes(searchTerm) || (c.mobile && c.mobile.includes(searchTerm)))
+    );
+
+    if (filtered.length === 0) {
+        listContainer.innerHTML = `<p style="text-align:center; padding:20px; color:#64748b;">No ${currentStatus.toLowerCase()} customers found.</p>`;
+        return;
+    }
+
+    listContainer.innerHTML = filtered.map(cust => {
+        // 🧮 LOGIC: Live OD Calculation with back-date (Today - LoanDate + 1)
+        const loanDate = new Date(cust.loanDate);
+        const today = new Date();
+        const diffTime = today - loanDate;
+        const daysElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 for "Include Today"
         
-        const filtered = allCustomers.filter(cust => { 
-            const statusMatch = (cust.status || "Active") === currentFilter; 
-            const nameMatch = (cust.name || "").toLowerCase().includes(searchText); 
-            const phoneMatch = (cust.mobile || "").includes(searchText); 
-            return statusMatch && (nameMatch || phoneMatch); 
-        }); 
+        const expectedAmt = daysElapsed * Number(cust.dailyEmi || 0);
+        const totalPaid = Number(cust.paidAmount || 0);
+        const currentOD = Math.max(0, expectedAmt - totalPaid);
 
-        if (filtered.length === 0) { 
-            listContainer.innerHTML = `<p style='text-align:center;color:#64748b;padding:20px;'>No customer found.</p>`; 
-            return; 
-        } 
+        return `
+        <div class="cust-card">
+            <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar">
+            <div class="cust-info">
+                <h4>${cust.name} (${cust.customerCode})</h4>
+                <p>📞 ${cust.mobile || 'N/A'}</p>
+                <p>📅 Date: ${cust.loanDate} | OD: ₹${currentOD}</p>
+            </div>
+            <div class="cust-actions">
+                <a href="profile.html?id=${cust.id}" class="btn-action btn-edit">View</a>
+                <button class="btn-action btn-delete" onclick="deleteCustomer('${cust.id}')">Delete</button>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
 
-        filtered.forEach(cust => { 
-            const div = document.createElement("div"); 
-            div.className = "cust-card"; 
-            div.style.cssText = "display:flex;flex-direction:column;background:#fff;padding:14px;border-radius:12px;margin-bottom:14px;border:1px solid #e2e8f0;box-shadow:0 2px 4px rgba(0,0,0,0.02);"; 
-            
-            const photoUrl = cust.customerPhoto || "https://img.icons8.com/color/96/user-male-circle.png"; 
-            const loanAmount = Number(cust.loanAmount || 0); 
-            const totalCollected = Number(cust.totalCollected || 0); 
-            const totalPayableWithInterest = loanAmount + (loanAmount * 0.20); 
-            const dynamicRemaining = totalPayableWithInterest - totalCollected; 
-            
-            let penaltyAmount = 0; 
-            let gapDays = 0; 
+// 🗑️ CASCADING DELETE: Remove customer + their payment history
+window.deleteCustomer = async (docId) => {
+    if (!confirm("⚠️ WARNING: This will permanently delete the customer AND all their payment history from the database!")) return;
 
-            if ((cust.status || "Active") === "Active" && cust.loanDate && cust.loanDate < todayIST) { 
-                const totalDays = Math.floor(Math.abs(new Date(todayIST) - new Date(cust.loanDate)) / (1000 * 60 * 60 * 24)); 
-                gapDays = totalDays - Number(cust.paidDays || 0); 
-                if (gapDays < 0) gapDays = 0; 
-                
-                const emi = Number(cust.dailyEmi || cust.emi || 0); 
-                if (gapDays > 60 && gapDays <= 80) penaltyAmount = (gapDays - 60) * (emi * 0.10); 
-                else if (gapDays > 80) penaltyAmount = (20 * (emi * 0.10)) + ((gapDays - 80) * (emi * 0.15)); 
-            } 
+    try {
+        const batch = writeBatch(db);
+        
+        // 1. Delete all payment records related to this customer
+        const colQuery = query(collection(db, "collections"), where("customerId", "==", docId));
+        const colSnapshot = await getDocs(colQuery);
+        colSnapshot.forEach((doc) => batch.delete(doc.ref));
+        
+        // 2. Delete the customer record itself
+        batch.delete(doc(db, "customers", docId));
+        
+        await batch.commit();
+        alert("✅ Customer and all their history deleted successfully!");
+        loadCustomers();
+    } catch (err) {
+        alert("Error deleting customer: " + err.message);
+    }
+};
 
-            const totalPayableNow = dynamicRemaining + penaltyAmount; 
+// Event Listeners
+tabActive.onclick = () => {
+    currentStatus = "Active";
+    tabActive.className = "tab-btn active";
+    tabClosed.className = "tab-btn";
+    renderList();
+};
 
-            div.innerHTML = ` 
-                <div class="clickable-trigger" data-id="${cust.id}" style="display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;"> 
-                    <img src="${photoUrl}" style="width:55px;height:55px;border-radius:50%;object-fit:cover;" onerror="this.src='https://img.icons8.com/color/96/user-male-circle.png'"> 
-                    <div style="flex:1;"> 
-                        <h4 style="margin:0 0 4px 0;font-size:16px;color:#0f172a;font-weight:600;">${cust.name || "N/A"}</h4> 
-                        <p style="margin:0 0 2px 0;font-size:13px;color:#64748b;">📞 ${cust.mobile || "-"}</p> 
-                        <p style="margin:0;font-size:12px;color:#64748b;">💵 Loan: ₹${loanAmount} | <span style="color:#ef4444;font-weight:600;">🔻 Total Payable: ₹${Math.round(totalPayableNow)}</span></p> 
-                        ${penaltyAmount > 0 ? `<p style="margin:4px 0 0 0;font-size:11px;color:#d32f2f;font-weight:500;">⚠️ Late Penalty: ₹${Math.round(penaltyAmount)} (${gapDays} days overdue)</p>` : ''} 
-                    </div> 
-                </div> 
-                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:10px;"> 
-                    <a href="collection.html?id=${cust.id}" style="flex:1;min-width:120px;padding:10px 0;background:#0d47a1;color:white;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;text-align:center;">💸 Collect EMI</a> 
-                    <a href="edit.html?id=${cust.id}" style="padding:10px 12px;background:#ffb703;color:black;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;text-align:center;">✏️ Edit</a> 
-                    <button class="btn-delete" data-id="${cust.id}" style="padding:10px 12px;background:#ef4444;color:white;border:none;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">🗑️ Del</button> 
-                </div> 
-            `; 
-            listContainer.appendChild(div); 
-        }); 
+tabClosed.onclick = () => {
+    currentStatus = "Closed";
+    tabActive.className = "tab-btn";
+    tabClosed.className = "tab-btn closed-active";
+    renderList();
+};
 
-        document.querySelectorAll(".clickable-trigger").forEach(elem => { 
-            elem.onclick = (e) => window.location.href = `statement.html?id=${e.currentTarget.getAttribute("data-id")}`; 
-        }); 
+searchInp.oninput = renderList;
 
-        document.querySelectorAll(".btn-delete").forEach(btn => { 
-            btn.onclick = async (e) => { 
-                e.stopPropagation(); 
-                const id = e.target.getAttribute("data-id"); 
-                const adminPassword = prompt("🔐 Security Lock: Enter password to delete record:"); 
-                if (adminPassword === "GDA@2026") { 
-                    if (confirm("⚠️ Are you sure you want to permanently delete this customer record and their collection history?")) { 
-                        try { 
-                            await deleteDoc(doc(db, "customers", id)); 
-                            const q = query(collection(db, "collections"), where("customerId", "==", id)); 
-                            const querySnapshot = await getDocs(q); 
-                            const batch = writeBatch(db); 
-                            querySnapshot.forEach((docSnap) => batch.delete(docSnap.ref)); 
-                            await batch.commit(); 
-                            alert("🗑️ Data deleted from all records successfully!"); 
-                            fetchCustomers(); 
-                        } catch (err) { 
-                            alert("⚠️ Error processing deletion."); 
-                        } 
-                    } 
-                } else if (adminPassword !== null) { 
-                    alert("❌ Incorrect Password!"); 
-                } 
-            }; 
-        }); 
-    } 
-
-    if(tabActive) tabActive.onclick = () => { 
-        currentFilter = "Active"; 
-        tabActive.className = "tab-btn active"; 
-        tabClosed.className = "tab-btn"; 
-        renderList(); 
-    }; 
-    if(tabClosed) tabClosed.onclick = () => { 
-        currentFilter = "Closed"; 
-        tabActive.className = "tab-btn"; 
-        tabClosed.className = "tab-btn closed-active"; 
-        renderList(); 
-    }; 
-    if(searchInp) searchInp.oninput = () => renderList(); 
-
-    fetchCustomers(); 
-});
+loadCustomers();
