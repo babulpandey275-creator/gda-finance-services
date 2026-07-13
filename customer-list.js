@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - FULLY FIXED ENGINE
+// 🚀 GDA FINANCE - CUSTOMER LIST ENGINE
 // ==========================================
 
 import { db } from "./firebase.js"; 
@@ -55,11 +55,14 @@ function renderList() {
         const currentDue = Math.max(0, expectedAmt - totalPaid);
 
         const displayCode = cust.customerCode || cust.member_id || `GDA${String(cust.member_no || 0).padStart(3, '0')}`;
+        
+        // प्रोफ़ाइल पेज का लिंक (क्लिक करने पर खुलेगा)
+        const profileUrl = `customer-profile.html?id=${cust.id}`;
         const collectUrl = `collection.html?id=${cust.id}`;
 
         return `
         <div class="cust-card" style="flex-direction: column; align-items: stretch; gap: 8px;">
-            <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="display: flex; gap: 12px; align-items: center; cursor:pointer;" onclick="window.location.href='${profileUrl}'">
                 <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar">
                 
                 <div class="cust-info" style="flex: 1;">
