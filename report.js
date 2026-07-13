@@ -1,206 +1,63 @@
 // ==========================================
-// 🚀 GDA FINANCE - MASTER FINANCIAL REPORT ENGINE (v13.0 - FIX OD BUG)
+// 🚀 GDA FINANCE - REPORT ENGINE (STRICT OVERDUE FIX)
 // ==========================================
 
-import { db } from "./firebase.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-window.addEventListener('DOMContentLoaded', async () => {
-    // UI Elements Selection
-    const totalPortfolioEl = document.getElementById("totalPortfolio");
-    const disbursementEl = document.getElementById("disbursement");
-    const collectionEl = document.getElementById("collection");
-    const interestIncomeEl = document.getElementById("interestIncome");
-    const totalExpensesEl = document.getElementById("totalExpenses");
-    const netProfitEl = document.getElementById("netProfit");
-    const totalDueEl = document.getElementById("totalDue");
-    const newAccountsEl = document.getElementById("newAccounts");
-    const datePicker = document.getElementById("reportDatePicker");
-    const dateLabel = document.getElementById("dateLabel");
-    
-    const btnDaily = document.getElementById("btnDaily");
-    const btnMonthly = document.getElementById("btnMonthly");
-    const btnQuarterly = document.getElementById("btnQuarterly");
-    const btnYearly = document.getElementById("btnYearly");
-    
-    let currentMode = "Monthly"; // Default Mode
+export async function loadReport() {
+    const txtTotalDue = document.getElementById("txtTotalDue"); // Maps to Total Due Card
+    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-    // 🇮🇳 Timezone Fix (IST) Setup
-    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
-    const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
+    try {
+        const collectSnapshot = await getDocs(collection(db, "collections"));
+        let collectionMap = {};
 
-    if (datePicker && !datePicker.value) {
-        datePicker.value = todayIST;
-    }
+        collectSnapshot.forEach(doc => {
+            const data = doc.data();
+            const colDate = data.date || "";
+            const cId = (data.customerCode || data.customerId || data.customerName || data.name || "").toString().trim().toUpperCase();
+            const amount = Number(data.amount || 0);
 
-    // 📅 Date comparison helper function for periodic filters
-    function isDateInPeriod(targetDate, filterDate, mode) {
-        if (!targetDate || !filterDate) return false;
-        const tParts = targetDate.split('-');
-        const fParts = filterDate.split('-');
-        if (tParts.length < 3 || fParts.length < 3) return false;
-
-        const tYear = parseInt(tParts[0], 10);
-        const tMonth = parseInt(tParts[1], 10);
-        const fYear = parseInt(fParts[0], 10);
-        const fMonth = parseInt(fParts[1], 10);
-
-        if (mode === "Daily") return targetDate === filterDate;
-        if (mode === "Monthly") return tYear === fYear && tMonth === fMonth;
-        if (mode === "Yearly") return tYear === fYear;
-        if (mode === "Quarterly") {
-            const tQ = Math.floor((tMonth - 1) / 3);
-            const fQ = Math.floor((fMonth - 1) / 3);
-            return tYear === fYear && tQ === fQ;
-        }
-        return false;
-    }
-
-    // 📊 MASTER FUNCTION: Financial Report Calculations Engine
-    async function calculateFinanceReport() {
-        const filterDate = datePicker.value;
-        if (!filterDate) return;
-
-        try {
-            // 1. Fetch data from 'collections' table
-            const collectSnapshot = await getDocs(collection(db, "collections"));
-            let periodCollectionSum = 0;
-            let collectionUpToFilterDate = {};
-            let absoluteLifetimeCollection = {};
-
-            if (!collectSnapshot.empty) {
-                collectSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const cDate = data.date;
-                    const cId = data.customerId;
-                    const amount = Number(data.amount) || 0;
-
-                    if (cId && cDate) {
-                        if (isDateInPeriod(cDate, filterDate, currentMode)) {
-                            periodCollectionSum += amount;
-                        }
-                        if (cDate <= filterDate) {
-                            collectionUpToFilterDate[cId] = (collectionUpToFilterDate[cId] || 0) + amount;
-                        }
-                        absoluteLifetimeCollection[cId] = (absoluteLifetimeCollection[cId] || 0) + amount;
-                    }
-                });
+            if (cId && colDate && colDate <= todayIST) {
+                collectionMap[cId] = (collectionMap[cId] || 0) + amount;
             }
-
-            // 2. Fetch data from 'customers' table
-            const custSnapshot = await getDocs(collection(db, "customers"));
-            let totalDisbursement = 0;
-            let totalCumulativeDueOnFilterDate = 0;
-            let totalAccounts = 0;
-            let periodInterestIncome = 0;
-            let absoluteCurrentOutstanding = 0;
-
-            if (!custSnapshot.empty) {
-                custSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const cId = doc.id;
-                    const loanAmount = Number(data.loanAmount) || 0;
-                    const emi = Number(data.dailyEmi || data.emi || 0);
-
-                    if (isDateInPeriod(data.loanDate, filterDate, currentMode)) {
-                        totalDisbursement += loanAmount;
-                        totalAccounts++;
-                        periodInterestIncome += (loanAmount * 0.20);
-                    }
-
-                    // Portfolio Logic: Real active principal + interest remaining in market
-                    if (data.status !== "Closed") {
-                        const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
-                        const totalCollectedLifetime = absoluteLifetimeCollection[cId] || 0;
-                        const remainingLifetimeDue = totalPayableLifetime - totalCollectedLifetime;
-                        
-                        if (remainingLifetimeDue > 0) {
-                            absoluteCurrentOutstanding += remainingLifetimeDue;
-                        }
-                    }
-
-                    // 🧮 FIXED OD LOGIC: Synchronized day tracker execution
-                    if (data.status !== "Closed" && data.loanDate && data.loanDate <= filterDate) {
-                        const start = new Date(data.loanDate);
-                        const end = new Date(filterDate);
-                        
-                        const diffTime = end - start;
-                        // Math.floor will ensure we don't count today as overdue prematurely
-                        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-                        if (diffDays < 0) diffDays = 0;
-
-                        // Calculate expected collections up to selected date
-                        const expectedCollectionUpToDate = diffDays * emi;
-                        const actualCollectionUpToDate = collectionUpToFilterDate[cId] || 0;
-                        const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
-                        
-                        const runningExpected = Math.min(expectedCollectionUpToDate, totalPayableLifetime);
-                        const accountDue = runningExpected - actualCollectionUpToDate;
-
-                        if (accountDue > 0) {
-                            totalCumulativeDueOnFilterDate += accountDue;
-                        }
-                    }
-                });
-            }
-
-            // 3. Fetch data from 'expenses' table
-            const expenseSnapshot = await getDocs(collection(db, "expenses"));
-            let periodExpensesSum = 0;
-
-            if (!expenseSnapshot.empty) {
-                expenseSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.date && isDateInPeriod(data.date, filterDate, currentMode)) {
-                        periodExpensesSum += Number(data.amount) || 0;
-                    }
-                });
-            }
-
-            // 📊 4. UI Rendering Engine (Dashboard Update)
-            if (totalPortfolioEl) totalPortfolioEl.innerText = `₹${Math.round(absoluteCurrentOutstanding)}`;
-            if (disbursementEl) disbursementEl.innerText = `₹${Math.round(totalDisbursement)}`;
-            if (collectionEl) collectionEl.innerText = `₹${Math.round(periodCollectionSum)}`;
-            if (interestIncomeEl) interestIncomeEl.innerText = `₹${Math.round(periodInterestIncome)}`;
-            if (totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(periodExpensesSum)}`;
-            if (totalDueEl) totalDueEl.innerText = `₹${Math.round(totalCumulativeDueOnFilterDate)}`;
-            if (newAccountsEl) newAccountsEl.innerText = totalAccounts;
-
-            // Net Profit Calculation: Interest Income - Expenses
-            const netProfit = periodInterestIncome - periodExpensesSum;
-            if (netProfitEl) {
-                netProfitEl.innerText = `₹${Math.round(netProfit)}`;
-                netProfitEl.style.color = netProfit >= 0 ? "green" : "red";
-            }
-
-        } catch (error) {
-            console.error("Error calculating financial report: ", error);
-        }
-    }
-
-    // 🔄 Event Listeners for Date and Mode Changes
-    if (datePicker) {
-        datePicker.addEventListener("change", calculateFinanceReport);
-    }
-
-    const updateMode = (mode, activeBtn) => {
-        currentMode = mode;
-        if (dateLabel) dateLabel.innerText = `${mode} Report for:`;
-
-        [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(btn => {
-            if (btn) btn.classList.remove("active");
         });
-        if (activeBtn) activeBtn.classList.add("active");
-        
-        calculateFinanceReport();
-    };
 
-    if (btnDaily) btnDaily.addEventListener("click", () => updateMode("Daily", btnDaily));
-    if (btnMonthly) btnMonthly.addEventListener("click", () => updateMode("Monthly", btnMonthly));
-    if (btnQuarterly) btnQuarterly.addEventListener("click", () => updateMode("Quarterly", btnQuarterly));
-    if (btnYearly) btnYearly.addEventListener("click", () => updateMode("Yearly", btnYearly));
+        const custSnapshot = await getDocs(collection(db, "customers"));
+        let totalOverdue = 0;
 
-    // Initial Trigger on Load
-    calculateFinanceReport();
-});
+        custSnapshot.forEach(doc => {
+            const cust = doc.data();
+            const emi = Number(cust.dailyEmi || cust.emi || 0);
+            const loanAmount = Number(cust.loanAmount || 0);
+
+            if (cust.status !== "Closed") {
+                if (cust.loanDate && cust.loanDate <= todayIST) {
+                    const start = new Date(cust.loanDate);
+                    const end = new Date(todayIST);
+                    const diffDays = Math.max(0, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
+                    
+                    const expected = diffDays * emi;
+                    const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
+                    const runningExpected = Math.min(expected, totalPayableLifetime);
+
+                    const primaryDocId = doc.id.toString().trim().toUpperCase();
+                    const customCode = (cust.customerCode || "").toString().trim().toUpperCase();
+                    const custName = (cust.name || "").toString().trim().toUpperCase();
+
+                    const paid = collectionMap[customCode] || collectionMap[primaryDocId] || collectionMap[custName] || 0;
+                    const accountDue = runningExpected - paid;
+
+                    if (accountDue > 0) {
+                        totalOverdue += accountDue;
+                    }
+                }
+            }
+        });
+
+        if (txtTotalDue) txtTotalDue.innerText = `₹${totalOverdue}`;
+
+    } catch (err) { console.error("Report Sync Error:", err); }
+}
+window.addEventListener('DOMContentLoaded', loadReport);
