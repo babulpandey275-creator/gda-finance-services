@@ -1,18 +1,9 @@
 // ==========================================================
-// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE (FINAL UPDATED)
+// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE (FINAL VERSION)
 // ==========================================================
 
 import { db } from "./firebase.js"; 
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-
-// 🧼 ID Normalizer
-function normalizeGdaId(idStr) {
-    if (!idStr) return "";
-    const clean = idStr.toString().trim().toUpperCase();
-    const match = clean.match(/^GDA\s*0*(\d+)$/);
-    if (match) return "GDA" + match[1].padStart(3, '0');
-    return clean;
-}
 
 window.addEventListener('DOMContentLoaded', async () => {
     const customerSelect = document.getElementById("customerSelect");
@@ -23,7 +14,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (collectionDate) collectionDate.value = todayIST;
 
-    // 1. लोड कस्टमर ड्रॉपडाउन
+    // 1. कस्टमर ड्रॉपडाउन लोड करें
     async function loadCustomersDropdown() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -42,7 +33,56 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 2. सबमिट कलेक्शन
+    // 2. कस्टमर चुनने पर उसका हिसाब (Paid Days/Amount) दिखाएं
+    customerSelect.addEventListener('change', async (e) => {
+        const selectedId = e.target.value;
+        if (!selectedId) return;
+
+        try {
+            const custDoc = await getDoc(doc(db, "customers", selectedId));
+            if (custDoc.exists()) {
+                const data = custDoc.data();
+                
+                // EMI ऑटो-फिल
+                collectAmount.value = Number(data.dailyEmi || data.emi || 0);
+
+                // हिसाब-किताब के लिए Div बनाना
+                let infoDiv = document.getElementById("customerAccountInfo");
+                if (!infoDiv) {
+                    infoDiv = document.createElement("div");
+                    infoDiv.id = "customerAccountInfo";
+                    infoDiv.style.marginTop = "15px";
+                    infoDiv.style.padding = "12px";
+                    infoDiv.style.background = "#f1f5f9";
+                    infoDiv.style.borderRadius = "12px";
+                    infoDiv.style.fontSize = "14px";
+                    infoDiv.style.border = "1px solid #cbd5e1";
+                    collectAmount.parentNode.insertBefore(infoDiv, collectAmount);
+                }
+
+                const totalLoan = Number(data.totalLoanAmount || 0);
+                const totalCollected = Number(data.totalCollected || data.paidAmount || 0);
+                const paidDays = Number(data.paidDays || 0);
+                const remainingDue = totalLoan - totalCollected;
+
+                infoDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>कुल जमा दिन:</span> <strong>${paidDays} दिन</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>कुल जमा राशि:</span> <strong style="color: #15803d;">₹${totalCollected}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>बाकी राशि:</span> <strong style="color: #b91c1c;">₹${remainingDue}</strong>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error("Error fetching customer info:", err);
+        }
+    });
+
+    // 3. सबमिट कलेक्शन (पैसा जमा करना)
     if (submitCollectionBtn) {
         submitCollectionBtn.onclick = async (e) => {
             e.preventDefault();
@@ -58,7 +98,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             try {
                 submitCollectionBtn.disabled = true;
                 
-                // A. कलेक्शन लॉग्स में एंट्री
+                // कलेक्शन लॉग में एंट्री
                 await addDoc(collection(db, "collections"), {
                     customerId: selectedId,
                     amount: amount,
@@ -67,13 +107,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                     timestamp: new Date()
                 });
 
-                // B. कस्टमर का डेटा अपडेट
+                // कस्टमर मास्टर डेटा अपडेट
                 const custDocRef = doc(db, "customers", selectedId);
                 const custSnap = await getDoc(custDocRef);
                 if (custSnap.exists()) {
                     const data = custSnap.data();
-                    const oldCollected = Number(data.totalCollected || data.paidAmount || 0);
-                    const newTotalCollected = oldCollected + amount;
+                    const newTotalCollected = Number(data.totalCollected || data.paidAmount || 0) + amount;
                     const newPaidDays = Number(data.paidDays || 0) + 1;
                     
                     await updateDoc(custDocRef, {
@@ -92,16 +131,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // 3. सबसे पहले ड्रॉपडाउन लोड करें
+    // सबसे पहले ड्रॉपडाउन लोड करें
     await loadCustomersDropdown();
 
-    // 4. URL से ID पकड़कर नाम ऑटो-सेलेक्ट करें (ऑटो-फिल लॉजिक)
+    // URL से ID पकड़कर नाम ऑटो-सेलेक्ट करें
     const urlParams = new URLSearchParams(window.location.search);
     const idFromUrl = urlParams.get('id');
-    
     if (idFromUrl) {
-        if (customerSelect) {
-            customerSelect.value = idFromUrl;
-        }
+        customerSelect.value = idFromUrl;
+        customerSelect.dispatchEvent(new Event('change')); // ताकि ऑटो-फिल और हिसाब तुरंत दिखे
     }
 });
