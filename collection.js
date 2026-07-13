@@ -53,7 +53,9 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const dailyEmi = Number(data.dailyEmi || data.emi || 0);
                 const totalLoan = Number(data.totalLoanAmount || 0);
                 const totalCollected = Number(data.totalCollected || data.paidAmount || 0);
-                const remaining = totalLoan - totalCollected;
+                
+                // गणित सुधार: अगर बाकी राशि माइनस में हो, तो उसे ₹0 दिखाए
+                const remaining = Math.max(0, totalLoan - totalCollected);
                 const paidDays = Number(data.paidDays || 0);
 
                 // UI Update
@@ -101,7 +103,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 
                 await updateDoc(custRef, {
                     totalCollected: Number(data.totalCollected || 0) + amount,
-                    paidAmount: Number(data.totalCollected || 0) + amount, // पुराने सपोर्ट के लिए
+                    paidAmount: Number(data.totalCollected || 0) + amount,
                     paidDays: Number(data.paidDays || 0) + 1
                 });
 
