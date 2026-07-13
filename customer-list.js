@@ -1,9 +1,9 @@
 // ==========================================================
-// 🚀 GDA FINANCE - CUSTOMER LIST ENGINE (FIXED FOR STATEMENT.HTML)
+// 🚀 GDA FINANCE - FINAL UPDATED CUSTOMER LIST ENGINE
 // ==========================================================
 
 import { db } from "./firebase.js"; 
-import { collection, getDocs, deleteDoc, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, getDocs, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 let allCustomers = [];
 let currentStatus = "Active";
@@ -46,17 +46,20 @@ function renderList() {
     listContainer.innerHTML = filtered.map(cust => {
         const loanDate = new Date(cust.loanDate);
         const today = new Date();
-        const diffTime = today - loanDate;
-        let daysElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        let daysElapsed = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)) + 1;
         if (daysElapsed < 1) daysElapsed = 1; 
         
-        const expectedAmt = daysElapsed * Number(cust.dailyEmi || cust.emi || 0);
-        const totalPaid = Number(cust.paidAmount || 0);
-        const currentDue = Math.max(0, expectedAmt - totalPaid);
+        // फिक्स्ड कैलकुलेशन: यहाँ 'totalCollected' का उपयोग किया गया है ताकि बकाया सही दिखे
+        const expectedTotal = daysElapsed * Number(cust.dailyEmi || cust.emi || 0);
+        const totalCollected = Number(cust.totalCollected || cust.paidAmount || 0);
+        let currentDue = expectedTotal - totalCollected;
+        
+        // अगर पैसा एडवांस में है तो Due को 0 दिखाएं
+        if (currentDue < 0) currentDue = 0;
 
         const displayCode = cust.customerCode || cust.member_id || `GDA${String(cust.member_no || 0).padStart(3, '0')}`;
         
-        // ✨ यहाँ हमने 'statement.html' का लिंक फिक्स कर दिया है
+        // स्टेटमेंट पेज का सही लिंक
         const profileUrl = `statement.html?id=${cust.id}`;
         const collectUrl = `collection.html?id=${cust.id}`;
 
@@ -85,7 +88,7 @@ function renderList() {
 window.secureEdit = (docId) => {
     const pass = prompt("🔑 Admin Password:");
     if (pass === ADMIN_PASSWORD) {
-        window.location.href = `edit-customer.html?id=${docId}`;
+        window.location.href = `edit.html?id=${docId}`;
     } else if (pass !== null) {
         alert("❌ Incorrect Password!");
     }
