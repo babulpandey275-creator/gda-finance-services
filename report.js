@@ -1,26 +1,34 @@
 // ==========================================
-// 🚀 GDA FINANCE - REPORT ENGINE (STRICT OVERDUE FIX)
+// 🚀 GDA FINANCE - REPORT ENGINE (TOTAL OVERDUE ACCUMULATION FIX)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 export async function loadReport() {
-    const txtTotalDue = document.getElementById("txtTotalDue"); // Maps to Total Due Card
+    const txtTotalDue = document.getElementById("txtTotalDue"); 
     const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     try {
         const collectSnapshot = await getDocs(collection(db, "collections"));
-        let collectionMap = {};
+        let allCollections = [];
 
         collectSnapshot.forEach(doc => {
             const data = doc.data();
             const colDate = data.date || "";
-            const cId = (data.customerCode || data.customerId || data.customerName || data.name || "").toString().trim().toUpperCase();
             const amount = Number(data.amount || 0);
 
-            if (cId && colDate && colDate <= todayIST) {
-                collectionMap[cId] = (collectionMap[cId] || 0) + amount;
+            const rawCustId = (data.customerId || "").toString().trim();
+            const rawCustCode = (data.customerCode || "").toString().trim();
+            const rawCustName = (data.customerName || data.name || "").toString().trim();
+
+            if (colDate && colDate <= todayIST) {
+                allCollections.push({
+                    custId: rawCustId,
+                    custCode: rawCustCode,
+                    custName: rawCustName,
+                    amount: amount
+                });
             }
         });
 
@@ -42,12 +50,22 @@ export async function loadReport() {
                     const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
                     const runningExpected = Math.min(expected, totalPayableLifetime);
 
-                    const primaryDocId = doc.id.toString().trim().toUpperCase();
-                    const customCode = (cust.customerCode || "").toString().trim().toUpperCase();
-                    const custName = (cust.name || "").toString().trim().toUpperCase();
+                    const pDocId = doc.id.toString().trim();
+                    const cCode = (cust.customerCode || "").toString().trim();
+                    const cName = (cust.name || "").toString().trim();
 
-                    const paid = collectionMap[customCode] || collectionMap[primaryDocId] || collectionMap[custName] || 0;
-                    const accountDue = runningExpected - paid;
+                    let totalPaidForThisCustomer = 0;
+                    allCollections.forEach(col => {
+                        if (
+                            (col.custId && col.custId === pDocId) || 
+                            (col.custCode && col.custCode === cCode) || 
+                            (col.custName && col.custName === cName)
+                        ) {
+                            totalPaidForThisCustomer += col.amount;
+                        }
+                    });
+
+                    const accountDue = runningExpected - totalPaidForThisCustomer;
 
                     if (accountDue > 0) {
                         totalOverdue += accountDue;
@@ -58,6 +76,8 @@ export async function loadReport() {
 
         if (txtTotalDue) txtTotalDue.innerText = `₹${totalOverdue}`;
 
-    } catch (err) { console.error("Report Sync Error:", err); }
+    } catch (err) { 
+        console.error("Report Sync Error:", err); 
+    }
 }
 window.addEventListener('DOMContentLoaded', loadReport);
