@@ -1,6 +1,6 @@
-// ==========================================
-// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE
-// ==========================================
+// ==========================================================
+// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE (FINAL UPDATED)
+// ==========================================================
 
 import { db } from "./firebase.js"; 
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
@@ -19,11 +19,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectAmount = document.getElementById("collectAmount");
     const collectionDate = document.getElementById("collectionDate");
     const submitCollectionBtn = document.getElementById("submitCollectionBtn");
-
     const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-    if (collectionDate) collectionDate.value = todayIST;
 
-    let allCustomers = {};
+    if (collectionDate) collectionDate.value = todayIST;
 
     // 1. लोड कस्टमर ड्रॉपडाउन
     async function loadCustomersDropdown() {
@@ -33,17 +31,18 @@ window.addEventListener('DOMContentLoaded', async () => {
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 if (data.status !== "Closed") {
-                    allCustomers[docSnap.id] = data;
                     const option = document.createElement("option");
                     option.value = docSnap.id;
                     option.textContent = `${data.name} (${data.customerCode || 'GDA'})`;
                     customerSelect.appendChild(option);
                 }
             });
-        } catch (err) { console.error("Error:", err); }
+        } catch (err) {
+            console.error("Error loading customers:", err);
+        }
     }
 
-    // 2. सबमिट कलेक्शन (यह सबसे जरूरी है)
+    // 2. सबमिट कलेक्शन
     if (submitCollectionBtn) {
         submitCollectionBtn.onclick = async (e) => {
             e.preventDefault();
@@ -59,7 +58,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             try {
                 submitCollectionBtn.disabled = true;
                 
-                // A. कलेक्शन लॉग्स में एंट्री करें
+                // A. कलेक्शन लॉग्स में एंट्री
                 await addDoc(collection(db, "collections"), {
                     customerId: selectedId,
                     amount: amount,
@@ -68,23 +67,22 @@ window.addEventListener('DOMContentLoaded', async () => {
                     timestamp: new Date()
                 });
 
-                // B. कस्टमर का मास्टर डेटा अपडेट करें (Due Amount सही करने के लिए)
+                // B. कस्टमर का डेटा अपडेट
                 const custDocRef = doc(db, "customers", selectedId);
                 const custSnap = await getDoc(custDocRef);
-                
                 if (custSnap.exists()) {
                     const data = custSnap.data();
                     const oldCollected = Number(data.totalCollected || data.paidAmount || 0);
                     const newTotalCollected = oldCollected + amount;
                     const newPaidDays = Number(data.paidDays || 0) + 1;
-
+                    
                     await updateDoc(custDocRef, {
                         totalCollected: newTotalCollected,
-                        paidAmount: newTotalCollected, // पुरानी स्कीम के लिए
+                        paidAmount: newTotalCollected,
                         paidDays: newPaidDays
                     });
                 }
-
+                
                 alert("🎉 पैसा सफलतापूर्वक जमा हो गया!");
                 window.location.href = "customer-list.html";
             } catch (err) {
@@ -94,5 +92,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    // 3. सबसे पहले ड्रॉपडाउन लोड करें
     await loadCustomersDropdown();
+
+    // 4. URL से ID पकड़कर नाम ऑटो-सेलेक्ट करें (ऑटो-फिल लॉजिक)
+    const urlParams = new URLSearchParams(window.location.search);
+    const idFromUrl = urlParams.get('id');
+    
+    if (idFromUrl) {
+        if (customerSelect) {
+            customerSelect.value = idFromUrl;
+        }
+    }
 });
