@@ -13,102 +13,71 @@
         .company-name { font-size: 28px; font-weight: 700; color: #0d47a1; margin: 0; letter-spacing: 1px; }
         .company-sub { font-size: 12px; color: #475569; margin: 5px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; }
         .bond-title { text-align: center; font-size: 18px; font-weight: 700; text-transform: uppercase; margin-bottom: 30px; color: #1e293b; letter-spacing: 0.5px; background: #f1f5f9; padding: 8px; border-radius: 4px; }
-        
         .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
         .details-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
         .details-table td:nth-child(1) { font-weight: 600; color: #475569; width: 30%; }
         .details-table td:nth-child(2) { color: #0f172a; font-weight: 500; }
         .details-table td:nth-child(3) { font-weight: 600; color: #475569; width: 25%; }
         .details-table td:nth-child(4) { color: #0f172a; font-weight: 500; text-align: right; }
-        
         .terms-box { margin-bottom: 40px; }
         .terms-box h4 { margin: 0 0 10px 0; font-size: 15px; color: #0d47a1; font-weight: 600; }
         .terms-box p { font-size: 13px; color: #334155; line-height: 1.6; margin: 5px 0; text-align: justify; }
         
-        .signature-area { display: flex; justify-content: space-between; margin-top: 80px; text-align: center; }
-        .sig-box { width: 30%; border-top: 1px dashed #64748b; padding-top: 8px; font-size: 12px; font-weight: 600; color: #475569; }
+        /* सिग्नेचर सेक्शन सेंटर में */
+        .signature-area { margin-top: 60px; text-align: center; display: flex; justify-content: center; }
+        .sig-box-center { width: 50%; text-align: center; }
         
         .btn-container { text-align: center; margin-top: 25px; }
         .btn-print { background: #0d47a1; color: white; border: none; padding: 12px 30px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(13, 71, 161, 0.2); }
         .btn-back { background: #475569; color: white; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-right: 10px; }
-        
-        @media print {
-            body { background: white; padding: 0; color: black; }
-            .bond-card { border: none; box-shadow: none; padding: 0; max-width: 100%; }
-            .btn-container { display: none; }
-        }
+        @media print { body { background: white; padding: 0; color: black; } .bond-card { border: none; box-shadow: none; padding: 0; max-width: 100%; } .btn-container { display: none; } }
     </style>
 </head>
 <body>
 
-    <div class="bond-card">
-        <div class="watermark">GDA FINANCE<br>SERVICES</div>
-        
-        <div class="logo-area">
-            <h1 class="company-name">🏦 GDA FINANCE SERVICES</h1>
-            <p class="company-sub">Digital Loan Distribution & Micro Finance System</p>
-        </div>
-        
-        <div class="bond-title">Loan Disbursement Agreement Bond</div>
-        
-        <table class="details-table">
-            <tr>
-                <td>Customer Name:</td>
-                <td id="bondName">-</td>
-                <td>Loan Number / ID:</td>
-                <td id="bondId">-</td>
-            </tr>
-            <tr>
-                <td>Mobile Number:</td>
-                <td id="bondMobile">-</td>
-                <td>Date of Disbursal:</td>
-                <td id="bondDate">-</td>
-            </tr>
-            <tr>
-                <td>Aadhaar Number:</td>
-                <td id="bondAadhar">-</td>
-                <td>PAN Card Number:</td>
-                <td id="bondPan">-</td>
-            </tr>
-            <tr>
-                <td>Permanent Address:</td>
-                <td id="bondAddress" colspan="3">-</td>
-            </tr>
-            <tr>
-                <td>Principal Amount:</td>
-                <td id="bondAmount" style="font-weight: 700; color: #0d47a1;">₹0</td>
-                <td>Plan Duration:</td>
-                <td id="bondPlan">-</td>
-            </tr>
-            <tr>
-                <td>Daily EMI Amount:</td>
-                <td id="bondEmi" style="font-weight: 700; color: #dc3545;">₹0</td>
-                <!-- 🛠️ PROFESSIONALLY REDACTED: Percentage hidden from interface -->
-                <td>Total Payable Amount:</td>
-                <td id="bondTotalPayable" style="font-weight: 700; text-align: right;">₹0</td>
-            </tr>
-        </table>
-        
-        <div class="terms-box">
-            <h4>📜 Terms & Loan Declarations (नियम व शर्तें):</h4>
-            <p>1. The borrower acknowledges receiving the principal loan amount mentioned above from **GDA Finance Services** in full and good faith.</p>
-            <p>2. It is mandatory for the borrower to pay the designated Daily EMI amount on time every day without failure as per the agreed plan duration.</p>
-            <p>3. Failure to repay the daily installment within due time will automatically attract predefined gap penalties and late fine criteria as set up by the company policies.</p>
-            <p>4. The company holds full commercial rights to take necessary lawful actions in case of total default or non-compliance with the repayment schedules.</p>
-        </div>
-        
-        <div class="signature-area">
-            <div class="sig-box">Borrower / Customer Sign</div>
-            <div class="sig-box">Collection Manager Sign</div>
-            <div class="sig-box">Branch Manager Sign</div>
-        </div>
+<div class="bond-card">
+    <div class="watermark">GDA FINANCE<br>SERVICES</div>
+    <div class="logo-area">
+        <h1 class="company-name">🏦 GDA FINANCE SERVICES</h1>
+        <p class="company-sub">Digital Loan Distribution & Micro Finance System</p>
     </div>
     
-    <div class="btn-container">
-        <a href="customer-list.html" class="btn-back">⬅ Back to List</a>
-        <button class="btn-print" id="btnPrintBond">🖨️ Print & Save Bond Paper</button>
+    <div class="bond-title">Loan Disbursement Agreement Bond</div>
+
+    <table class="details-table">
+        <tr> <td>Customer Name:</td> <td id="bondName">-</td> <td>Loan Number / ID:</td> <td id="bondId">-</td> </tr>
+        <tr> <td>Mobile Number:</td> <td id="bondMobile">-</td> <td>Date of Disbursal:</td> <td id="bondDate">-</td> </tr>
+        <tr> <td>Aadhaar Number:</td> <td id="bondAadhar">[Aadhaar Redacted]</td> <td>PAN Card Number:</td> <td id="bondPan">-</td> </tr>
+        <tr> <td>Permanent Address:</td> <td id="bondAddress" colspan="3">-</td> </tr>
+        <tr> <td>Principal Amount:</td> <td id="bondAmount" style="font-weight: 700; color: #0d47a1;">₹0</td> <td>Plan Duration:</td> <td id="bondPlan">-</td> </tr>
+        <tr> <td>Daily EMI Amount:</td> <td id="bondEmi" style="font-weight: 700; color: #dc3545;">₹0</td> <td>Total Payable Amount:</td> <td id="bondTotalPayable" style="font-weight: 700; text-align: right;">₹0</td> </tr>
+    </table>
+
+    <div class="terms-box">
+        <h4>📜 Terms & Loan Declarations (नियम व शर्तें):</h4>
+        <p>1. The borrower acknowledges receiving the principal loan amount mentioned above from **GDA Finance Services** in full and good faith.</p>
+        <p>2. It is mandatory for the borrower to pay the designated Daily EMI amount on time every day without failure as per the agreed plan duration.</p>
+        <p>3. Failure to repay the daily installment within due time will automatically attract predefined gap penalties and late fine criteria as set up by the company policies.</p>
+        <p>4. The company holds full commercial rights to take necessary lawful actions in case of total default or non-compliance with the repayment schedules.</p>
     </div>
 
-    <script type="module" src="disbursement-bond.js"></script>
+    <!-- अपडेटेड सिग्नेचर सेक्शन -->
+    <div class="signature-area">
+        <div class="sig-box-center">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">For GDA Finance Services</p>
+            <!-- यहाँ अपनी मोहर और सिग्नेचर वाली फाइल का नाम लिखें -->
+            <img src="stamp_signature.png" alt="Authorized Signatory" style="width: 150px; height: auto; display: block; margin: 0 auto;">
+            <div style="border-top: 1px solid #000; width: 200px; margin: 10px auto 5px auto;"></div>
+            <p style="font-weight: bold; margin: 0; font-size: 13px;">Branch Manager (Authorized)</p>
+        </div>
+    </div>
+</div>
+
+<div class="btn-container">
+    <a href="customer-list.html" class="btn-back">⬅ Back to List</a>
+    <button class="btn-print" id="btnPrintBond">🖨️ Print & Save Bond Paper</button>
+</div>
+
+<script type="module" src="disbursement-bond.js"></script>
 </body>
 </html>
