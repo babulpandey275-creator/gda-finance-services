@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - DASHBOARD ENGINE (TOTAL REAL-TIME OVERDUE RE-FIX)
+// 🚀 GDA FINANCE - DASHBOARD ENGINE (FINAL FIXED)
 // ==========================================
 
 import { db, auth } from "./firebase.js"; 
@@ -18,25 +18,23 @@ export async function loadDashboard() {
         const txtTodayDemand = document.getElementById("txtTodayDemand");
         const lblDueCount = document.getElementById("lblDueCount");
 
-        // Precise IST Date Format (YYYY-MM-DD)
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         try {
-            // 1. Calculate Today's Real-time Collection
+            // 1. आज का टोटल कलेक्शन और उन कस्टमर्स की लिस्ट जिन्होंने पेमेंट किया है
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let todayCollected = 0;
+            const paidTodayIds = []; // उन कस्टमर्स की लिस्ट जिन्होंने आज पैसा दिया
 
             collectSnapshot.forEach(doc => {
                 const data = doc.data();
-                const colDate = data.date || "";
-                const amount = Number(data.amount || 0);
-
-                if (colDate === todayIST) {
-                    todayCollected += amount;
+                if (data.date === todayIST) {
+                    todayCollected += Number(data.amount || 0);
+                    paidTodayIds.push(data.customerId); // ID सेव की
                 }
             });
 
-            // 2. Fetch Active Customers and process strict current targets
+            // 2. कस्टमर्स का डेटा प्रोसेस करें
             const custSnapshot = await getDocs(collection(db, "customers"));
             let active = 0;
             let totalDemand = 0;
@@ -50,25 +48,24 @@ export async function loadDashboard() {
                     active++;
                     totalDemand += emi;
                     
-                    // अगर आज किसी ग्राहक ने ₹1 भी नहीं दिया है, तो वह पेंडिंग लिस्ट में काउंट होगा
-                    missedCount++; 
+                    // अगर इस कस्टमर की ID 'paidTodayIds' में नहीं है, तो पेंडिंग है
+                    if (!paidTodayIds.includes(doc.id)) {
+                        missedCount++; 
+                    }
                 }
             });
 
-            // 🧮 PERFECT BUSINESS MODEL LOGIC:
-            // सुबह होते ही Today's Overdue पूरा का पूरा Today's Target (₹2200) रहेगा।
-            // जैसे-जैसे कलेक्शन आता जाएगा, यह घटता चला जाएगा।
+            // 🧮 Calculations
             const currentTodayOverdue = Math.max(0, totalDemand - todayCollected);
 
-            // UI Rendering Control Block
+            // 3. UI Updates
             if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected} / ₹${totalDemand}`;
             if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand}`;
             if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
             if (txtActiveAccounts) txtActiveAccounts.innerText = active;
             
-            // अगर आज का पूरा कलेक्शन आ गया तो ड्यू लिस्ट 0, नहीं तो डिफ़ॉल्ट एक्टिव काउंट
             if (lblDueCount) {
-                lblDueCount.innerText = todayCollected >= totalDemand ? 0 : missedCount;
+                lblDueCount.innerText = missedCount; // अब यहाँ सिर्फ पेंडिंग वाले दिखेंगे
             }
 
         } catch (err) { 
@@ -77,18 +74,11 @@ export async function loadDashboard() {
     });
 }
 
-// 🔄 REFRESH & NAVIGATION SHORTCUTS REGISTER
+// 🔄 REFRESH & NAVIGATION
 window.addEventListener('load', () => {
     const refreshBtn = document.getElementById("refreshBtn") || document.querySelector(".btn-refresh") || document.querySelector(".refresh-btn");
     if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
     
-    const allButtons = document.querySelectorAll("button");
-    allButtons.forEach(btn => {
-        if (btn.innerText.includes("Refresh")) {
-            btn.onclick = () => window.location.reload();
-        }
-    });
-
     const bottomChangePassBtn = document.querySelector("a[href*='Password']") || document.getElementById("changePasswordBtn");
     if (bottomChangePassBtn) bottomChangePassBtn.onclick = () => { window.location.href = "change-password.html"; };
 });
