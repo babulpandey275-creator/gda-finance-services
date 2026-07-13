@@ -49,12 +49,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (custDoc.exists()) {
                 const data = custDoc.data();
                 
-                // डेटा कैलकुलेशन
+                // डेटा कैलकुलेशन (डेटाबेस फील्ड्स के अनुसार)
                 const dailyEmi = Number(data.dailyEmi || data.emi || 0);
-                const totalLoan = Number(data.totalLoanAmount || 0);
-                const totalCollected = Number(data.totalCollected || data.paidAmount || 0);
+                const totalLoan = Number(data.totalCollection || 0); // आपके DB में 12000
+                const totalCollected = Number(data.totalCollected || 0);
                 
-                // गणित सुधार: अगर बाकी राशि माइनस में हो, तो उसे ₹0 दिखाए
                 const remaining = Math.max(0, totalLoan - totalCollected);
                 const paidDays = Number(data.paidDays || 0);
 
@@ -103,7 +102,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 
                 await updateDoc(custRef, {
                     totalCollected: Number(data.totalCollected || 0) + amount,
-                    paidAmount: Number(data.totalCollected || 0) + amount,
                     paidDays: Number(data.paidDays || 0) + 1
                 });
 
