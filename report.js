@@ -1,83 +1,103 @@
 // ==========================================
-// 🚀 GDA FINANCE - REPORT ENGINE (TOTAL OVERDUE ACCUMULATION FIX)
+// 🚀 GDA FINANCE - FINANCIAL REPORT ENGINE (FIXED ABSOLUTE ZERO BUG)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 export async function loadReport() {
-    const txtTotalDue = document.getElementById("txtTotalDue"); 
-    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
 
-    try {
-        const collectSnapshot = await getDocs(collection(db, "collections"));
-        let allCollections = [];
+        // Target UI Elements mapping
+        const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
+        const txtDisbursement = document.getElementById("txtDisbursement");
+        const txtCollection = document.getElementById("txtCollection");
+        const txtInterestIncome = document.getElementById("txtInterestIncome");
+        const txtExpenses = document.getElementById("txtExpenses");
+        const txtNetProfit = document.getElementById("txtNetProfit");
+        const txtTotalDue = document.getElementById("txtTotalDue");
+        const txtNewAccounts = document.getElementById("txtNewAccounts");
 
-        collectSnapshot.forEach(doc => {
-            const data = doc.data();
-            const colDate = data.date || "";
-            const amount = Number(data.amount || 0);
+        const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-            const rawCustId = (data.customerId || "").toString().trim();
-            const rawCustCode = (data.customerCode || "").toString().trim();
-            const rawCustName = (data.customerName || data.name || "").toString().trim();
-
-            if (colDate && colDate <= todayIST) {
-                allCollections.push({
-                    custId: rawCustId,
-                    custCode: rawCustCode,
-                    custName: rawCustName,
-                    amount: amount
+        try {
+            // 1. Fetch Expenses Sum
+            let totalExpenses = 0;
+            try {
+                const expSnapshot = await getDocs(collection(db, "expenses"));
+                expSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalExpenses += Number(data.amount || 0);
                 });
+            } catch (e) {
+                console.error("Expenses sub-fetch bypassed:", e);
             }
-        });
 
-        const custSnapshot = await getDocs(collection(db, "customers"));
-        let totalOverdue = 0;
+            // 2. Process Core Customer Data Stream Directly (Bypassing aggressive string locks)
+            const custSnapshot = await getDocs(collection(db, "customers"));
+            
+            let totalDisbursement = 0; // Total Loan Principal given out
+            let totalCollection = 0;   // Total EMI collected back till date
+            let totalInterest = 0;     // Total expected interest generated
+            let activeAccounts = 0;
+            let totalOverdueCalculated = 0;
 
-        custSnapshot.forEach(doc => {
-            const cust = doc.data();
-            const emi = Number(cust.dailyEmi || cust.emi || 0);
-            const loanAmount = Number(cust.loanAmount || 0);
+            custSnapshot.forEach(doc => {
+                const cust = doc.data();
+                const loanAmt = Number(cust.loanAmount || 0);
+                const emi = Number(cust.dailyEmi || cust.emi || 0);
+                
+                // Read directly from the accurate database fields verified earlier
+                const paid = Number(cust.paidAmount || cust.totalCollected || 0);
 
-            if (cust.status !== "Closed") {
-                if (cust.loanDate && cust.loanDate <= todayIST) {
+                if (cust.status !== "Closed") {
+                    activeAccounts++;
+                }
+
+                // Cumulative dynamic metrics computation
+                totalDisbursement += loanAmt;
+                totalCollection += paid;
+                totalInterest += (loanAmt * 0.20);
+
+                // Safe Real-time Due Estimation Pipeline
+                if (cust.status !== "Closed" && cust.loanDate && cust.loanDate <= todayIST) {
                     const start = new Date(cust.loanDate);
                     const end = new Date(todayIST);
                     const diffDays = Math.max(0, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
                     
-                    const expected = diffDays * emi;
-                    const totalPayableLifetime = loanAmount + (loanAmount * 0.20);
-                    const runningExpected = Math.min(expected, totalPayableLifetime);
-
-                    const pDocId = doc.id.toString().trim();
-                    const cCode = (cust.customerCode || "").toString().trim();
-                    const cName = (cust.name || "").toString().trim();
-
-                    let totalPaidForThisCustomer = 0;
-                    allCollections.forEach(col => {
-                        if (
-                            (col.custId && col.custId === pDocId) || 
-                            (col.custCode && col.custCode === cCode) || 
-                            (col.custName && col.custName === cName)
-                        ) {
-                            totalPaidForThisCustomer += col.amount;
-                        }
-                    });
-
-                    const accountDue = runningExpected - totalPaidForThisCustomer;
-
-                    if (accountDue > 0) {
-                        totalOverdue += accountDue;
+                    const expectedTotalTillToday = diffDays * emi;
+                    const maxPayableLifetime = loanAmt + (loanAmt * 0.20);
+                    const runningExpected = Math.min(expectedTotalTillToday, maxPayableLifetime);
+                    
+                    const individualDue = runningExpected - paid;
+                    if (individualDue > 0) {
+                        totalOverdueCalculated += individualDue;
                     }
                 }
-            }
-        });
+            });
 
-        if (txtTotalDue) txtTotalDue.innerText = `₹${totalOverdue}`;
+            // Master Portfolio calculations
+            const totalPortfolioValue = totalDisbursement + totalInterest;
+            const netProfitValue = totalInterest - totalExpenses;
 
-    } catch (err) { 
-        console.error("Report Sync Error:", err); 
-    }
+            // 📊 Direct UI Content Injection Mapping
+            if (txtTotalPortfolio) txtTotalPortfolio.innerText = `₹${totalPortfolioValue}`;
+            if (txtDisbursement) txtDisbursement.innerText = `₹${totalDisbursement}`;
+            if (txtCollection) txtCollection.innerText = `₹${totalCollection}`;
+            if (txtInterestIncome) txtInterestIncome.innerText = `₹${totalInterest}`;
+            if (txtExpenses) txtExpenses.innerText = `₹${totalExpenses}`;
+            if (txtNetProfit) txtNetProfit.innerText = `₹${netProfitValue}`;
+            if (txtTotalDue) txtTotalDue.innerText = `₹${totalOverdueCalculated}`;
+            if (txtNewAccounts) txtNewAccounts.innerText = activeAccounts;
+
+        } catch (err) {
+            console.error("Report Absolute Master Pipeline Failure:", err);
+        }
+    });
 }
+
 window.addEventListener('DOMContentLoaded', loadReport);
