@@ -1,8 +1,9 @@
-import { db } from "./firebase.js"; 
-import { collection, addDoc, updateDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+// ==========================================
+// 🚀 GDA FINANCE - REGISTRATION (INSTANT DIRECT SAVE - NO STORAGE LAG)
+// ==========================================
 
-const storage = getStorage();
+import { db } from "./firebase.js"; 
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
     const registerForm = document.getElementById("registerForm");
@@ -51,14 +52,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         captureBtn.onclick = () => {
             const ctx = canvas.getContext('2d');
             
-            // 🎯 ULTRA COMPRESSION FIX: आयामी साइज़ को छोटा (320x240) किया ताकि KB बहुत कम हो जाए
+            // Dimensions to keep payload lightweight
             canvas.width = 320;
             canvas.height = 240;
             
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Quality scale को 0.4 पर सेट किया जिससे फ़ोटो 30-40 KB में बदल जाएगी
-            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.4); 
+            // Super compressed to fit natively inside Firestore text field
+            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.3); 
             
             video.style.display = "none";
             canvas.style.display = "block";
@@ -118,7 +119,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 💾 DIRECT SUBMISSION ROUTINE (SAFE & FIX FOR MOBILE LOCKING)
+    // 💾 SAVE ROUTINE WITH DIRECT PICTURE INJECTION
     if (saveBtn) {
         saveBtn.onclick = async (e) => {
             e.preventDefault();
@@ -139,7 +140,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
 
             saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ Saving Data...";
+            saveBtn.innerText = "⏳ Disbursing Loan... Please Wait";
 
             try {
                 const idDetails = await generateNextGdaId();
@@ -147,6 +148,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const planDuration = Number(loanPlanSelect.value) || 60;
                 const emi = Number(emiInput.value) || Math.round((loanAmount + (loanAmount * 0.20)) / planDuration);
 
+                // 🎯 DIRECT COMBINED PAYLOAD (Photo text + Customer data sent together)
                 const newCustomerData = {
                     name: name,
                     mobile: mobile,
@@ -168,16 +170,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                     customerCode: idDetails.member_id,
                     member_no: idDetails.member_no,
                     createdAt: todayIST,
-                    customerPhoto: null
+                    customerPhoto: capturedBlobUri // Direct native base64 text injection
                 };
 
                 const docRef = await addDoc(collection(db, "customers"), newCustomerData);
-
-                saveBtn.innerText = "⏳ Uploading Photo...";
-                const storageRef = ref(storage, `photos/${docRef.id}.jpg`);
-                await uploadString(storageRef, capturedBlobUri, 'data_url');
-                const downloadUrl = await getDownloadURL(storageRef);
-                await updateDoc(doc(db, "customers", docRef.id), { customerPhoto: downloadUrl });
 
                 if (streamInstance) {
                     streamInstance.getTracks().forEach(track => track.stop());
