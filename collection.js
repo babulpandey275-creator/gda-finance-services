@@ -10,11 +10,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectAmount = document.getElementById("collectAmount");
     const collectionDate = document.getElementById("collectionDate");
     const submitCollectionBtn = document.getElementById("submitCollectionBtn");
-    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    
+    // HTML Elements for Dynamic Info
+    const detailsBox = document.getElementById("customerDetailsBox");
+    const txtEmi = document.getElementById("txtEmi");
+    const txtRemaining = document.getElementById("txtRemaining");
+    const txtPaidDays = document.getElementById("txtPaidDays");
 
+    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     if (collectionDate) collectionDate.value = todayIST;
 
-    // 1. कस्टमर ड्रॉपडाउन लोड करें
+    // 1. लोड कस्टमर ड्रॉपडाउन
     async function loadCustomersDropdown() {
         try {
             const querySnapshot = await getDocs(collection(db, "customers"));
@@ -33,7 +39,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 2. कस्टमर चुनने पर उसका हिसाब (Paid Days/Amount) दिखाएं
+    // 2. कस्टमर चुनने पर डेटा लोड करना
     customerSelect.addEventListener('change', async (e) => {
         const selectedId = e.target.value;
         if (!selectedId) return;
@@ -43,52 +49,33 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (custDoc.exists()) {
                 const data = custDoc.data();
                 
-                // EMI ऑटो-फिल
-                collectAmount.value = Number(data.dailyEmi || data.emi || 0);
-
-                // हिसाब-किताब के लिए Div बनाना
-                let infoDiv = document.getElementById("customerAccountInfo");
-                if (!infoDiv) {
-                    infoDiv = document.createElement("div");
-                    infoDiv.id = "customerAccountInfo";
-                    infoDiv.style.marginTop = "15px";
-                    infoDiv.style.padding = "12px";
-                    infoDiv.style.background = "#f1f5f9";
-                    infoDiv.style.borderRadius = "12px";
-                    infoDiv.style.fontSize = "14px";
-                    infoDiv.style.border = "1px solid #cbd5e1";
-                    collectAmount.parentNode.insertBefore(infoDiv, collectAmount);
-                }
-
+                // डेटा कैलकुलेशन
+                const dailyEmi = Number(data.dailyEmi || data.emi || 0);
                 const totalLoan = Number(data.totalLoanAmount || 0);
                 const totalCollected = Number(data.totalCollected || data.paidAmount || 0);
+                const remaining = totalLoan - totalCollected;
                 const paidDays = Number(data.paidDays || 0);
-                const remainingDue = totalLoan - totalCollected;
 
-                infoDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span>कुल जमा दिन:</span> <strong>${paidDays} दिन</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span>कुल जमा राशि:</span> <strong style="color: #15803d;">₹${totalCollected}</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>बाकी राशि:</span> <strong style="color: #b91c1c;">₹${remainingDue}</strong>
-                    </div>
-                `;
+                // UI Update
+                collectAmount.value = dailyEmi;
+                txtEmi.innerText = `₹${dailyEmi}`;
+                txtRemaining.innerText = `₹${totalLoan} / ₹${remaining}`;
+                txtPaidDays.innerText = `${paidDays} Days`;
+                
+                // Box Show करें
+                detailsBox.style.display = "block";
             }
         } catch (err) {
-            console.error("Error fetching customer info:", err);
+            console.error("Data fetch error:", err);
         }
     });
 
-    // 3. सबमिट कलेक्शन (पैसा जमा करना)
+    // 3. सबमिट कलेक्शन
     if (submitCollectionBtn) {
-        submitCollectionBtn.onclick = async (e) => {
-            e.preventDefault();
+        submitCollectionBtn.onclick = async () => {
             const selectedId = customerSelect.value;
             const amount = Number(collectAmount.value);
-            const date = collectionDate.value || todayIST;
+            const date = collectionDate.value;
 
             if (!selectedId || !amount || amount <= 0) {
                 alert("⚠️ कृपया सही जानकारी भरें!");
@@ -108,21 +95,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 });
 
                 // कस्टमर मास्टर डेटा अपडेट
-                const custDocRef = doc(db, "customers", selectedId);
-                const custSnap = await getDoc(custDocRef);
-                if (custSnap.exists()) {
-                    const data = custSnap.data();
-                    const newTotalCollected = Number(data.totalCollected || data.paidAmount || 0) + amount;
-                    const newPaidDays = Number(data.paidDays || 0) + 1;
-                    
-                    await updateDoc(custDocRef, {
-                        totalCollected: newTotalCollected,
-                        paidAmount: newTotalCollected,
-                        paidDays: newPaidDays
-                    });
-                }
+                const custRef = doc(db, "customers", selectedId);
+                const snap = await getDoc(custRef);
+                const data = snap.data();
                 
-                alert("🎉 पैसा सफलतापूर्वक जमा हो गया!");
+                await updateDoc(custRef, {
+                    totalCollected: Number(data.totalCollected || 0) + amount,
+                    paidAmount: Number(data.totalCollected || 0) + amount, // पुराने सपोर्ट के लिए
+                    paidDays: Number(data.paidDays || 0) + 1
+                });
+
+                alert("✅ पैसा सफलतापूर्वक जमा हो गया!");
                 window.location.href = "customer-list.html";
             } catch (err) {
                 alert("⚠️ Error: " + err.message);
@@ -133,12 +116,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // सबसे पहले ड्रॉपडाउन लोड करें
     await loadCustomersDropdown();
-
-    // URL से ID पकड़कर नाम ऑटो-सेलेक्ट करें
+    
+    // URL ID Auto-fill
     const urlParams = new URLSearchParams(window.location.search);
     const idFromUrl = urlParams.get('id');
     if (idFromUrl) {
         customerSelect.value = idFromUrl;
-        customerSelect.dispatchEvent(new Event('change')); // ताकि ऑटो-फिल और हिसाब तुरंत दिखे
+        customerSelect.dispatchEvent(new Event('change'));
     }
 });
