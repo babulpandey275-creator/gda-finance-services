@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - FINANCIAL REPORT ENGINE (FIXED ABSOLUTE ZERO BUG)
+// 🚀 GDA FINANCE - FINANCIAL REPORT ENGINE (EXACT ID MATCHED)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
@@ -12,38 +12,43 @@ export async function loadReport() {
             return;
         }
 
-        // Target UI Elements mapping
-        const txtTotalPortfolio = document.getElementById("txtTotalPortfolio");
-        const txtDisbursement = document.getElementById("txtDisbursement");
-        const txtCollection = document.getElementById("txtCollection");
-        const txtInterestIncome = document.getElementById("txtInterestIncome");
-        const txtExpenses = document.getElementById("txtExpenses");
-        const txtNetProfit = document.getElementById("txtNetProfit");
-        const txtTotalDue = document.getElementById("txtTotalDue");
-        const txtNewAccounts = document.getElementById("txtNewAccounts");
+        // 🎯 EXACT DYNAMIC HTML MAPPING MATCHED BY YOUR HTML FILE IDs
+        const totalPortfolio = document.getElementById("totalPortfolio");
+        const disbursement = document.getElementById("disbursement");
+        const collectionEl = document.getElementById("collection");
+        const interestIncome = document.getElementById("interestIncome");
+        const totalExpensesEl = document.getElementById("totalExpenses");
+        const netProfit = document.getElementById("netProfit");
+        const totalDue = document.getElementById("totalDue");
+        const newAccounts = document.getElementById("newAccounts");
 
+        // Input Date Field configuration setup
+        const reportDatePicker = document.getElementById("reportDatePicker");
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
+        if (reportDatePicker && !reportDatePicker.value) {
+            reportDatePicker.value = todayIST;
+        }
+
         try {
-            // 1. Fetch Expenses Sum
-            let totalExpenses = 0;
+            // 1. Fetch Expenses Collection sum total
+            let totalExpensesSum = 0;
             try {
                 const expSnapshot = await getDocs(collection(db, "expenses"));
                 expSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    totalExpenses += Number(data.amount || 0);
+                    totalExpensesSum += Number(doc.data().amount || 0);
                 });
             } catch (e) {
                 console.error("Expenses sub-fetch bypassed:", e);
             }
 
-            // 2. Process Core Customer Data Stream Directly (Bypassing aggressive string locks)
+            // 2. Fetch Live Customers Master Pipeline
             const custSnapshot = await getDocs(collection(db, "customers"));
             
-            let totalDisbursement = 0; // Total Loan Principal given out
-            let totalCollection = 0;   // Total EMI collected back till date
-            let totalInterest = 0;     // Total expected interest generated
-            let activeAccounts = 0;
+            let totalDisbursementSum = 0; 
+            let totalCollectionSum = 0;   
+            let totalInterestSum = 0;     
+            let activeAccountsCount = 0;
             let totalOverdueCalculated = 0;
 
             custSnapshot.forEach(doc => {
@@ -51,19 +56,18 @@ export async function loadReport() {
                 const loanAmt = Number(cust.loanAmount || 0);
                 const emi = Number(cust.dailyEmi || cust.emi || 0);
                 
-                // Read directly from the accurate database fields verified earlier
+                // Directly mapped field synchronizers verified from Firestore console logs
                 const paid = Number(cust.paidAmount || cust.totalCollected || 0);
 
                 if (cust.status !== "Closed") {
-                    activeAccounts++;
+                    activeAccountsCount++;
                 }
 
-                // Cumulative dynamic metrics computation
-                totalDisbursement += loanAmt;
-                totalCollection += paid;
-                totalInterest += (loanAmt * 0.20);
+                totalDisbursementSum += loanAmt;
+                totalCollectionSum += paid;
+                totalInterestSum += (loanAmt * 0.20);
 
-                // Safe Real-time Due Estimation Pipeline
+                // Precise Calendar timeline tracking defaulter logic calculation
                 if (cust.status !== "Closed" && cust.loanDate && cust.loanDate <= todayIST) {
                     const start = new Date(cust.loanDate);
                     const end = new Date(todayIST);
@@ -80,19 +84,19 @@ export async function loadReport() {
                 }
             });
 
-            // Master Portfolio calculations
-            const totalPortfolioValue = totalDisbursement + totalInterest;
-            const netProfitValue = totalInterest - totalExpenses;
+            // Standard Matrix Formulations
+            const portfolioTotal = totalDisbursementSum + totalInterestSum;
+            const netProfitSum = totalInterestSum - totalExpensesSum;
 
-            // 📊 Direct UI Content Injection Mapping
-            if (txtTotalPortfolio) txtTotalPortfolio.innerText = `₹${totalPortfolioValue}`;
-            if (txtDisbursement) txtDisbursement.innerText = `₹${totalDisbursement}`;
-            if (txtCollection) txtCollection.innerText = `₹${totalCollection}`;
-            if (txtInterestIncome) txtInterestIncome.innerText = `₹${totalInterest}`;
-            if (txtExpenses) txtExpenses.innerText = `₹${totalExpenses}`;
-            if (txtNetProfit) txtNetProfit.innerText = `₹${netProfitValue}`;
-            if (txtTotalDue) txtTotalDue.innerText = `₹${totalOverdueCalculated}`;
-            if (txtNewAccounts) txtNewAccounts.innerText = activeAccounts;
+            // 📊 DOM RENDER ENGINE INJECTIONS
+            if (totalPortfolio) totalPortfolio.innerText = `₹${portfolioTotal}`;
+            if (disbursement) disbursement.innerText = `₹${totalDisbursementSum}`;
+            if (collectionEl) collectionEl.innerText = `₹${totalCollectionSum}`;
+            if (interestIncome) interestIncome.innerText = `₹${totalInterestSum}`;
+            if (totalExpensesEl) totalExpensesEl.innerText = `₹${totalExpensesSum}`;
+            if (netProfit) netProfit.innerText = `₹${netProfitSum}`;
+            if (totalDue) totalDue.innerText = `₹${totalOverdueCalculated}`;
+            if (newAccounts) newAccounts.innerText = activeAccountsCount;
 
         } catch (err) {
             console.error("Report Absolute Master Pipeline Failure:", err);
