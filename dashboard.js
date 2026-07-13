@@ -1,6 +1,6 @@
-// ==========================================
-// 🚀 GDA FINANCE - DASHBOARD ENGINE (FINAL FIXED)
-// ==========================================
+// ==========================================================
+// 🚀 GDA FINANCE - DASHBOARD ENGINE (FINAL FULL CODE)
+// ==========================================================
 
 import { db, auth } from "./firebase.js"; 
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
@@ -24,13 +24,13 @@ export async function loadDashboard() {
             // 1. आज का टोटल कलेक्शन और उन कस्टमर्स की लिस्ट जिन्होंने पेमेंट किया है
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let todayCollected = 0;
-            const paidTodayIds = []; // उन कस्टमर्स की लिस्ट जिन्होंने आज पैसा दिया
+            const paidTodayIds = []; 
 
             collectSnapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.date === todayIST) {
                     todayCollected += Number(data.amount || 0);
-                    paidTodayIds.push(data.customerId); // ID सेव की
+                    paidTodayIds.push(data.customerId); 
                 }
             });
 
@@ -48,7 +48,7 @@ export async function loadDashboard() {
                     active++;
                     totalDemand += emi;
                     
-                    // अगर इस कस्टमर की ID 'paidTodayIds' में नहीं है, तो पेंडिंग है
+                    // अगर आज पेमेंट नहीं हुआ है, तो पेंडिंग काउंट करें
                     if (!paidTodayIds.includes(doc.id)) {
                         missedCount++; 
                     }
@@ -64,8 +64,9 @@ export async function loadDashboard() {
             if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
             if (txtActiveAccounts) txtActiveAccounts.innerText = active;
             
+            // यह सीधे index.html के <span id="lblDueCount"> में संख्या डाल देगा
             if (lblDueCount) {
-                lblDueCount.innerText = missedCount; // अब यहाँ सिर्फ पेंडिंग वाले दिखेंगे
+                lblDueCount.innerText = missedCount; 
             }
 
         } catch (err) { 
@@ -76,11 +77,8 @@ export async function loadDashboard() {
 
 // 🔄 REFRESH & NAVIGATION
 window.addEventListener('load', () => {
-    const refreshBtn = document.getElementById("refreshBtn") || document.querySelector(".btn-refresh") || document.querySelector(".refresh-btn");
+    const refreshBtn = document.querySelector(".refresh-btn");
     if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
-    
-    const bottomChangePassBtn = document.querySelector("a[href*='Password']") || document.getElementById("changePasswordBtn");
-    if (bottomChangePassBtn) bottomChangePassBtn.onclick = () => { window.location.href = "change-password.html"; };
 });
 
 window.addEventListener('DOMContentLoaded', loadDashboard);
