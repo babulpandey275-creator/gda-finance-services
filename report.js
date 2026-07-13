@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - REPORT ENGINE (STRICT OVERDUE & PORTFOLIO HARMONIZED)
+// 🚀 GDA FINANCE - REPORT ENGINE (STRICT BUSINESS SYSTEM FIXED)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
@@ -26,7 +26,7 @@ export async function loadReport() {
         const btnQuarterly = document.getElementById("btnQuarterly");
         const btnYearly = document.getElementById("btnYearly");
 
-        let currentMode = "Monthly"; 
+        let currentMode = "Monthly"; // Default mode set to Monthly
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         if (reportDatePicker && !reportDatePicker.value) {
@@ -75,7 +75,7 @@ export async function loadReport() {
                     }
                 });
 
-                // 2. Collections data stream
+                // 2. Collections Data Stream
                 let lifetimeCollectionUptoTarget = 0;
                 let rangeCollectionSum = 0;
                 let todayCollectedForOverdue = 0;
@@ -96,7 +96,7 @@ export async function loadReport() {
                     }
                 });
 
-                // 3. Customers data processing
+                // 3. Customers Data Processing
                 const custSnapshot = await getDocs(collection(db, "customers"));
                 
                 let lifetimeDisbursementUptoTarget = 0;
@@ -128,15 +128,19 @@ export async function loadReport() {
                     }
                 });
 
-                // 🧮 HARMONIZED OVERDUE LOGIC: Matches app.js perfectly for real-time consistency
+                // 🧮 STRICT TARGET OVERDUE LOGIC BASED ON SELECTED MODE:
                 let dynamicTotalOverdue = 0;
-                if (targetDate === todayIST) {
+                if (currentMode === "Daily") {
+                    // Daily me subah target ₹2200 dikhega, collection aane par minus hoga
                     dynamicTotalOverdue = Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue);
+                } else if (currentMode === "Monthly") {
+                    // Monthly me agar aaj ka live collection target ke barabar ya jyada ho gaya hai to 0 dikhayega
+                    dynamicTotalOverdue = todayCollectedForOverdue >= totalTodayDemandCalculated ? 0 : Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue);
                 } else {
-                    dynamicTotalOverdue = Math.max(0, totalTodayDemandCalculated); 
+                    dynamicTotalOverdue = Math.max(0, totalTodayDemandCalculated);
                 }
 
-                // Portfolio formulas
+                // Portfolio formulas (Kal tak ka collection perfectly minus hoga market cap se)
                 const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
                 const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
                 const netProfitSum = rangeInterestSum - expensesSum;
