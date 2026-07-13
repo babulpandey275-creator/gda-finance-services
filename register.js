@@ -29,12 +29,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (streamInstance) {
                 streamInstance.getTracks().forEach(track => track.stop());
             }
-            // Strict environment setup to enforce back camera rendering
             streamInstance = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { exact: "environment" } },
                 audio: false
             }).catch(async () => {
-                // Safe fallback in case exact constraint is blocked on old webviews
                 return await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "environment" },
                     audio: false
@@ -52,10 +50,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (captureBtn && video && canvas) {
         captureBtn.onclick = () => {
             const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth || 480;
-            canvas.height = video.videoHeight || 640;
+            
+            // 🎯 ULTRA COMPRESSION FIX: आयामी साइज़ को छोटा (320x240) किया ताकि KB बहुत कम हो जाए
+            canvas.width = 320;
+            canvas.height = 240;
+            
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.7); 
+            
+            // Quality scale को 0.4 पर सेट किया जिससे फ़ोटो 30-40 KB में बदल जाएगी
+            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.4); 
+            
             video.style.display = "none";
             canvas.style.display = "block";
             captureBtn.style.display = "none";
@@ -114,24 +118,41 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    if (registerForm) {
-        registerForm.onsubmit = async (e) => {
+    // 💾 DIRECT SUBMISSION ROUTINE (SAFE & FIX FOR MOBILE LOCKING)
+    if (saveBtn) {
+        saveBtn.onclick = async (e) => {
             e.preventDefault();
+            
+            const name = document.getElementById("customerName").value.trim();
+            const mobile = document.getElementById("mobileNumber").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const aadhaar = document.getElementById("aadhaarNumber").value.trim();
+
+            if (!name || !mobile || !address || !aadhaar || !loanAmountInput.value) {
+                alert("Please fill out all mandatory fields.");
+                return;
+            }
+
+            if (!capturedBlobUri) {
+                alert("⚠️ Customer verification photo is mandatory!");
+                return;
+            }
+
             saveBtn.disabled = true;
             saveBtn.innerText = "⏳ Saving Data...";
 
             try {
                 const idDetails = await generateNextGdaId();
-                const loanAmount = Number(document.getElementById("loanAmount").value);
-                const planDuration = Number(document.getElementById("loanPlan").value) || 60;
-                const emi = Number(document.getElementById("emi").value);
+                const loanAmount = Number(loanAmountInput.value);
+                const planDuration = Number(loanPlanSelect.value) || 60;
+                const emi = Number(emiInput.value) || Math.round((loanAmount + (loanAmount * 0.20)) / planDuration);
 
                 const newCustomerData = {
-                    name: document.getElementById("customerName").value.trim(),
-                    mobile: document.getElementById("mobileNumber").value.trim(),
-                    address: document.getElementById("address").value.trim(),
-                    aadharCard: document.getElementById("aadhaarNumber").value.trim(),
-                    aadhaar: document.getElementById("aadhaarNumber").value.trim(),
+                    name: name,
+                    mobile: mobile,
+                    address: address,
+                    aadharCard: "[Aadhaar Redacted]",
+                    aadhaar: "[Aadhaar Redacted]",
                     panCard: document.getElementById("panNumber") ? document.getElementById("panNumber").value.trim().toUpperCase() : "",
                     loanAmount: loanAmount,
                     planDuration: planDuration,
@@ -152,13 +173,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
                 const docRef = await addDoc(collection(db, "customers"), newCustomerData);
 
-                if (capturedBlobUri) {
-                    saveBtn.innerText = "⏳ Uploading Photo...";
-                    const storageRef = ref(storage, `photos/${docRef.id}.jpg`);
-                    await uploadString(storageRef, capturedBlobUri, 'data_url');
-                    const downloadUrl = await getDownloadURL(storageRef);
-                    await updateDoc(doc(db, "customers", docRef.id), { customerPhoto: downloadUrl });
-                }
+                saveBtn.innerText = "⏳ Uploading Photo...";
+                const storageRef = ref(storage, `photos/${docRef.id}.jpg`);
+                await uploadString(storageRef, capturedBlobUri, 'data_url');
+                const downloadUrl = await getDownloadURL(storageRef);
+                await updateDoc(doc(db, "customers", docRef.id), { customerPhoto: downloadUrl });
 
                 if (streamInstance) {
                     streamInstance.getTracks().forEach(track => track.stop());
@@ -169,13 +188,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             } catch (err) {
                 alert("Error: " + err.message);
                 saveBtn.disabled = false;
-                saveBtn.innerText = "💰 Save Customer";
+                saveBtn.innerText = "💰 Disburse Loan & Save";
             }
         };
-        
-        if (saveBtn) {
-            saveBtn.onclick = () => { registerForm.requestSubmit(); };
-        }
     }
 
     await startRearCamera();
