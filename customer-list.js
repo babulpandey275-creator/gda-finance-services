@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - CUSTOMER LIST FIXED ENGINE (ORIGINAL UI + BACK-DATE OD)
+// 🚀 GDA FINANCE - CUSTOMER LIST FIXED ENGINE WITH ADMIN SECURITY
 // ==========================================
 
 import { db } from "./firebase.js"; 
@@ -12,6 +12,9 @@ const listContainer = document.getElementById("listContainer");
 const tabActive = document.getElementById("tabActive");
 const tabClosed = document.getElementById("tabClosed");
 const searchInp = document.getElementById("searchInp");
+
+// 🔒 STRICT ADMIN PASSWORD CONSTANT
+const ADMIN_PASSWORD = "GDA@2026";
 
 async function loadCustomers() {
     if (listContainer) listContainer.innerHTML = "⏳ लोड हो रहा है...";
@@ -42,7 +45,7 @@ function renderList() {
     }
 
     listContainer.innerHTML = filtered.map(cust => {
-        // 🧮 1. बैक-डेट लाइव ओवरड्यू कैलकुलेशन (Today - LoanDate + 1)
+        // 🧮 1. Dynamic Overdue Logic (Today - LoanDate + 1)
         const loanDate = new Date(cust.loanDate);
         const today = new Date();
         const diffTime = today - loanDate;
@@ -53,57 +56,73 @@ function renderList() {
         const totalPaid = Number(cust.paidAmount || 0);
         const currentOD = Math.max(0, expectedAmt - totalPaid);
 
-        // 🆔 2. Undefined नाम सुरक्षा नियम
+        // 🆔 2. Undefined Guard Rule
         const displayCode = cust.customerCode || cust.member_id || `GDA${String(cust.member_no || 0).padStart(3, '0')}`;
 
-        // 🔗 3. लेज़र प्रोफ़ाइल पेज का लिंक (फोटो और View बटन दोनों के लिए)
-        const profileUrl = `customer-profile.html?id=${cust.id}`;
+        // 🔗 3. URL Mappings
+        const profileUrl = `customer-profile.html?id=${cust.id}`; // Poora registration form / full details page
+        const collectUrl = `collection.html?id=${cust.id}`;       // EMI jama karne wala page
 
         return `
-        <div class="cust-card">
-            <!-- 📸 फोटो पर क्लिक करने से पूरा लेज़र प्रोफाइल खुलेगा -->
-            <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar" style="cursor:pointer;" onclick="window.location.href='${profileUrl}'">
-            
-            <div class="cust-info">
-                <h4>${cust.name} (${displayCode})</h4>
-                <p>📞 ${cust.mobile || 'N/A'}</p>
-                <p>📅 दिनांक: ${cust.loanDate} | <span style="color:#ef4444; font-weight:bold;">OD: ₹${currentOD}</span></p>
+        <div class="cust-card" style="flex-direction: column; align-items: stretch; gap: 8px;">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar" style="cursor:pointer;" onclick="window.location.href='${profileUrl}'">
+                
+                <div class="cust-info" style="flex: 1;">
+                    <h4 style="margin: 0 0 4px 0; font-size: 16px; color: #0f172a; cursor:pointer;" onclick="window.location.href='${profileUrl}'">${cust.name} (${displayCode})</h4>
+                    <p style="margin: 0 0 2px 0; font-size: 12px; color: #64748b;">📞 ${cust.mobile || 'N/A'}</p>
+                    <p style="margin: 0 0 2px 0; font-size: 12px; color: #64748b;">📅 Date: ${cust.loanDate} | <span style="color:#ef4444; font-weight:bold;">OD: ₹${currentOD}</span></p>
+                </div>
             </div>
             
-            <div class="cust-actions">
-                <!-- 🎯 View और Delete बटन बिल्कुल पहले की तरह -->
-                <a href="${profileUrl}" class="btn-action btn-edit" style="background:#ffb703; color:black; text-decoration:none;">View</a>
-                <button class="btn-action btn-delete" onclick="deleteCustomer('${cust.id}')">Delete</button>
+            <div class="cust-actions" style="display: flex; flex-direction: row; gap: 6px; width: 100%; margin-top: 5px;">
+                <a href="${collectUrl}" class="btn-action" style="background: #28a745; color: white; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-decoration: none; text-align: center;">Collect EMI</a>
+                <button onclick="secureEdit('${cust.id}')" class="btn-action btn-edit" style="background: #ffb703; color: black; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none;">Edit</button>
+                <button onclick="secureDelete('${cust.id}')" class="btn-action btn-delete" style="background: #ef4444; color: white; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none;">Del</button>
             </div>
         </div>
         `;
     }).join('');
 }
 
-// 🗑️ सुरक्षित डिलीट (कस्टमर + पेमेंट हिस्ट्री दोनों डेटाबेस से साफ़)
-window.deleteCustomer = async (docId) => {
-    if (!confirm("⚠️ क्या आप वाकई इस ग्राहक और इसकी पूरी पेमेंट हिस्ट्री को हमेशा के लिए डिलीट करना चाहते हैं?")) return;
-
-    try {
-        const batch = writeBatch(db);
-        
-        // 1. कलेक्शंस से इसकी एंट्री हटाएँ
-        const colQuery = query(collection(db, "collections"), where("customerId", "==", docId));
-        const colSnapshot = await getDocs(colQuery);
-        colSnapshot.forEach((doc) => batch.delete(doc.ref));
-        
-        // 2. कस्टमर को डिलीट करें
-        batch.delete(doc(db, "customers", docId));
-        
-        await batch.commit();
-        alert("✅ ग्राहक और उसका सारा इतिहास पूरी तरह से डिलीट हो गया है!");
-        loadCustomers();
-    } catch (err) {
-        alert("डिलीट करने में त्रुटि: " + err.message);
+// 🔒 SECURE EDIT FUNCTION WITH ADMIN PASSWORD
+window.secureEdit = (docId) => {
+    const pass = prompt("🔑 Enter Admin Password to Edit this customer:");
+    if (pass === null) return; // User cancelled
+    if (pass === ADMIN_PASSWORD) {
+        window.location.href = `edit-customer.html?id=${docId}`; // Aapka edit karne wala file page link
+    } else {
+        alert("❌ Incorrect Admin Password! Access Denied.");
     }
 };
 
-// टैब स्विचिंग लॉजिक
+// 🔒 SECURE DELETE FUNCTION WITH ADMIN PASSWORD
+window.secureDelete = async (docId) => {
+    const pass = prompt("⚠️ WARNING: Enter Admin Password to DELETE this customer & history permanent:");
+    if (pass === null) return;
+    
+    if (pass === ADMIN_PASSWORD) {
+        if (!confirm("Are you absolutely sure you want to completely wipe this account?")) return;
+        try {
+            const batch = writeBatch(db);
+            const colQuery = query(collection(db, "collections"), where("customerId", "==", docId));
+            const colSnapshot = await getDocs(colQuery);
+            colSnapshot.forEach((doc) => batch.delete(doc.ref));
+            
+            batch.delete(doc(db, "customers", docId));
+            await batch.commit();
+            
+            alert("✅ Account and history completely deleted from database.");
+            loadCustomers();
+        } catch (err) {
+            alert("Delete Failed: " + err.message);
+        }
+    } else {
+        alert("❌ Incorrect Admin Password! Action Blocked.");
+    }
+};
+
+// Tabs Triggers
 if (tabActive) {
     tabActive.onclick = () => {
         currentStatus = "Active";
