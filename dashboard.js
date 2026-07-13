@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - DASHBOARD ENGINE (REFRESH, PASSWORD & OVERDUE TOTAL FIX)
+// 🚀 GDA FINANCE - DASHBOARD MASTER ENGINE (ALL IN ONE FIX)
 // ==========================================
 
 import { db, auth } from "./firebase.js"; 
@@ -90,34 +90,61 @@ export async function loadDashboard() {
     });
 }
 
-// 🔄 1. REFRESH BUTTON ACTION (FIXED)
-// स्क्रीन पर दिख रहे Refresh बटन की कार्यक्षमता को वापस चालू करना
-const refreshBtn = document.querySelector(".btn-refresh") || document.getElementById("refreshBtn") || document.querySelector("button[onclick*='refresh']");
-if (refreshBtn || document.querySelector(".refresh-btn")) {
-    const targetBtn = refreshBtn || document.querySelector(".refresh-btn");
-    targetBtn.onclick = (e) => {
-        e.preventDefault();
-        window.location.reload();
-    };
-} else {
-    // Fallback: If it's a generic upper right corner button as shown in your header
-    const upperRightBtn = document.querySelector("button"); 
-    if (upperRightBtn && upperRightBtn.innerText.includes("Refresh")) {
-        upperRightBtn.onclick = () => window.location.reload();
-    }
-}
-
-// 🔐 2. CHANGE PASSWORD REDIRECTION FALLBACK
-// अगर आपके HTML में पासवर्ड बदलने का लिंक मिसिंग है, तो उसे नेविगेशन बार में सुरक्षित तरीके से जोड़ना
+// 🔄 1. REFRESH BUTTON ACTION
+// स्क्रीन पर दिख रहे Refresh बटन को पूरी तरह एक्टिवेट करना
 window.addEventListener('load', () => {
-    const logoutBtn = document.getElementById("logoutBtn") || document.querySelector("a[href='logout.html']");
-    if (logoutBtn && !document.getElementById("changePasswordLink")) {
-        const changePass = document.createElement("a");
-        changePass.id = "changePasswordLink";
-        changePass.href = "change-password.html";
-        changePass.innerText = "🔑 Change Password";
-        changePass.style.cssText = "display: block; text-align: center; margin-top: 10px; color: #1565c0; font-weight: bold; font-size: 14px; text-decoration: none;";
-        logoutBtn.parentNode.insertBefore(changePass, logoutBtn);
+    const refreshBtn = document.querySelector(".btn-refresh") || document.getElementById("refreshBtn") || document.querySelector(".refresh-btn");
+    if (refreshBtn) {
+        refreshBtn.style.cursor = "pointer";
+        refreshBtn.onclick = (e) => {
+            e.preventDefault();
+            window.location.reload();
+        };
+    }
+    
+    // Header generic button fallback (Top Right Corner)
+    const allButtons = document.querySelectorAll("button");
+    allButtons.forEach(btn => {
+        if (btn.innerText.includes("Refresh")) {
+            btn.style.cursor = "pointer";
+            btn.onclick = () => window.location.reload();
+        }
+    });
+});
+
+// 🔑 2. PASSWORD LINK ROUTING CONTROLLER (BOTH LOCATIONS ACTIVATED)
+window.addEventListener('load', () => {
+    // A. बॉटम नेविगेशन वाले चेंज पासवर्ड बटन को चालू करना
+    const bottomChangePassBtn = document.querySelector("a[href*='Password']") || 
+                                 document.getElementById("changePasswordBtn") || 
+                                 Array.from(document.querySelectorAll('a, div, span, p')).find(el => el.textContent.includes('Change Password'));
+    
+    if (bottomChangePassBtn) {
+        bottomChangePassBtn.style.cursor = "pointer";
+        bottomChangePassBtn.onclick = (e) => {
+            e.preventDefault();
+            window.location.href = "change-password.html";
+        };
+    }
+
+    // B. Collection History कार्ड के ठीक नीचे नया शॉर्टकट बटन जोड़ना
+    const collectionHistoryCard = document.querySelector("a[href='collection-history.html']") || 
+                                   document.querySelector("div[onclick*='history']") || 
+                                   Array.from(document.querySelectorAll('div, a')).find(el => el.textContent.includes('Collection History'));
+    
+    if (collectionHistoryCard && !document.getElementById("dashboardDirectPassLink")) {
+        const passContainer = document.createElement("div");
+        passContainer.id = "dashboardDirectPassLink";
+        passContainer.style.cssText = "max-width: 450px; margin: 15px auto; padding: 12px; background: #fff; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; border-left: 5px solid #1565c0;";
+        
+        passContainer.innerHTML = `<span style="font-weight: bold; color: #1565c0; font-size: 15px;">🔑 Security: Change Account Password ➔</span>`;
+        
+        passContainer.onclick = () => {
+            window.location.href = "change-password.html";
+        };
+        
+        // Insert right below Collection History Card safely
+        collectionHistoryCard.parentNode.insertBefore(passContainer, collectionHistoryCard.nextSibling);
     }
 });
 
