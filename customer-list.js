@@ -1,6 +1,6 @@
-// ==========================================
-// 🚀 GDA FINANCE - CUSTOMER LIST ENGINE
-// ==========================================
+// ==========================================================
+// 🚀 GDA FINANCE - CUSTOMER LIST ENGINE (FIXED FOR STATEMENT.HTML)
+// ==========================================================
 
 import { db } from "./firebase.js"; 
 import { collection, getDocs, deleteDoc, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
@@ -56,8 +56,8 @@ function renderList() {
 
         const displayCode = cust.customerCode || cust.member_id || `GDA${String(cust.member_no || 0).padStart(3, '0')}`;
         
-        // प्रोफ़ाइल पेज का लिंक (क्लिक करने पर खुलेगा)
-        const profileUrl = `customer-profile.html?id=${cust.id}`;
+        // ✨ यहाँ हमने 'statement.html' का लिंक फिक्स कर दिया है
+        const profileUrl = `statement.html?id=${cust.id}`;
         const collectUrl = `collection.html?id=${cust.id}`;
 
         return `
