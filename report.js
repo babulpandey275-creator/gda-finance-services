@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - FINANCIAL REPORT ENGINE (EXACT ID MATCHED)
+// 🚀 GDA FINANCE - REPORT ENGINE (STRICT BUSINESS LOGIC PORFOLIO FIX)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
@@ -12,7 +12,7 @@ export async function loadReport() {
             return;
         }
 
-        // 🎯 EXACT DYNAMIC HTML MAPPING MATCHED BY YOUR HTML FILE IDs
+        // HTML elements mapping
         const totalPortfolio = document.getElementById("totalPortfolio");
         const disbursement = document.getElementById("disbursement");
         const collectionEl = document.getElementById("collection");
@@ -21,86 +21,113 @@ export async function loadReport() {
         const netProfit = document.getElementById("netProfit");
         const totalDue = document.getElementById("totalDue");
         const newAccounts = document.getElementById("newAccounts");
-
-        // Input Date Field configuration setup
         const reportDatePicker = document.getElementById("reportDatePicker");
+
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         if (reportDatePicker && !reportDatePicker.value) {
             reportDatePicker.value = todayIST;
         }
 
-        try {
-            // 1. Fetch Expenses Collection sum total
-            let totalExpensesSum = 0;
+        async function renderFilteredData() {
+            const targetDate = reportDatePicker ? reportDatePicker.value : todayIST;
+
             try {
-                const expSnapshot = await getDocs(collection(db, "expenses"));
-                expSnapshot.forEach(doc => {
-                    totalExpensesSum += Number(doc.data().amount || 0);
-                });
-            } catch (e) {
-                console.error("Expenses sub-fetch bypassed:", e);
-            }
+                // 1. Fetch Expenses Sum (Strictly for Net Profit, completely detached from Portfolio)
+                let totalExpensesSum = 0;
+                try {
+                    const expSnapshot = await getDocs(collection(db, "expenses"));
+                    expSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.date && data.date <= targetDate) {
+                            totalExpensesSum += Number(data.amount || 0);
+                        }
+                    });
+                } catch (e) { console.error(e); }
 
-            // 2. Fetch Live Customers Master Pipeline
-            const custSnapshot = await getDocs(collection(db, "customers"));
-            
-            let totalDisbursementSum = 0; 
-            let totalCollectionSum = 0;   
-            let totalInterestSum = 0;     
-            let activeAccountsCount = 0;
-            let totalOverdueCalculated = 0;
+                // 2. Fetch Collections Log up to the selected target date
+                let totalCollectionSum = 0;
+                try {
+                    const collectSnapshot = await getDocs(collection(db, "collections"));
+                    collectSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.date && data.date <= targetDate) {
+                            totalCollectionSum += Number(data.amount || 0);
+                        }
+                    });
+                } catch (e) { console.error(e); }
 
-            custSnapshot.forEach(doc => {
-                const cust = doc.data();
-                const loanAmt = Number(cust.loanAmount || 0);
-                const emi = Number(cust.dailyEmi || cust.emi || 0);
+                // 3. Process Customers Portfolio and Timelines
+                const custSnapshot = await getDocs(collection(db, "customers"));
                 
-                // Directly mapped field synchronizers verified from Firestore console logs
-                const paid = Number(cust.paidAmount || cust.totalCollected || 0);
+                let totalDisbursementSum = 0; 
+                let totalInterestSum = 0;     
+                let activeAccountsCount = 0;
+                let totalOverdueCalculated = 0;
 
-                if (cust.status !== "Closed") {
-                    activeAccountsCount++;
-                }
+                custSnapshot.forEach(doc => {
+                    const cust = doc.data();
+                    if (cust.loanDate && cust.loanDate <= targetDate) {
+                        const loanAmt = Number(cust.loanAmount || 0);
+                        const emi = Number(cust.dailyEmi || cust.emi || 0);
+                        const paid = Number(cust.paidAmount || cust.totalCollected || 0);
 
-                totalDisbursementSum += loanAmt;
-                totalCollectionSum += paid;
-                totalInterestSum += (loanAmt * 0.20);
+                        if (cust.status !== "Closed") {
+                            activeAccountsCount++;
+                        }
 
-                // Precise Calendar timeline tracking defaulter logic calculation
-                if (cust.status !== "Closed" && cust.loanDate && cust.loanDate <= todayIST) {
-                    const start = new Date(cust.loanDate);
-                    const end = new Date(todayIST);
-                    const diffDays = Math.max(0, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
-                    
-                    const expectedTotalTillToday = diffDays * emi;
-                    const maxPayableLifetime = loanAmt + (loanAmt * 0.20);
-                    const runningExpected = Math.min(expectedTotalTillToday, maxPayableLifetime);
-                    
-                    const individualDue = runningExpected - paid;
-                    if (individualDue > 0) {
-                        totalOverdueCalculated += individualDue;
+                        // Aggregate total baseline business constants
+                        totalDisbursementSum += loanAmt;
+                        totalInterestSum += (loanAmt * 0.20);
+
+                        // Overdue tracking configuration
+                        if (cust.status !== "Closed") {
+                            const start = new Date(cust.loanDate);
+                            const end = new Date(targetDate);
+                            const diffDays = Math.max(0, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
+                            
+                            const expectedTotal = diffDays * emi;
+                            const maxPayableLifetime = loanAmt + (loanAmt * 0.20);
+                            const runningExpected = Math.min(expectedTotal, maxPayableLifetime);
+                            
+                            const individualDue = runningExpected - paid;
+                            if (individualDue > 0) {
+                                totalOverdueCalculated += individualDue;
+                            }
+                        }
                     }
-                }
-            });
+                });
 
-            // Standard Matrix Formulations
-            const portfolioTotal = totalDisbursementSum + totalInterestSum;
-            const netProfitSum = totalInterestSum - totalExpensesSum;
+                // 🧮 BUSINESS RULE LOGIC:
+                // Portfolio grows with Disbursement + Interest, and shrinks strictly by Collections ONLY. Expenses have 0% impact here.
+                const totalMarketCap = totalDisbursementSum + totalInterestSum;
+                const dynamicPortfolioRemaining = Math.max(0, totalMarketCap - totalCollectionSum);
+                
+                // Net Profit calculation takes the hit from Expenses
+                const netProfitSum = totalInterestSum - totalExpensesSum;
 
-            // 📊 DOM RENDER ENGINE INJECTIONS
-            if (totalPortfolio) totalPortfolio.innerText = `₹${portfolioTotal}`;
-            if (disbursement) disbursement.innerText = `₹${totalDisbursementSum}`;
-            if (collectionEl) collectionEl.innerText = `₹${totalCollectionSum}`;
-            if (interestIncome) interestIncome.innerText = `₹${totalInterestSum}`;
-            if (totalExpensesEl) totalExpensesEl.innerText = `₹${totalExpensesSum}`;
-            if (netProfit) netProfit.innerText = `₹${netProfitSum}`;
-            if (totalDue) totalDue.innerText = `₹${totalOverdueCalculated}`;
-            if (newAccounts) newAccounts.innerText = activeAccountsCount;
+                // 📊 DOM Injection
+                if (totalPortfolio) totalPortfolio.innerText = `₹${dynamicPortfolioRemaining}`;
+                if (disbursement) disbursement.innerText = `₹${totalDisbursementSum}`;
+                if (collectionEl) collectionEl.innerText = `₹${totalCollectionSum}`;
+                if (interestIncome) interestIncome.innerText = `₹${totalInterestSum}`;
+                if (totalExpensesEl) totalExpensesEl.innerText = `₹${totalExpensesSum}`;
+                if (netProfit) netProfit.innerText = `₹${netProfitSum}`;
+                if (totalDue) totalDue.innerText = `₹${totalOverdueCalculated}`;
+                if (newAccounts) newAccounts.innerText = activeAccountsCount;
 
-        } catch (err) {
-            console.error("Report Absolute Master Pipeline Failure:", err);
+            } catch (err) {
+                console.error("Report System Reload Failure:", err);
+            }
         }
+
+        if (reportDatePicker) {
+            reportDatePicker.onchange = () => {
+                renderFilteredData();
+            };
+        }
+
+        await renderFilteredData();
     });
 }
 
