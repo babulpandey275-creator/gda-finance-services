@@ -27,7 +27,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(document.getElementById("bondId")) document.getElementById("bondId").innerText = cust.customerCode || "GDA" + custId.substring(0,4).toUpperCase();
             if(document.getElementById("bondMobile")) document.getElementById("bondMobile").innerText = cust.mobile || "-";
             if(document.getElementById("bondDate")) document.getElementById("bondDate").innerText = cust.loanDate || "-";
-            if(document.getElementById("bondAadhar")) document.getElementById("bondAadhar").innerText = cust.aadharCard || cust.aadhaar || "-";
+            
+            // सुरक्षा अपडेट: संवेदनशील सरकारी आईडी को यहाँ हमेशा रेडैक्ट (Redact) करें
+            if(document.getElementById("bondAadhar")) document.getElementById("bondAadhar").innerText = "[Aadhaar Redacted]";
+            
             if(document.getElementById("bondPan")) document.getElementById("bondPan").innerText = cust.panCard || "-";
             if(document.getElementById("bondAddress")) document.getElementById("bondAddress").innerText = cust.address || "-";
             
