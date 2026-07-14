@@ -3,9 +3,9 @@
    ======================================================================== */
 
 :root {
-    --primary: #3a1c62;       /* गहरा बैंगनी (विजिटिंग कार्ड थीम) */
+    --primary: #3a1c62;       /* गहरा बैंगनी */
     --primary-dark: #2a1548;  /* और गहरा बैंगनी */
-    --secondary: #e91e63;    /* चमकीला गुलाबी (हाइलाइट्स के लिए) */
+    --secondary: #e91e63;    /* चमकीला गुलाबी */
     --success: #10b981;      
     --warning: #f59e0b;      
     --danger: #d32f2f;       
@@ -86,6 +86,17 @@ input:focus, select:focus { outline: none; border-color: var(--secondary); box-s
 th { padding: 16px; color: var(--text-light); font-weight: 600; font-size: 13px; text-transform: uppercase; }
 
 td { padding: 16px; border-bottom: 1px solid #fce4ec; }
+
+/* कस्टमर फोटो स्टाइलिंग */
+.customer-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 2px solid var(--bg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
 /* Mobile */
 @media (max-width: 1024px) {
