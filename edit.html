@@ -47,6 +47,10 @@
             <label>📅 Plan Duration (Days):</label>
             <input type="number" id="loanPlan" required>
 
+            <!-- नया ऑटो-कैलकुलेटेड बॉक्स -->
+            <label>📦 Total Amount to Pay (₹):</label>
+            <input type="number" id="totalAmount" readonly style="background: #e2e8f0; font-weight: bold;">
+
             <label>📦 Daily EMI Amount (₹):</label>
             <input type="number" id="emi" required>
 
@@ -54,10 +58,7 @@
             <input type="date" id="loanDate" required>
 
             <button type="submit" class="btn-submit" id="saveBtn">💾 Update & Save Records</button>
-            
-            <!-- डॉक्यूमेंट्स मैनेज करने के लिए अलग पेज का बटन -->
             <a href="documents.html" id="manageDocsBtn" class="btn-docs">📸 Manage Aadhaar & PAN Photos</a>
-            
             <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete This Customer</button>
             <a href="customer-list.html" class="btn-back">⬅ Cancel & Go Back</a>
         </form>
