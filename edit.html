@@ -17,12 +17,11 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <h2>✏️ Edit Customer</h2>
         <form id="editForm">
             <label>📷 UPDATE PHOTO:</label>
-            <input type="file" id="customerPhoto" accept="image/*" capture="user">
+            <input type="file" id="customerPhoto" accept="image/*">
             
             <label>CUSTOMER NAME:</label>
             <input type="text" id="customerName" required>
@@ -59,14 +58,9 @@
             
             <button type="submit" class="btn-submit" id="updateBtn">💾 Update Profile</button>
             <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete Customer</button>
-            
-            <!-- डैशबोर्ड पर वापस जाने का बटन -->
-            <button type="button" class="btn-back" onclick="window.location.href='index.html'">
-                ⬅️ Back to Dashboard
-            </button>
+            <button type="button" class="btn-back" onclick="window.location.href='index.html'">⬅️ Back to Dashboard</button>
         </form>
     </div>
-
     <script type="module" src="edit.js"></script>
 </body>
 </html>
