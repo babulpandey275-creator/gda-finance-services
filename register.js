@@ -1,125 +1,14 @@
 // ==========================================
-// 🚀 GDA FINANCE - REGISTRATION (INSTANT DIRECT SAVE - NO STORAGE LAG)
+// 🚀 GDA FINANCE - CLEAN REGISTRATION CODE
 // ==========================================
 
 import { db } from "./firebase.js"; 
 import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
-    const registerForm = document.getElementById("registerForm");
-    const saveBtn = document.getElementById("saveBtn");
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const reTakeBtn = document.getElementById("reTakeBtn");
+    // ... (कैमरा और UI लॉजिक वही रखें जो पहले था)
 
-    let streamInstance = null;
-    let capturedBlobUri = null; 
-
-    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
-    const todayIST = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
-    
-    if (document.getElementById("loanDate")) {
-        document.getElementById("loanDate").value = todayIST;
-    }
-
-    // 📸 REAR/BACK CAMERA ONLY START LOGIC
-    async function startRearCamera() {
-        try {
-            if (streamInstance) {
-                streamInstance.getTracks().forEach(track => track.stop());
-            }
-            streamInstance = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { exact: "environment" } },
-                audio: false
-            }).catch(async () => {
-                return await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" },
-                    audio: false
-                });
-            });
-            
-            if (video) {
-                video.srcObject = streamInstance;
-            }
-        } catch (err) {
-            console.error("Rear camera activation failure:", err);
-        }
-    }
-
-    if (captureBtn && video && canvas) {
-        captureBtn.onclick = () => {
-            const ctx = canvas.getContext('2d');
-            
-            // Dimensions to keep payload lightweight
-            canvas.width = 320;
-            canvas.height = 240;
-            
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Super compressed to fit natively inside Firestore text field
-            capturedBlobUri = canvas.toDataURL('image/jpeg', 0.3); 
-            
-            video.style.display = "none";
-            canvas.style.display = "block";
-            captureBtn.style.display = "none";
-            if (reTakeBtn) reTakeBtn.style.display = "block";
-        };
-    }
-
-    if (reTakeBtn && video && canvas && captureBtn) {
-        reTakeBtn.onclick = () => {
-            capturedBlobUri = null;
-            canvas.style.display = "none";
-            video.style.display = "block";
-            reTakeBtn.style.display = "none";
-            captureBtn.style.display = "block";
-        };
-    }
-
-    const loanAmountInput = document.getElementById("loanAmount");
-    const loanPlanSelect = document.getElementById("loanPlan");
-    const remainingAmountInput = document.getElementById("remainingAmount");
-    const emiInput = document.getElementById("emi");
-
-    function calculateFinance() {
-        const amt = Number(loanAmountInput.value) || 0;
-        const days = Number(loanPlanSelect.value) || 60;
-        if (amt > 0) {
-            const total = amt + (amt * 0.20);
-            const daily = total / days;
-            if (remainingAmountInput) remainingAmountInput.value = Math.round(total);
-            if (emiInput) emiInput.value = Math.round(daily);
-        }
-    }
-
-    if (loanAmountInput) loanAmountInput.oninput = calculateFinance;
-    if (loanPlanSelect) loanPlanSelect.onchange = calculateFinance;
-
-    async function generateNextGdaId() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "customers"));
-            let existingNumbers = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.member_no !== undefined) {
-                    existingNumbers.push(parseInt(data.member_no, 10));
-                }
-            });
-            existingNumbers.sort((a, b) => a - b);
-            
-            let nextNumber = 1;
-            for (let i = 1; i <= existingNumbers.length + 1; i++) {
-                if (!existingNumbers.includes(i)) { nextNumber = i; break; }
-            }
-            return { member_id: `GDA${String(nextNumber).padStart(3, '0')}`, member_no: nextNumber };
-        } catch (error) {
-            return { member_id: "GDA001", member_no: 1 };
-        }
-    }
-
-    // 💾 SAVE ROUTINE WITH DIRECT PICTURE INJECTION
+    // 💾 SAVE ROUTINE WITH CLEAN PAYLOAD
     if (saveBtn) {
         saveBtn.onclick = async (e) => {
             e.preventDefault();
@@ -127,9 +16,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             const name = document.getElementById("customerName").value.trim();
             const mobile = document.getElementById("mobileNumber").value.trim();
             const address = document.getElementById("address").value.trim();
-            const aadhaar = document.getElementById("aadhaarNumber").value.trim();
 
-            if (!name || !mobile || !address || !aadhaar || !loanAmountInput.value) {
+            if (!name || !mobile || !address || !loanAmountInput.value) {
                 alert("Please fill out all mandatory fields.");
                 return;
             }
@@ -140,48 +28,46 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
 
             saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ Disbursing Loan... Please Wait";
+            saveBtn.innerText = "⏳ Saving...";
 
             try {
                 const idDetails = await generateNextGdaId();
                 const loanAmount = Number(loanAmountInput.value);
                 const planDuration = Number(loanPlanSelect.value) || 60;
-                const emi = Number(emiInput.value) || Math.round((loanAmount + (loanAmount * 0.20)) / planDuration);
+                const emi = Number(emiInput.value);
+                const totalLoanValue = loanAmount + (loanAmount * 0.20);
 
-                // 🎯 DIRECT COMBINED PAYLOAD (Photo text + Customer data sent together)
+                // 🎯 CLEAN DATA OBJECT (No duplicates, No extra fields)
                 const newCustomerData = {
                     name: name,
                     mobile: mobile,
                     address: address,
-                    aadharCard: "[Aadhaar Redacted]",
-                    aadhaar: "[Aadhaar Redacted]",
-                    panCard: document.getElementById("panNumber") ? document.getElementById("panNumber").value.trim().toUpperCase() : "",
+                    aadhaarCard: "[Aadhaar Redacted]", // Security: Redacted
+                    panCard: document.getElementById("panNumber")?.value.trim().toUpperCase() || "",
                     loanAmount: loanAmount,
                     planDuration: planDuration,
-                    duration: planDuration,
                     dailyEmi: emi,
-                    emi: emi,
-                    totalCollection: loanAmount + (loanAmount * 0.20),
-                    remainingAmount: loanAmount + (loanAmount * 0.20),
+                    totalCollection: totalLoanValue,
+                    remainingAmount: totalLoanValue,
                     paidAmount: 0,
                     paidDays: 0,
+                    totalCollected: 0,
                     loanDate: document.getElementById("loanDate").value,
                     status: "Active",
                     customerCode: idDetails.member_id,
                     member_no: idDetails.member_no,
-                    createdAt: todayIST,
-                    customerPhoto: capturedBlobUri // Direct native base64 text injection
+                    createdAt: new Date().toISOString(),
+                    customerPhoto: capturedBlobUri 
                 };
 
                 const docRef = await addDoc(collection(db, "customers"), newCustomerData);
 
-                if (streamInstance) {
-                    streamInstance.getTracks().forEach(track => track.stop());
-                }
+                if (streamInstance) streamInstance.getTracks().forEach(track => track.stop());
 
-                alert(`🎉 Customer ${idDetails.member_id} Registered Successfully!`);
+                alert(`🎉 Registered Successfully! ID: ${idDetails.member_id}`);
                 window.location.href = `disbursement-bond.html?id=${docRef.id}`;
             } catch (err) {
+                console.error(err);
                 alert("Error: " + err.message);
                 saveBtn.disabled = false;
                 saveBtn.innerText = "💰 Disburse Loan & Save";
