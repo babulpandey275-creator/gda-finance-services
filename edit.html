@@ -13,6 +13,7 @@
         input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-top: 5px; background: #f8fafc; }
         .btn-submit { background: #1565c0; color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-delete { background: #dc2626; color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-back { background: #64748b; color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -58,6 +59,11 @@
             
             <button type="submit" class="btn-submit" id="updateBtn">💾 Update Profile</button>
             <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete Customer</button>
+            
+            <!-- डैशबोर्ड पर वापस जाने का बटन -->
+            <button type="button" class="btn-back" onclick="window.location.href='index.html'">
+                ⬅️ Back to Dashboard
+            </button>
         </form>
     </div>
 
