@@ -8,15 +8,16 @@ const dailyCollectionInput = document.getElementById("dailyCollection");
 const photoInput = document.getElementById('customerPhoto');
 const photoPreview = document.getElementById('photoPreview');
 
-// कैलकुलेशन
+// कैलकुलेशन फंक्शन
 function calculate() {
     const amt = parseFloat(loanAmountInput.value) || 0;
     const days = parseInt(loanPlanSelect.value) || 60;
-    const total = amt + (amt * 0.20);
+    const total = amt + (amt * 0.20); // 20% interest
     totalPayableInput.value = Math.round(total);
     dailyCollectionInput.value = Math.round(total / days);
 }
 
+// इवेंट लिसनर्स
 loanAmountInput.addEventListener('input', calculate);
 loanPlanSelect.addEventListener('change', calculate);
 
@@ -27,7 +28,7 @@ photoInput.addEventListener('change', function() {
     }
 });
 
-// सबमिट
+// फॉर्म सबमिट हैंडलर
 document.getElementById("regForm").onsubmit = async (e) => {
     e.preventDefault();
     try {
@@ -42,7 +43,13 @@ document.getElementById("regForm").onsubmit = async (e) => {
             dailyCollection: Number(dailyCollectionInput.value),
             createdAt: new Date().toISOString()
         });
-        alert("✅ Success!");
-        window.location.href = "customers.html";
-    } catch (err) { alert("Error: " + err.message); }
+        
+        alert("✅ कस्टमर सफलतापूर्वक रजिस्टर हो गया!");
+        
+        // यहाँ से सही पेज पर रिडायरेक्ट होगा
+        window.location.href = "customer-list.html";
+        
+    } catch (err) { 
+        alert("⚠️ एरर: " + err.message); 
+    }
 };
