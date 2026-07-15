@@ -1,9 +1,9 @@
 // ==========================================================
-// 🚀 GDA FINANCE - FINAL UPDATED CUSTOMER LIST ENGINE
+// 🚀 GDA FINANCE - FULLY CLEANUP ENGINE
 // ==========================================================
 
 import { db } from "./firebase.js"; 
-import { collection, getDocs, doc, query, where, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, getDocs, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 let allCustomers = [];
 let currentStatus = "Active";
@@ -30,13 +30,15 @@ async function loadCustomers() {
     }
 }
 
-// 2. लिस्ट रेंडर करने का फंक्शन
+// 2. लिस्ट रेंडर करने का फंक्शन (भविष्य की तारीख का चेक जोड़ा गया)
 function renderList() {
     if (!listContainer) return;
     const searchTerm = searchInp ? searchInp.value.toLowerCase() : "";
+    const today = new Date().toISOString().split('T')[0];
     
     const filtered = allCustomers.filter(c => 
         (c.status === currentStatus) && 
+        (c.loanDate <= today) && 
         (c.name && (c.name.toLowerCase().includes(searchTerm) || (c.mobile && c.mobile.includes(searchTerm))))
     );
 
@@ -47,8 +49,8 @@ function renderList() {
 
     listContainer.innerHTML = filtered.map(cust => {
         const loanDate = new Date(cust.loanDate);
-        const today = new Date();
-        let daysElapsed = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)) + 1;
+        const todayDate = new Date();
+        let daysElapsed = Math.floor((todayDate - loanDate) / (1000 * 60 * 60 * 24)) + 1;
         if (daysElapsed < 1) daysElapsed = 1; 
         
         const expectedTotal = daysElapsed * Number(cust.dailyEmi || cust.emi || 0);
@@ -90,31 +92,32 @@ window.secureEdit = (docId) => {
     }
 };
 
-// 4. सुरक्षित और परमानेंट डिलीट फंक्शन (UPDATED)
+// 4. पक्का डिलीट (कस्टमर + उसके सारे पेमेंट्स)
 window.secureDelete = async (docId) => {
     const pass = prompt("⚠️ WARNING: Enter Admin Password to PERMANENTLY DELETE:");
     if (pass === ADMIN_PASSWORD) {
         if (!confirm("क्या आप वाकई इस ग्राहक और उसके सारे पेमेंट रिकॉर्ड्स को हमेशा के लिए डिलीट करना चाहते हैं?")) return;
         
         try {
-            listContainer.innerHTML = "⏳ डिलीट हो रहा है..."; // यूजर को फीडबैक दें
+            listContainer.innerHTML = "⏳ डेटा पूरी तरह क्लीन हो रहा है..."; 
             
             const batch = writeBatch(db);
-            // उस कस्टमर के सभी कलेक्शन रिकॉर्ड्स ढूंढें
+
+            // उन सभी पेमेंट रिकॉर्ड्स को निकालें जो इस कस्टमर के हैं
             const colQuery = query(collection(db, "collections"), where("customerId", "==", docId));
             const colSnapshot = await getDocs(colQuery);
             
-            // सभी पेमेंट रिकॉर्ड्स को डिलीट लिस्ट में डालें
+            // पेमेंट रिकॉर्ड्स को डिलीट बैच में डालें
             colSnapshot.forEach((doc) => batch.delete(doc.ref));
             
-            // मुख्य कस्टमर प्रोफाइल को डिलीट लिस्ट में डालें
+            // कस्टमर प्रोफाइल को डिलीट बैच में डालें
             batch.delete(doc(db, "customers", docId));
             
             // एक साथ कमिट करें
             await batch.commit();
             
-            alert("✅ ग्राहक और उसका सारा डेटा हमेशा के लिए डिलीट हो गया है।");
-            loadCustomers(); // लिस्ट को रिफ्रेश करें
+            alert("✅ सब कुछ (कस्टमर + हिस्ट्री) सफलतापूर्वक डिलीट कर दिया गया है।");
+            loadCustomers(); 
         } catch (err) { 
             console.error("Delete Error:", err);
             alert("❌ एरर: " + err.message); 
