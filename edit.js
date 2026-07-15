@@ -5,13 +5,11 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
 const urlParams = new URLSearchParams(window.location.search);
 const custId = urlParams.get('id');
 
-// डेटा लोड करने वाला फंक्शन
+// 1. डेटा लोड करें
 async function loadCustomerData() {
     if (!custId) return;
     try {
-        const docRef = doc(db, "customers", custId);
-        const docSnap = await getDoc(docRef);
-
+        const docSnap = await getDoc(doc(db, "customers", custId));
         if (docSnap.exists()) {
             const data = docSnap.data();
             document.getElementById("customerName").value = data.name || "";
@@ -22,16 +20,20 @@ async function loadCustomerData() {
             document.getElementById("loanPlan").value = data.loanPlan || "60";
             document.getElementById("loanDate").value = data.loanDate || "";
         }
-    } catch (err) {
-        console.error("डेटा लोड एरर:", err);
-    }
+    } catch (err) { console.error("Load Error:", err); }
 }
 
-// अपडेट प्रोफाइल फंक्शन
-document.getElementById("editForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+// 2. अपडेट प्रोफाइल (Submit Handler)
+const form = document.getElementById("editForm");
+form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // पेज रिफ्रेश होने से रोकता है
+
     const photoInput = document.getElementById("customerPhoto");
+    const updateBtn = document.getElementById("updateBtn");
     
+    updateBtn.innerText = "Updating...";
+    updateBtn.disabled = true;
+
     let updateData = {
         name: document.getElementById("customerName").value,
         mobile: document.getElementById("mobileNumber").value,
@@ -43,7 +45,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     };
 
     try {
-        // फोटो अपलोड लॉजिक
+        // फोटो अपलोड करें अगर चुनी गई है
         if (photoInput.files && photoInput.files[0]) {
             const file = photoInput.files[0];
             const storageRef = ref(storage, 'customers/' + custId);
@@ -51,12 +53,16 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
             updateData.customerPhoto = await getDownloadURL(storageRef);
         }
 
-        // डेटाबेस अपडेट
+        // Firestore में डेटा अपडेट करें
         await updateDoc(doc(db, "customers", custId), updateData);
-        alert("✅ प्रोफाइल अपडेट हो गई!");
-        window.location.href = "index.html";
+        
+        alert("✅ प्रोफाइल सफलतापूर्वक अपडेट हो गई!");
+        window.location.href = "index.html"; 
     } catch (err) {
+        console.error("Update Error:", err);
         alert("❌ एरर: " + err.message);
+        updateBtn.innerText = "💾 Update Profile";
+        updateBtn.disabled = false;
     }
 });
 
