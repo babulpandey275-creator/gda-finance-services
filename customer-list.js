@@ -16,12 +16,12 @@ async function loadCustomers() {
         });
         renderList(customers);
     } catch (err) {
-        listContainer.innerHTML = "❌ डेटा लोड करने में एरर आया।";
+        listContainer.innerHTML = "❌ एरर: डेटा लोड नहीं हुआ।";
         console.error(err);
     }
 }
 
-// 2. लिस्ट रेंडर करने का फंक्शन (सारे बटन के साथ)
+// 2. लिस्ट रेंडर करने का फंक्शन
 function renderList(data) {
     listContainer.innerHTML = "";
     if (data.length === 0) {
@@ -32,23 +32,27 @@ function renderList(data) {
     data.forEach(cust => {
         const card = document.createElement("div");
         card.className = "cust-card";
+        // यहाँ फोटो और नाम पर क्लिक करने पर statement.html खुलेगा
         card.innerHTML = `
-            <div class="cust-info">
-                <h4>${cust.name || "N/A"}</h4>
-                <p>📱 ${cust.mobile || "N/A"}</p>
-                <p>💰 लोन: ₹${cust.loanAmount || 0}</p>
-            </div>
-            <div class="cust-actions" style="display: flex; gap: 6px;">
-                <a href="collection.html?id=${cust.id}" class="btn-action" style="background:#28a745; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold;">Collect</a>
-                <button onclick="secureDelete('${cust.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">Del</button>
-                <a href="edit.html?id=${cust.id}" class="btn-action" style="background:#ffb703; color:black; padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold;">Edit</a>
+            <a href="statement.html?id=${cust.id}" style="display: flex; gap: 12px; align-items: center; text-decoration: none; color: inherit; flex: 1;">
+                <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar" style="width:55px; height:55px; border-radius:50%; object-fit:cover;">
+                <div class="cust-info">
+                    <h4 style="margin:0; font-size:16px;">${cust.name || "N/A"}</h4>
+                    <p style="margin:0; font-size:12px; color:#64748b;">📱 ${cust.mobile || "N/A"}</p>
+                    <p style="margin:0; font-size:12px; color:#64748b;">💰 लोन: ₹${cust.loanAmount || 0}</p>
+                </div>
+            </a>
+            <div class="cust-actions" style="display: flex; flex-direction: column; gap: 4px;">
+                <a href="collection.html?id=${cust.id}" style="background:#28a745; color:white; padding:4px 8px; border-radius:5px; text-decoration:none; font-size:10px; font-weight:bold; text-align:center;">Collect</a>
+                <button onclick="secureDelete('${cust.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:5px; cursor:pointer; font-size:10px; font-weight:bold;">Del</button>
+                <a href="edit.html?id=${cust.id}" style="background:#ffb703; color:black; padding:4px 8px; border-radius:5px; text-decoration:none; font-size:10px; font-weight:bold; text-align:center;">Edit</a>
             </div>
         `;
         listContainer.appendChild(card);
     });
 }
 
-// 3. डिलीट करने का सुरक्षित फंक्शन
+// 3. डिलीट फंक्शन
 window.secureDelete = async (docId) => {
     const pass = prompt("⚠️ DELETE करने के लिए Admin Password डालें:");
     if (pass === ADMIN_PASSWORD) {
@@ -56,7 +60,7 @@ window.secureDelete = async (docId) => {
         try {
             await deleteDoc(doc(db, "customers", docId));
             alert("✅ कस्टमर डिलीट हो गया!");
-            loadCustomers(); // लिस्ट रिफ्रेश करें
+            loadCustomers();
         } catch (err) { 
             alert("❌ एरर: " + err.message); 
         }
@@ -76,5 +80,4 @@ if (searchInp) {
     });
 }
 
-// पेज लोड होते ही कॉल करें
 loadCustomers();
