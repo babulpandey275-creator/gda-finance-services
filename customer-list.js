@@ -30,7 +30,7 @@ function renderList(data) {
         const card = document.createElement("div");
         card.className = "cust-card";
         card.style.display = "flex";
-        card.style.flexDirection = "column"; // बटन्स को नीचे लाने के लिए
+        card.style.flexDirection = "column";
         card.style.gap = "10px";
         
         card.innerHTML = `
@@ -53,17 +53,16 @@ function renderList(data) {
     });
 }
 
-// 1. सुरक्षित एडिट फंक्शन (पासवर्ड के साथ)
+// Edit बटन का सुरक्षित फंक्शन
 window.secureEdit = (docId) => {
     const pass = prompt("🔑 Edit करने के लिए Admin Password डालें:");
     if (pass === ADMIN_PASSWORD) {
-        window.location.href = `edit.html?id=${docId}`;
+        window.location.href = `./edit.html?id=${docId}`; 
     } else if (pass !== null) {
         alert("❌ गलत पासवर्ड!");
     }
 };
 
-// 2. सुरक्षित डिलीट फंक्शन
 window.secureDelete = async (docId) => {
     const pass = prompt("⚠️ DELETE करने के लिए Admin Password डालें:");
     if (pass === ADMIN_PASSWORD) {
