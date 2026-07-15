@@ -13,7 +13,8 @@
         input { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #f8fafc; margin-bottom: 10px; }
         .btn-submit { background: #1565c0; color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-delete { background: #ef4444; color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 12px; }
-        .btn-back { display: block; text-align: center; background: #475569; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .btn-docs { display: block; text-align: center; background: #475569; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .btn-back { display: block; text-align: center; background: #64748b; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -31,15 +32,8 @@
             <label>📍 Permanent Address:</label>
             <input type="text" id="address" required>
 
-            <!-- फोटो और डॉक्यूमेंट्स -->
             <label>📷 Capture Customer Photo:</label>
             <input type="file" id="customerPhotoFile" accept="image/*" capture="user">
-
-            <label>📷 Upload Aadhaar Card (Live Camera):</label>
-            <input type="file" id="docAadharFile" accept="image/*" capture="environment">
-
-            <label>📄 Upload PAN Card (Live Camera):</label>
-            <input type="file" id="docPanFile" accept="image/*" capture="environment">
 
             <label>💳 Aadhaar Number:</label>
             <input type="text" id="aadhaarNumber" value="[Aadhaar Redacted]" readonly>
@@ -60,6 +54,10 @@
             <input type="date" id="loanDate" required>
 
             <button type="submit" class="btn-submit" id="saveBtn">💾 Update & Save Records</button>
+            
+            <!-- डॉक्यूमेंट्स मैनेज करने के लिए अलग पेज का बटन -->
+            <a href="documents.html" id="manageDocsBtn" class="btn-docs">📸 Manage Aadhaar & PAN Photos</a>
+            
             <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete This Customer</button>
             <a href="customer-list.html" class="btn-back">⬅ Cancel & Go Back</a>
         </form>
