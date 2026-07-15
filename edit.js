@@ -33,20 +33,23 @@ window.addEventListener('DOMContentLoaded', async () => {
     loanPlanInput.addEventListener("input", calculate);
 
     async function loadCustomerData() {
-        const docSnap = await getDoc(doc(db, "customers", custId));
-        if (!docSnap.exists()) return;
-        const cust = docSnap.data();
-        
-        document.getElementById("customerName").value = cust.name || "";
-        document.getElementById("mobileNumber").value = cust.mobile || "";
-        document.getElementById("address").value = cust.address || "";
-        document.getElementById("panNumber").value = cust.panCard || "";
-        document.getElementById("loanAmount").value = cust.loanAmount || "";
-        document.getElementById("loanPlan").value = cust.planDuration || "";
-        document.getElementById("emi").value = cust.dailyEmi || "";
-        document.getElementById("loanDate").value = cust.loanDate || "";
-        document.getElementById("aadhaarNumber").value = "[Aadhaar Redacted]";
-        calculate(); 
+        try {
+            const docSnap = await getDoc(doc(db, "customers", custId));
+            if (!docSnap.exists()) return;
+            const cust = docSnap.data();
+            
+            document.getElementById("customerName").value = cust.name || "";
+            document.getElementById("mobileNumber").value = cust.mobile || "";
+            document.getElementById("address").value = cust.address || "";
+            document.getElementById("panNumber").value = cust.panCard || "";
+            document.getElementById("loanAmount").value = cust.loanAmount || "";
+            document.getElementById("loanPlan").value = cust.planDuration || "";
+            document.getElementById("emi").value = cust.dailyEmi || "";
+            document.getElementById("loanDate").value = cust.loanDate || "";
+            document.getElementById("aadhaarNumber").value = "[Aadhaar Redacted]";
+            
+            calculate(); // लोड होते ही कैलकुलेशन ट्रिगर होगा
+        } catch (err) { console.error(err); }
     }
     await loadCustomerData();
 
