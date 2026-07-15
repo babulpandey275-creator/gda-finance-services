@@ -17,50 +17,50 @@
 </head>
 <body>
 
-<div class="card">
-    <h2>✏️ Edit Customer</h2>
-    <form id="editForm">
-        <!-- फोटो के लिए -->
-        <label>📷 UPDATE PHOTO:</label>
-        <input type="file" id="customerPhoto" accept="image/*" capture="user">
+    <div class="card">
+        <h2>✏️ Edit Customer</h2>
+        <form id="editForm">
+            <label>📷 UPDATE PHOTO:</label>
+            <input type="file" id="customerPhoto" accept="image/*" capture="user">
+            
+            <label>CUSTOMER NAME:</label>
+            <input type="text" id="customerName" required>
+            
+            <label>MOBILE NUMBER:</label>
+            <input type="tel" id="mobileNumber" maxlength="10" required>
+            
+            <label>COMPLETE ADDRESS:</label>
+            <input type="text" id="address" required>
+            
+            <label>AADHAAR NUMBER:</label>
+            <input type="text" id="aadhaarNumber" value="[Aadhaar Redacted]" disabled>
+            
+            <label>PAN CARD NUMBER:</label>
+            <input type="text" id="panNumber" style="text-transform:uppercase;" maxlength="10">
+            
+            <label>LOAN AMOUNT (₹):</label>
+            <input type="number" id="loanAmount" required>
+            
+            <label>PLAN DURATION (DAYS):</label>
+            <select id="loanPlan">
+                <option value="60">60 Days</option>
+                <option value="80">80 Days</option>
+            </select>
+            
+            <label>TOTAL AMOUNT TO PAY (₹):</label>
+            <input type="number" id="totalAmount" readonly style="background:#e2e8f0; font-weight:bold;">
+            
+            <label>DAILY EMI AMOUNT (₹):</label>
+            <input type="number" id="emi" readonly style="background:#e2e8f0; font-weight:bold;">
+            
+            <label>LOAN DISBURSED DATE:</label>
+            <input type="date" id="loanDate" required>
+            
+            <button type="submit" class="btn-submit" id="updateBtn">💾 Update Profile</button>
+            <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete Customer</button>
+        </form>
+    </div>
 
-        <label>CUSTOMER NAME:</label>
-        <input type="text" id="customerName" required>
-
-        <label>MOBILE NUMBER:</label>
-        <input type="tel" id="mobileNumber" maxlength="10" required>
-
-        <label>COMPLETE ADDRESS:</label>
-        <input type="text" id="address" required>
-
-        <label>AADHAAR NUMBER:</label>
-        <input type="text" id="aadhaarNumber" value="[Aadhaar Redacted]" disabled>
-
-        <label>PAN CARD NUMBER:</label>
-        <input type="text" id="panNumber" style="text-transform:uppercase;" maxlength="10">
-
-        <label>LOAN AMOUNT (₹):</label>
-        <input type="number" id="loanAmount" required>
-
-        <label>PLAN DURATION (DAYS):</label>
-        <select id="loanPlan">
-            <option value="60">60 Days</option>
-            <option value="80">80 Days</option>
-        </select>
-
-        <label>TOTAL AMOUNT TO PAY (₹):</label>
-        <input type="number" id="totalAmount" readonly style="background:#e2e8f0; font-weight:bold;">
-
-        <label>DAILY EMI AMOUNT (₹):</label>
-        <input type="number" id="emi" readonly style="background:#e2e8f0; font-weight:bold;">
-
-        <label>LOAN DISBURSED DATE:</label>
-        <input type="date" id="loanDate" required>
-
-        <button type="submit" class="btn-submit" id="updateBtn">💾 Update Profile</button>
-        <button type="button" class="btn-delete" id="deleteBtn">🗑️ Delete Customer</button>
-    </form>
-</div>
-<script type="module" src="edit.js"></script>
+    <script type="module" src="edit.js"></script>
 </body>
 </html>
