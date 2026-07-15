@@ -3,178 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDA Finance - Add Customer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;&display=swap" rel="stylesheet">
+    <title>New Registration - GDA Finance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #eef3f8;
-            font-family: 'Poppins', sans-serif;
-            color: #1e293b;
-        }
-        .card {
-            max-width: 450px;
-            margin: auto;
-            background: #fff;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-        .heading {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #1565c0;
-            font-weight: 700;
-        }
-        label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #475569;
-            display: block;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            background: #f8fafc;
-            transition: 0.2s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #1565c0;
-            background: #fff;
-        }
-        .camera-box {
-            text-align: center;
-            margin-bottom: 15px;
-            background: #f1f5f9;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px dashed #cbd5e1;
-        }
-        #video {
-            width: 100%;
-            max-height: 250px;
-            background: #000;
-            border-radius: 8px;
-            display: block;
-        }
-        #canvas {
-            display: none;
-            width: 100%;
-            border-radius: 8px;
-        }
-        .cam-btn {
-            background: #1565c0;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-weight: 600;
-            width: 100%;
-            transition: 0.2s;
-        }
-        .cam-btn:active {
-            transform: scale(0.98);
-        }
-        button.save-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 700;
-            background: #28a745;
-            color: white;
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
-            transition: 0.2s;
-        }
-        button.save-btn:active {
-            transform: scale(0.98);
-        }
-        .backBtn {
-            display: block;
-            margin-top: 15px;
-            background: #64748b;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-        .backBtn:active {
-            transform: scale(0.98);
-        }
+        body { font-family: 'Poppins', sans-serif; background: #eef3f8; padding: 15px; margin: 0; color: #1e293b; }
+        .card { max-width: 480px; margin: auto; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,.08); }
+        h2 { text-align: center; color: #1565c0; margin-bottom: 20px; font-weight: 700; }
+        label { font-weight: 600; color: #475569; display: block; margin-top: 14px; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; }
+        input { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #f8fafc; margin-bottom: 10px; }
+        .btn-submit { background: #1565c0; color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 25px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="heading">👤 New Customer Registration</div>
-    
-    <div class="camera-box">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-        <button type="button" id="captureBtn" class="cam-btn">📸 Capture Photo</button>
-        <button type="button" id="reTakeBtn" class="cam-btn" style="display:none; background:#dc3545;">🔄 Retake Photo</button>
+    <div class="card">
+        <h2>👤 New Customer Registration</h2>
+        <form id="regForm">
+            
+            <label>CUSTOMER NAME:</label>
+            <input type="text" id="customerName" placeholder="Enter full name" required>
+
+            <label>MOBILE NUMBER:</label>
+            <input type="text" id="mobileNumber" placeholder="Enter mobile number" required>
+
+            <label>COMPLETE ADDRESS:</label>
+            <input type="text" id="address" placeholder="Enter address details" required>
+
+            <!-- कैमरा ऑप्शंस जोड़े गए -->
+            <label>📷 CAPTURE CUSTOMER PHOTO:</label>
+            <input type="file" id="customerPhotoFile" accept="image/*" capture="user">
+
+            <label>📷 UPLOAD AADHAAR CARD (LIVE CAMERA):</label>
+            <input type="file" id="docAadharFile" accept="image/*" capture="environment">
+
+            <label>📄 UPLOAD PAN CARD (LIVE CAMERA):</label>
+            <input type="file" id="docPanFile" accept="image/*" capture="environment">
+
+            <label>AADHAAR NUMBER:</label>
+            <input type="text" id="aadhaarNumber" placeholder="Enter 12-digit Aadhaar">
+
+            <label>PAN CARD NUMBER:</label>
+            <input type="text" id="panNumber" placeholder="ENTER PAN NUMBER">
+
+            <label>LOAN AMOUNT (₹):</label>
+            <input type="number" id="loanAmount" placeholder="Enter loan amount" required>
+
+            <label>PLAN DURATION (DAYS):</label>
+            <input type="number" id="loanPlan" placeholder="Enter duration" required>
+
+            <label>DAILY EMI AMOUNT (₹):</label>
+            <input type="number" id="emi" placeholder="Enter EMI" required>
+
+            <label>LOAN DISBURSED DATE:</label>
+            <input type="date" id="loanDate" required>
+
+            <button type="submit" class="btn-submit" id="regBtn">💾 Save Registration</button>
+        </form>
     </div>
-    
-    <form id="registerForm" onsubmit="return false;">
-        <label>Customer Name</label>
-        <input type="text" id="customerName" placeholder="Enter full name" required>
 
-        <label>Mobile Number</label>
-        <input type="number" id="mobileNumber" placeholder="Enter mobile number" required>
-
-        <label>Complete Address</label>
-        <input type="text" id="address" placeholder="Enter address details" required>
-
-        <label>Aadhaar Number</label>
-        <input type="number" id="aadhaarNumber" placeholder="Enter 12-digit Aadhaar" required>
-
-        <label>PAN Card Number</label>
-        <input type="text" id="panNumber" placeholder="Enter PAN number" style="text-transform:uppercase;">
-
-        <label>Loan Amount (₹)</label>
-        <input type="number" id="loanAmount" placeholder="Enter principal loan amount" required>
-        
-        <label>Select Plan Duration</label>
-        <select id="loanPlan" required>
-            <option value="60">60 Days Plan</option>
-            <option value="80">80 Days Plan</option>
-        </select>
-        
-        <label>Total Collection (With 20% Interest)</label>
-        <input type="number" id="remainingAmount" placeholder="Total payable amount" readonly style="background:#e2e8f0; font-weight:700; color:#1565c0;">
-        
-        <label>Daily EMI Installment</label>
-        <input type="number" id="emi" placeholder="Calculated daily EMI" readonly style="background:#e2e8f0; font-weight:700; color:#28a745;">
-        
-        <label>Loan Disbursed Date</label>
-        <input type="date" id="loanDate" required>
-
-        <button type="button" id="saveBtn" class="save-btn">💰 Disburse Loan & Save</button>
-        <a href="customer-list.html" class="backBtn">⬅ Return to Customer Directory</a>
-    </form>
-</div>
-
-<script type="module" src="register.js"></script>
+    <script type="module" src="register.js"></script>
 </body>
 </html>
