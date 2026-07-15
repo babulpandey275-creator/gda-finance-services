@@ -1,11 +1,11 @@
 import { db, storage } from "./firebase.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const custId = urlParams.get('id');
 
-// 1. डेटा लोड करें
+// 1. डेटा लोड करने का फंक्शन
 async function loadCustomerData() {
     if (!custId) return;
     try {
@@ -19,6 +19,8 @@ async function loadCustomerData() {
             document.getElementById("loanAmount").value = data.loanAmount || "";
             document.getElementById("loanPlan").value = data.loanPlan || "60";
             document.getElementById("loanDate").value = data.loanDate || "";
+            document.getElementById("totalAmount").value = data.totalAmount || "";
+            document.getElementById("emi").value = data.emi || "";
         }
     } catch (err) { console.error("Load Error:", err); }
 }
@@ -26,7 +28,7 @@ async function loadCustomerData() {
 // 2. अपडेट प्रोफाइल (Submit Handler)
 const form = document.getElementById("editForm");
 form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // पेज रिफ्रेश होने से रोकता है
+    e.preventDefault();
 
     const photoInput = document.getElementById("customerPhoto");
     const updateBtn = document.getElementById("updateBtn");
@@ -41,28 +43,36 @@ form.addEventListener("submit", async (e) => {
         panCard: document.getElementById("panNumber").value,
         loanAmount: document.getElementById("loanAmount").value,
         loanPlan: document.getElementById("loanPlan").value,
-        loanDate: document.getElementById("loanDate").value
+        loanDate: document.getElementById("loanDate").value,
+        totalAmount: document.getElementById("totalAmount").value,
+        emi: document.getElementById("emi").value
     };
 
     try {
-        // फोटो अपलोड करें अगर चुनी गई है
         if (photoInput.files && photoInput.files[0]) {
-            const file = photoInput.files[0];
             const storageRef = ref(storage, 'customers/' + custId);
-            await uploadBytes(storageRef, file);
+            await uploadBytes(storageRef, photoInput.files[0]);
             updateData.customerPhoto = await getDownloadURL(storageRef);
         }
 
-        // Firestore में डेटा अपडेट करें
         await updateDoc(doc(db, "customers", custId), updateData);
-        
-        alert("✅ प्रोफाइल सफलतापूर्वक अपडेट हो गई!");
-        window.location.href = "index.html"; 
+        alert("✅ प्रोफाइल अपडेट हो गई!");
+        window.location.href = "customer-list.html"; 
     } catch (err) {
-        console.error("Update Error:", err);
         alert("❌ एरर: " + err.message);
         updateBtn.innerText = "💾 Update Profile";
         updateBtn.disabled = false;
+    }
+});
+
+// 3. डिलीट बटन का फंक्शन
+document.getElementById("deleteBtn").addEventListener("click", async () => {
+    if (confirm("⚠️ क्या आप वाकई इस कस्टमर को डिलीट करना चाहते हैं?")) {
+        try {
+            await deleteDoc(doc(db, "customers", custId));
+            alert("🗑️ कस्टमर डिलीट हो गया!");
+            window.location.href = "customer-list.html";
+        } catch (err) { alert("❌ एरर: " + err.message); }
     }
 });
 
