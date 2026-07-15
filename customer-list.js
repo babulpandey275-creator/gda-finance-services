@@ -1,136 +1,61 @@
-// ==========================================================
-// 🚀 GDA FINANCE - FULLY CLEANUP ENGINE
-// ==========================================================
-
-import { db } from "./firebase.js"; 
-import { collection, getDocs, doc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-
-let allCustomers = [];
-let currentStatus = "Active";
+import { db } from "./firebase.js";
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const listContainer = document.getElementById("listContainer");
-const tabActive = document.getElementById("tabActive");
-const tabClosed = document.getElementById("tabClosed");
 const searchInp = document.getElementById("searchInp");
 
-const ADMIN_PASSWORD = "GDA@2026";
-
-// 1. डेटा लोड करने का फंक्शन
 async function loadCustomers() {
-    if (listContainer) listContainer.innerHTML = "⏳ लोड हो रहा है...";
-    try {
-        const querySnapshot = await getDocs(collection(db, "customers"));
-        allCustomers = [];
-        querySnapshot.forEach((doc) => {
-            allCustomers.push({ id: doc.id, ...doc.data() });
-        });
-        renderList();
-    } catch (err) {
-        console.error("Error loading customers:", err);
-    }
-}
-
-// 2. लिस्ट रेंडर करने का फंक्शन (भविष्य की तारीख का चेक जोड़ा गया)
-function renderList() {
-    if (!listContainer) return;
-    const searchTerm = searchInp ? searchInp.value.toLowerCase() : "";
-    const today = new Date().toISOString().split('T')[0];
+    // डेटा लोड होते समय मैसेज दिखाएं
+    listContainer.innerHTML = "⏳ लोड हो रहा है...";
     
-    const filtered = allCustomers.filter(c => 
-        (c.status === currentStatus) && 
-        (c.loanDate <= today) && 
-        (c.name && (c.name.toLowerCase().includes(searchTerm) || (c.mobile && c.mobile.includes(searchTerm))))
-    );
-
-    if (filtered.length === 0) {
-        listContainer.innerHTML = `<p style="text-align:center; padding:20px; color:#64748b;">कोई ग्राहक नहीं मिला।</p>`;
-        return;
-    }
-
-    listContainer.innerHTML = filtered.map(cust => {
-        const loanDate = new Date(cust.loanDate);
-        const todayDate = new Date();
-        let daysElapsed = Math.floor((todayDate - loanDate) / (1000 * 60 * 60 * 24)) + 1;
-        if (daysElapsed < 1) daysElapsed = 1; 
+    try {
+        // Firestore से 'customers' कलेक्शन का डेटा सबसे नए से पुराने के क्रम में लाएं
+        const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
         
-        const expectedTotal = daysElapsed * Number(cust.dailyEmi || cust.emi || 0);
-        const totalCollected = Number(cust.totalCollected || cust.paidAmount || 0);
-        let currentDue = expectedTotal - totalCollected;
-        if (currentDue < 0) currentDue = 0;
+        listContainer.innerHTML = ""; // पुराना मैसेज हटा दें
+        
+        if (querySnapshot.empty) {
+            listContainer.innerHTML = "<p style='text-align:center;'>अभी कोई कस्टमर रजिस्टर नहीं है।</p>";
+            return;
+        }
 
-        const displayCode = cust.customerCode || cust.member_id || `GDA${String(cust.member_no || 0).padStart(3, '0')}`;
-        const profileUrl = `statement.html?id=${cust.id}`;
-        const collectUrl = `collection.html?id=${cust.id}`;
-
-        return `
-        <div class="cust-card" style="flex-direction: column; align-items: stretch; gap: 8px;">
-            <div style="display: flex; gap: 12px; align-items: center; cursor:pointer;" onclick="window.location.href='${profileUrl}'">
-                <img src="${cust.customerPhoto || 'https://via.placeholder.com/55'}" class="cust-avatar">
-                <div class="cust-info" style="flex: 1;">
-                    <h4 style="margin: 0 0 4px 0; font-size: 16px; color: #0f172a;">${cust.name} (${displayCode})</h4>
-                    <p style="margin: 0 0 2px 0; font-size: 12px; color: #64748b;">📞 ${cust.mobile || 'N/A'}</p>
-                    <p style="margin: 0 0 2px 0; font-size: 12px; color: #64748b;">📅 Date: ${cust.loanDate} | <span style="color:#ef4444; font-weight:bold;">Due: ₹${currentDue}</span></p>
+        // हर कस्टमर के लिए कार्ड बनाएं
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const id = doc.id;
+            
+            const card = document.createElement("div");
+            card.className = "cust-card";
+            card.innerHTML = `
+                <div class="cust-info">
+                    <h4>${data.name || "N/A"}</h4>
+                    <p>📱 ${data.mobile || "N/A"}</p>
+                    <p>💰 लोन: ₹${data.loanAmount || 0}</p>
                 </div>
-            </div>
-            <div class="cust-actions" style="display: flex; flex-direction: row; gap: 6px; width: 100%; margin-top: 5px;">
-                <a href="${collectUrl}" class="btn-action" style="background: #28a745; color: white; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-decoration: none; text-align: center;">Collect EMI</a>
-                <button onclick="secureEdit('${cust.id}')" class="btn-action btn-edit" style="background: #ffb703; color: black; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none;">Edit</button>
-                <button onclick="secureDelete('${cust.id}')" class="btn-action btn-delete" style="background: #ef4444; color: white; flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none;">Del</button>
-            </div>
-        </div>
-        `;
-    }).join('');
+                <div class="cust-actions">
+                    <a href="edit.html?id=${id}" class="btn-action btn-edit">Edit</a>
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error("Error loading: ", err);
+        listContainer.innerHTML = "⚠️ डेटा लोड करने में एरर आया।";
+    }
 }
 
-// 3. सुरक्षित एडिट फंक्शन
-window.secureEdit = (docId) => {
-    const pass = prompt("🔑 Admin Password:");
-    if (pass === ADMIN_PASSWORD) {
-        window.location.href = `edit.html?id=${docId}`;
-    } else if (pass !== null) {
-        alert("❌ Incorrect Password!");
-    }
-};
+// सर्च करने का फंक्शन (नाम या मोबाइल से)
+searchInp.addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll(".cust-card");
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? "flex" : "none";
+    });
+});
 
-// 4. पक्का डिलीट (कस्टमर + उसके सारे पेमेंट्स)
-window.secureDelete = async (docId) => {
-    const pass = prompt("⚠️ WARNING: Enter Admin Password to PERMANENTLY DELETE:");
-    if (pass === ADMIN_PASSWORD) {
-        if (!confirm("क्या आप वाकई इस ग्राहक और उसके सारे पेमेंट रिकॉर्ड्स को हमेशा के लिए डिलीट करना चाहते हैं?")) return;
-        
-        try {
-            listContainer.innerHTML = "⏳ डेटा पूरी तरह क्लीन हो रहा है..."; 
-            
-            const batch = writeBatch(db);
-
-            // उन सभी पेमेंट रिकॉर्ड्स को निकालें जो इस कस्टमर के हैं
-            const colQuery = query(collection(db, "collections"), where("customerId", "==", docId));
-            const colSnapshot = await getDocs(colQuery);
-            
-            // पेमेंट रिकॉर्ड्स को डिलीट बैच में डालें
-            colSnapshot.forEach((doc) => batch.delete(doc.ref));
-            
-            // कस्टमर प्रोफाइल को डिलीट बैच में डालें
-            batch.delete(doc(db, "customers", docId));
-            
-            // एक साथ कमिट करें
-            await batch.commit();
-            
-            alert("✅ सब कुछ (कस्टमर + हिस्ट्री) सफलतापूर्वक डिलीट कर दिया गया है।");
-            loadCustomers(); 
-        } catch (err) { 
-            console.error("Delete Error:", err);
-            alert("❌ एरर: " + err.message); 
-            loadCustomers();
-        }
-    } else if (pass !== null) {
-        alert("❌ गलत पासवर्ड!");
-    }
-};
-
-// 5. इवेंट लिसनर्स
-if (tabActive) tabActive.onclick = () => { currentStatus = "Active"; renderList(); };
-if (tabClosed) tabClosed.onclick = () => { currentStatus = "Closed"; renderList(); };
-if (searchInp) searchInp.oninput = renderList;
-
+// पेज लोड होते ही लिस्ट लोड करें
 loadCustomers();
