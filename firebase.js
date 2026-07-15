@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js"; // यह लाइन जोड़ें
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFG2At-wHGTiUg6cc2kjiKmgbK-dSgXKw",
@@ -16,7 +17,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app); // यह लाइन जोड़ें
 
 console.log("🚀 Firebase Core Architecture Connected Successfully.");
 
-export { db, auth };
+export { db, auth, storage }; // यहाँ 'storage' को भी एक्सपोर्ट करें
