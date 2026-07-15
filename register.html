@@ -3,85 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Registration | GDA Finance Services</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <title>Customer Registration | GDA Finance</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        *{ margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-        body{ background:#eef3f8; padding-bottom:100px; }
-        .header{ background:linear-gradient(135deg,#0B3D91,#1456c8); color:white; padding:20px; text-align:center; border-radius:0 0 25px 25px; box-shadow:0 5px 15px rgba(0,0,0,.2); }
-        .container{ max-width:520px; margin:auto; padding:15px; }
-        .card{ background:white; padding:18px; margin-top:18px; border-radius:18px; box-shadow:0 4px 12px rgba(0,0,0,.08); }
-        label{ display:block; margin-top:15px; font-weight:600; font-size:14px; }
-        input, select{ width:100%; padding:13px; margin-top:6px; border:1px solid #d7d7d7; border-radius:12px; font-size:15px; outline:none; }
-        .photo-preview{ width:130px; height:130px; border-radius:50%; border:4px solid #0B3D91; object-fit:cover; background:#f2f2f2; }
-        .camera-btn{ margin-top:12px; background:#0B3D91; color:white; padding:12px; border-radius:10px; cursor:pointer; display:inline-block; }
-        .readonly{ background:#ececec; }
+        body { font-family: 'Poppins', sans-serif; background: #eef3f8; padding: 20px; }
+        .card { max-width: 500px; margin: auto; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        label { font-weight: 600; display: block; margin-top: 15px; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 10px; }
+        .btn { width: 100%; padding: 15px; background: #0B3D91; color: white; border: none; border-radius: 10px; margin-top: 20px; font-weight: bold; cursor: pointer; }
+        .photo-box { text-align: center; margin-bottom: 20px; }
+        .photo-preview { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #0B3D91; object-fit: cover; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>GDA FINANCE SERVICES</h2>
-    <p>Customer Registration</p>
-</div>
-
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-user-plus"></i> Customer Details</h3>
-        <div class="photo-box" style="text-align:center;">
-            <img src="https://via.placeholder.com/130" id="photoPreview" class="photo-preview">
+<div class="card">
+    <form id="regForm">
+        <div class="photo-box">
+            <img src="https://via.placeholder.com/120" id="photoPreview" class="photo-preview">
             <br>
-            <label class="camera-btn">
-                <i class="fa-solid fa-camera"></i> Take Customer Photo
+            <label style="background: #0B3D91; color: white; padding: 10px; border-radius: 8px; cursor: pointer; display: inline-block; margin-top: 10px;">
+                <i class="fa fa-camera"></i> Take Photo
                 <input type="file" id="customerPhoto" accept="image/*" capture="environment" hidden>
             </label>
         </div>
 
-        <label>Loan ID</label>
-        <input type="text" id="loanId" class="readonly" readonly>
+        <label>CUSTOMER NAME</label>
+        <input type="text" id="customerName" required>
 
-        <label>Loan Date</label>
-        <input type="date" id="loanDate">
+        <label>MOBILE NUMBER</label>
+        <input type="tel" id="mobile" maxlength="10" required>
 
-        <label>Customer Name</label>
-        <input type="text" id="customerName" placeholder="Enter Customer Name" required>
+        <label>AADHAAR NUMBER</label>
+        <input type="text" id="aadhaar" value="[Aadhaar Redacted]" readonly>
 
-        <label>Mobile Number</label>
-        <input type="tel" id="mobile" maxlength="10" placeholder="10 Digit Mobile Number">
+        <label>PAN CARD NUMBER</label>
+        <input type="text" id="panNumber" style="text-transform:uppercase;">
 
-        <label>Aadhaar Number</label>
-        <input type="text" id="aadhaar" maxlength="12" placeholder="Enter Aadhaar Number">
-    </div>
+        <label>LOAN AMOUNT (₹)</label>
+        <input type="number" id="loanAmount" required>
 
-    <div class="card">
-        <h3><i class="fa-solid fa-money-bill-wave"></i> Loan Details</h3>
-        <label>Loan Amount (₹)</label>
-        <input type="number" id="loanAmount" placeholder="Enter Loan Amount">
-
-        <label>Loan Plan</label>
+        <label>PLAN DURATION</label>
         <select id="loanPlan">
             <option value="60">60 Days</option>
             <option value="80">80 Days</option>
         </select>
 
-        <label>Total Payable (₹)</label>
-        <input type="number" id="totalPayable" readonly class="readonly">
+        <label>TOTAL PAYABLE (₹)</label>
+        <input type="number" id="totalPayable" readonly style="background:#eee;">
 
-        <label>Daily Collection (₹)</label>
-        <input type="number" id="dailyCollection" readonly class="readonly">
-    </div>
+        <label>DAILY COLLECTION (₹)</label>
+        <input type="number" id="dailyCollection" readonly style="background:#eee;">
+
+        <button type="submit" class="btn" id="regBtn">Save Registration</button>
+    </form>
 </div>
 
-<script>
-    // फोटो प्रिव्यू के लिए कोड
-    const photoInput = document.getElementById('customerPhoto');
-    const photoPreview = document.getElementById('photoPreview');
-    photoInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            photoPreview.src = URL.createObjectURL(this.files[0]);
-        }
-    });
-</script>
+<script type="module" src="register.js"></script>
 </body>
 </html>
