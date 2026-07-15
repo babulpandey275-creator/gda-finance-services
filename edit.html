@@ -10,7 +10,7 @@
         .card { max-width: 480px; margin: auto; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,.08); }
         h2 { text-align: center; color: #1565c0; margin-bottom: 20px; font-weight: 700; }
         label { font-weight: 600; color: #475569; display: block; margin-top: 14px; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; }
-        input { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #f8fafc; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #f8fafc; margin-bottom: 10px; }
         .btn-submit { background: #1565c0; color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-delete { background: #ef4444; color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 12px; }
         .btn-docs { display: block; text-align: center; background: #475569; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 15px; }
@@ -27,8 +27,6 @@
             <input type="text" id="mobileNumber" required>
             <label>📍 Permanent Address:</label>
             <input type="text" id="address" required>
-            <label>📷 Capture Customer Photo:</label>
-            <input type="file" id="customerPhotoFile" accept="image/*" capture="user">
             <label>💳 Aadhaar Number:</label>
             <input type="text" id="aadhaarNumber" value="[Aadhaar Redacted]" readonly>
             <label>📇 PAN Card Number:</label>
@@ -36,7 +34,10 @@
             <label>💵 Loan Amount (₹):</label>
             <input type="number" id="loanAmount" required>
             <label>📅 Plan Duration (Days):</label>
-            <input type="number" id="loanPlan" required>
+            <select id="loanPlan" required>
+                <option value="60">60 Days</option>
+                <option value="80">80 Days</option>
+            </select>
             <label>📦 Total Amount to Pay (₹):</label>
             <input type="number" id="totalAmount" readonly style="background: #e2e8f0; font-weight: bold;">
             <label>📦 Daily EMI Amount (₹):</label>
@@ -49,7 +50,6 @@
             <a href="customer-list.html" class="btn-back">⬅ Cancel & Go Back</a>
         </form>
     </div>
-    <!-- वर्जन बदल दिया है ताकि पुराना कैश लोड न हो -->
-    <script type="module" src="edit.js?v=2.0"></script>
+    <script type="module" src="edit.js?v=3.0"></script>
 </body>
 </html>
