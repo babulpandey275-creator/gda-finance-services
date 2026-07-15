@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - MASTER DASHBOARD ENGINE (FIXED LOGIC)
+// 🚀 GDA FINANCE - MASTER DASHBOARD ENGINE
 // ==========================================================
 
 import { db, auth } from "./firebase.js"; 
@@ -12,6 +12,7 @@ export async function loadDashboard() {
             return; 
         }
 
+        // HTML Elements
         const txtTodayCollected = document.getElementById("txtTodayCollected");
         const txtTodayMissed = document.getElementById("txtTodayMissed");
         const txtActiveAccounts = document.getElementById("txtActiveAccounts");
@@ -21,20 +22,20 @@ export async function loadDashboard() {
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         try {
-            // 1. आज का कलेक्शन और उन ग्राहकों की लिस्ट जिन्होंने आज पैसा दिया
+            // 1. आज का पेमेंट डेटा फेच करें
             const collectSnapshot = await getDocs(collection(db, "collections"));
             let todayCollected = 0;
-            const paidTodayIds = []; // उन ग्राहकों की ID जिन्होंने आज पेमेंट कर दिया
+            const paidTodayIds = []; 
 
             collectSnapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.date === todayIST) {
                     todayCollected += Number(data.amount || 0);
-                    paidTodayIds.push(data.customerId); // पेमेंट करने वाले का ID यहाँ जोड़ें
+                    paidTodayIds.push(data.customerId); 
                 }
             });
 
-            // 2. एक्टिव ग्राहकों और पेंडिंग ड्यू की गणना
+            // 2. कस्टमर डेटा फेच करें
             const custSnapshot = await getDocs(collection(db, "customers"));
             let active = 0;
             let totalDemand = 0;
@@ -48,14 +49,14 @@ export async function loadDashboard() {
                     active++;
                     totalDemand += emi;
                     
-                    // सिर्फ उनका काउंट बढ़ाएं जिन्होंने आज पेमेंट नहीं किया है
+                    // अगर आज पेमेंट नहीं किया है, तो उसे पेंडिंग में गिनें
                     if (!paidTodayIds.includes(doc.id)) {
                         missedCount++; 
                     }
                 }
             });
 
-            // 3. UI डेटा अपडेट करना
+            // 3. UI डेटा अपडेट करें
             const currentTodayOverdue = Math.max(0, totalDemand - todayCollected);
 
             if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected} / ₹${totalDemand}`;
@@ -63,7 +64,7 @@ export async function loadDashboard() {
             if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
             if (txtActiveAccounts) txtActiveAccounts.innerText = active;
             
-            // यहाँ अब सही संख्या (4) दिखेगी
+            // पेंडिंग कस्टमर की संख्या अपडेट करें
             if (lblDueCount) {
                 lblDueCount.innerText = missedCount; 
             }
@@ -74,20 +75,7 @@ export async function loadDashboard() {
     });
 }
 
-// 🔄 रिफ्रेश और पासवर्ड लिंक का काम
+// 🔄 रिफ्रेश फंक्शन
 window.refreshApp = () => window.location.reload();
-
-window.addEventListener('load', () => {
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn && !document.getElementById("dashboardDirectPassLink")) {
-        const passItem = document.createElement("a");
-        passItem.id = "dashboardDirectPassLink";
-        passItem.href = "change-password.html";
-        passItem.className = "nav-item";
-        passItem.style.color = "#1565C0";
-        passItem.innerHTML = `<span class="material-symbols-outlined">lock_reset</span>Password`;
-        logoutBtn.parentNode.insertBefore(passItem, logoutBtn);
-    }
-});
 
 window.addEventListener('DOMContentLoaded', loadDashboard);
