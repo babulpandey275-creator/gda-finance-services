@@ -1,79 +1,56 @@
-// ==========================================
-// 🚀 GDA FINANCE - CLEAN REGISTRATION CODE
-// ==========================================
-
 import { db } from "./firebase.js"; 
-import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-window.addEventListener('DOMContentLoaded', async () => {
-    // ... (कैमरा और UI लॉजिक वही रखें जो पहले था)
+const loanAmountInput = document.getElementById("loanAmount");
+const loanPlanInput = document.getElementById("loanPlan");
+const emiInput = document.getElementById("emi");
+const saveBtn = document.getElementById("regBtn");
 
-    // 💾 SAVE ROUTINE WITH CLEAN PAYLOAD
-    if (saveBtn) {
-        saveBtn.onclick = async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById("customerName").value.trim();
-            const mobile = document.getElementById("mobileNumber").value.trim();
-            const address = document.getElementById("address").value.trim();
+// Auto-Calculate EMI (20% Interest)
+function calculateEMI() {
+    const amount = parseFloat(loanAmountInput.value);
+    const days = parseInt(loanPlanInput.value);
 
-            if (!name || !mobile || !address || !loanAmountInput.value) {
-                alert("Please fill out all mandatory fields.");
-                return;
-            }
-
-            if (!capturedBlobUri) {
-                alert("⚠️ Customer verification photo is mandatory!");
-                return;
-            }
-
-            saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ Saving...";
-
-            try {
-                const idDetails = await generateNextGdaId();
-                const loanAmount = Number(loanAmountInput.value);
-                const planDuration = Number(loanPlanSelect.value) || 60;
-                const emi = Number(emiInput.value);
-                const totalLoanValue = loanAmount + (loanAmount * 0.20);
-
-                // 🎯 CLEAN DATA OBJECT (No duplicates, No extra fields)
-                const newCustomerData = {
-                    name: name,
-                    mobile: mobile,
-                    address: address,
-                    aadhaarCard: "[Aadhaar Redacted]", // Security: Redacted
-                    panCard: document.getElementById("panNumber")?.value.trim().toUpperCase() || "",
-                    loanAmount: loanAmount,
-                    planDuration: planDuration,
-                    dailyEmi: emi,
-                    totalCollection: totalLoanValue,
-                    remainingAmount: totalLoanValue,
-                    paidAmount: 0,
-                    paidDays: 0,
-                    totalCollected: 0,
-                    loanDate: document.getElementById("loanDate").value,
-                    status: "Active",
-                    customerCode: idDetails.member_id,
-                    member_no: idDetails.member_no,
-                    createdAt: new Date().toISOString(),
-                    customerPhoto: capturedBlobUri 
-                };
-
-                const docRef = await addDoc(collection(db, "customers"), newCustomerData);
-
-                if (streamInstance) streamInstance.getTracks().forEach(track => track.stop());
-
-                alert(`🎉 Registered Successfully! ID: ${idDetails.member_id}`);
-                window.location.href = `disbursement-bond.html?id=${docRef.id}`;
-            } catch (err) {
-                console.error(err);
-                alert("Error: " + err.message);
-                saveBtn.disabled = false;
-                saveBtn.innerText = "💰 Disburse Loan & Save";
-            }
-        };
+    if (amount > 0 && days > 0) {
+        const totalAmount = amount + (amount * 0.20); 
+        emiInput.value = (totalAmount / days).toFixed(2);
+    } else {
+        emiInput.value = "";
     }
+}
 
-    await startRearCamera();
-});
+loanAmountInput.addEventListener('input', calculateEMI);
+loanPlanInput.addEventListener('input', calculateEMI);
+
+// Form Submission
+document.getElementById("regForm").onsubmit = async (e) => {
+    e.preventDefault();
+    
+    saveBtn.disabled = true;
+    saveBtn.innerText = "⏳ Saving...";
+
+    const newCustomerData = {
+        name: document.getElementById("customerName").value.trim(),
+        mobile: document.getElementById("mobileNumber").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        aadhaarCard: "[Aadhaar Redacted]", // Security: Redacted
+        panCard: document.getElementById("panNumber").value.trim().toUpperCase(),
+        loanAmount: Number(loanAmountInput.value),
+        planDuration: Number(loanPlanInput.value),
+        dailyEmi: Number(emiInput.value),
+        loanDate: document.getElementById("loanDate").value,
+        status: "Active",
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        await addDoc(collection(db, "customers"), newCustomerData);
+        alert("🎉 Registered Successfully!");
+        window.location.href = "disbursement-bond.html";
+    } catch (err) {
+        console.error(err);
+        alert("Error saving data: " + err.message);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 Save Registration";
+    }
+};
