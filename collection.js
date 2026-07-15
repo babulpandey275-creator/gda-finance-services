@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE (FINAL VERSION)
+// 🚀 GDA FINANCE - DAILY COLLECTION ENGINE
 // ==========================================================
 
 import { db } from "./firebase.js"; 
@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectionDate = document.getElementById("collectionDate");
     const submitCollectionBtn = document.getElementById("submitCollectionBtn");
     
-    // HTML Elements for Dynamic Info
+    // UI Elements
     const detailsBox = document.getElementById("customerDetailsBox");
     const txtEmi = document.getElementById("txtEmi");
     const txtRemaining = document.getElementById("txtRemaining");
@@ -49,21 +49,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (custDoc.exists()) {
                 const data = custDoc.data();
                 
-                // डेटा कैलकुलेशन (डेटाबेस फील्ड्स के अनुसार)
-                const dailyEmi = Number(data.dailyEmi || data.emi || 0);
-                const totalLoan = Number(data.totalCollection || 0); // आपके DB में 12000
-                const totalCollected = Number(data.totalCollected || 0);
+                // डेटाबेस फील्ड्स के साथ कैलकुलेशन
+                const dailyEmi = Number(data.dailyEmi || 0);
+                const totalTarget = Number(data.totalCollection || 0);
+                const collectedSoFar = Number(data.totalCollected || 0);
                 
-                const remaining = Math.max(0, totalLoan - totalCollected);
+                const remaining = Math.max(0, totalTarget - collectedSoFar);
                 const paidDays = Number(data.paidDays || 0);
 
                 // UI Update
                 collectAmount.value = dailyEmi;
                 txtEmi.innerText = `₹${dailyEmi}`;
-                txtRemaining.innerText = `₹${totalLoan} / ₹${remaining}`;
+                txtRemaining.innerText = `₹${collectedSoFar} / ₹${totalTarget}`;
                 txtPaidDays.innerText = `${paidDays} Days`;
                 
-                // Box Show करें
                 detailsBox.style.display = "block";
             }
         } catch (err) {
@@ -71,7 +70,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 3. सबमिट कलेक्शन
+    // 3. सबमिट कलेक्शन (सटीक अपडेट)
     if (submitCollectionBtn) {
         submitCollectionBtn.onclick = async () => {
             const selectedId = customerSelect.value;
@@ -85,6 +84,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 submitCollectionBtn.disabled = true;
+                submitCollectionBtn.innerText = "⏳ Saving...";
                 
                 // कलेक्शन लॉग में एंट्री
                 await addDoc(collection(db, "collections"), {
@@ -110,14 +110,15 @@ window.addEventListener('DOMContentLoaded', async () => {
             } catch (err) {
                 alert("⚠️ Error: " + err.message);
                 submitCollectionBtn.disabled = false;
+                submitCollectionBtn.innerText = "Submit Collection";
             }
         };
     }
 
-    // सबसे पहले ड्रॉपडाउन लोड करें
+    // इनिशियलाइज़
     await loadCustomersDropdown();
     
-    // URL ID Auto-fill
+    // URL ID Auto-fill (अगर कहीं और से आ रहे हैं)
     const urlParams = new URLSearchParams(window.location.search);
     const idFromUrl = urlParams.get('id');
     if (idFromUrl) {
