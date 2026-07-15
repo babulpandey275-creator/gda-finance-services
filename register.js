@@ -32,21 +32,25 @@ photoInput.addEventListener('change', function() {
 document.getElementById("regForm").onsubmit = async (e) => {
     e.preventDefault();
     try {
+        // Firebase में डेटा सेव करें
         await addDoc(collection(db, "customers"), {
             name: document.getElementById("customerName").value,
             mobile: document.getElementById("mobile").value,
-            aadhaar: "[Aadhaar Redacted]",
             panCard: document.getElementById("panNumber").value.toUpperCase(),
             loanAmount: Number(loanAmountInput.value),
             planDuration: Number(loanPlanSelect.value),
             totalPayable: Number(totalPayableInput.value),
             dailyCollection: Number(dailyCollectionInput.value),
+            
+            // ये फील्ड्स customer-list.js के लिए जरूरी हैं
+            status: "Active",
+            loanDate: new Date().toISOString().split('T')[0],
             createdAt: new Date().toISOString()
         });
         
         alert("✅ कस्टमर सफलतापूर्वक रजिस्टर हो गया!");
         
-        // यहाँ से सही पेज पर रिडायरेक्ट होगा
+        // सीधे कस्टमर लिस्ट पेज पर भेजें
         window.location.href = "customer-list.html";
         
     } catch (err) { 
