@@ -30,7 +30,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     loanAmountInput.addEventListener("input", calculate);
-    loanPlanInput.addEventListener("input", calculate);
+    loanPlanInput.addEventListener("change", calculate);
 
     async function loadCustomerData() {
         try {
@@ -43,12 +43,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById("address").value = cust.address || "";
             document.getElementById("panNumber").value = cust.panCard || "";
             document.getElementById("loanAmount").value = cust.loanAmount || "";
-            document.getElementById("loanPlan").value = cust.planDuration || "";
-            document.getElementById("emi").value = cust.dailyEmi || "";
+            document.getElementById("loanPlan").value = cust.planDuration || "60";
             document.getElementById("loanDate").value = cust.loanDate || "";
             document.getElementById("aadhaarNumber").value = "[Aadhaar Redacted]";
             
-            calculate(); // लोड होते ही कैलकुलेशन ट्रिगर होगा
+            calculate();
         } catch (err) { console.error(err); }
     }
     await loadCustomerData();
