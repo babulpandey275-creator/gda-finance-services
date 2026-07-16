@@ -1,9 +1,9 @@
 // ==========================================================
-// 🚀 GDA FINANCE - DASHBOARD ENGINE (FINAL FULL CODE)
+// 🚀 GDA FINANCE - DASHBOARD ENGINE (DATE-FILTERED)
 // ==========================================================
 
 import { db, auth } from "./firebase.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 export async function loadDashboard() {
     auth.onAuthStateChanged(async (user) => {
@@ -18,20 +18,21 @@ export async function loadDashboard() {
         const txtTodayDemand = document.getElementById("txtTodayDemand");
         const lblDueCount = document.getElementById("lblDueCount");
 
+        // आज की तारीख (YYYY-MM-DD फॉर्मेट)
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         try {
-            // 1. आज का टोटल कलेक्शन और उन कस्टमर्स की लिस्ट जिन्होंने पेमेंट किया है
-            const collectSnapshot = await getDocs(collection(db, "collections"));
+            // 1. केवल आज की तारीख का कलेक्शन लोड करें (Date Filter)
+            const q = query(collection(db, "collections"), where("date", "==", todayIST));
+            const collectSnapshot = await getDocs(q);
+            
             let todayCollected = 0;
             const paidTodayIds = []; 
 
             collectSnapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.date === todayIST) {
-                    todayCollected += Number(data.amount || 0);
-                    paidTodayIds.push(data.customerId); 
-                }
+                todayCollected += Number(data.amount || 0);
+                paidTodayIds.push(data.customerId); 
             });
 
             // 2. कस्टमर्स का डेटा प्रोसेस करें
@@ -64,7 +65,6 @@ export async function loadDashboard() {
             if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
             if (txtActiveAccounts) txtActiveAccounts.innerText = active;
             
-            // यह सीधे index.html के <span id="lblDueCount"> में संख्या डाल देगा
             if (lblDueCount) {
                 lblDueCount.innerText = missedCount; 
             }
