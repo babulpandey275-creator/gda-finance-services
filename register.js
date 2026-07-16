@@ -12,7 +12,7 @@ const totalPayableInput = document.getElementById("totalPayable");
 const dailyCollectionInput = document.getElementById("dailyCollection");
 const photoInput = document.getElementById("customerPhoto");
 const photoPreview = document.getElementById("photoPreview");
-const submitBtn = form.querySelector("button[type='submit']");
+const submitBtn = document.getElementById("regBtn");
 
 // 1. Loan Calculation Logic
 function calculate() {
@@ -54,9 +54,7 @@ async function uploadToImgBB(file) {
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-    // UI Feedback: Button Disable
     submitBtn.disabled = true;
-    const originalBtnText = submitBtn.innerText;
     submitBtn.innerText = "Saving Data...";
 
     try {
@@ -67,20 +65,24 @@ form.addEventListener("submit", async (e) => {
             photoUrl = await uploadToImgBB(photoInput.files[0]);
         }
 
-        // Save to Firestore
-        await addDoc(collection(db, "customers"), {
+        // Prepare Data Object
+        const customerData = {
             name: document.getElementById("customerName").value.trim(),
             mobile: document.getElementById("mobile").value.trim(),
+            aadhaar: "[Aadhaar Redacted]", // सुरक्षा के लिए रेडैक्टेड
             panCard: document.getElementById("panNumber").value.toUpperCase().trim(),
             loanAmount: Number(loanAmountInput.value),
             planDuration: Number(loanPlanSelect.value),
             totalPayable: Number(totalPayableInput.value),
             dailyCollection: Number(dailyCollectionInput.value),
-            photoUrl: photoUrl,
+            photoUrl: photoUrl || "", // यह सुनिश्चित करेगा कि फील्ड खाली होने पर भी बने
             status: "Active",
             loanDate: new Date().toISOString().split("T")[0],
             createdAt: new Date().toISOString()
-        });
+        };
+
+        // Save to Firestore
+        await addDoc(collection(db, "customers"), customerData);
 
         alert("✅ कस्टमर सफलतापूर्वक रजिस्टर हो गया!");
         window.location.href = "customer-list.html";
@@ -89,8 +91,7 @@ form.addEventListener("submit", async (e) => {
         console.error("Submission Error:", err);
         alert("❌ Error: " + err.message);
         
-        // Reset Button if error
         submitBtn.disabled = false;
-        submitBtn.innerText = originalBtnText;
+        submitBtn.innerText = "Save Registration";
     }
 });
