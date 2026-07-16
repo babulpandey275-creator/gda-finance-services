@@ -35,7 +35,8 @@
         
         .section-title { padding: 20px 20px 12px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
-        .nav-card { background: var(--card-bg); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text-main); border: 1px solid #e1bee7; }
+        .nav-card { background: var(--card-bg); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text-main); border: 1px solid #e1bee7; transition: transform 0.2s; }
+        .nav-card:active { transform: scale(0.98); }
         .nav-card.add-customer { border-left: 5px solid var(--primary); }
         .nav-card.collection { border-left: 5px solid var(--success); }
         .nav-card.due-list { border-left: 5px solid var(--danger); }
@@ -65,7 +66,7 @@
         <div class="mini-box" style="border-left-color: var(--danger);">
             <p>Today's Overdue</p>
             <h3 id="txtTodayMissed" style="color: var(--danger);">₹0</h3>
-            <small>Pending: <span id="lblDueCount">0</span></small>
+            <small style="font-size: 10px; color: var(--text-muted);">Pending: <span id="lblDueCount" style="color: var(--danger); font-weight: 700;">0</span></small>
         </div>
         <div class="mini-box" style="border-left-color: var(--accent);"><p>Active Accounts</p><h3 id="txtActiveAccounts">0</h3></div>
         <div class="mini-box" style="border-left-color: var(--secondary);"><p>Today's Target</p><h3 id="txtTodayDemand" style="color: var(--primary);">₹0</h3></div>
@@ -105,9 +106,11 @@
         <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
         <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
         <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
-        <a href="login.html" id="logoutBtn" class="nav-item" style="color:#e91e63;"><span class="material-symbols-outlined">logout</span>Logout</a>
+        <a href="#" id="logoutBtn" class="nav-item" style="color:#e91e63;"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
+    <!-- इंजन्स लोड हो रहे हैं -->
+    <script type="module" src="dashboard.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>
