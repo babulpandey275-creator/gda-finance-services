@@ -1,81 +1,116 @@
-// ==========================================================
-// 🚀 GDA FINANCE - MASTER DASHBOARD ENGINE
-// ==========================================================
-
-import { db, auth } from "./firebase.js"; 
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
-
-export async function loadDashboard() {
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) { 
-            window.location.href = "login.html"; 
-            return; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDA Finance Services - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3a1c62;
+            --secondary: #e91e63;
+            --accent: #FFC107;
+            --success: #10b981;
+            --danger: #d32f2f;
+            --bg-gradient: #fce4ec;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #3a1c62;
+            --text-muted: #6d5b85;
         }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-gradient); min-height: 100vh; color: var(--text-main); padding-bottom: 80px; }
+        
+        .app-header { background: var(--primary); color: white; padding: 20px 15px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 20px rgba(58, 28, 98, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        .gda-logo-container { display: flex; align-items: center; gap: 14px; }
+        .gda-logo-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--secondary); display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,.35); }
+        .gda-logo-icon .material-symbols-outlined { font-size: 30px; color: #FFFFFF; }
+        .gda-logo-text h1 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1; color: #FFFFFF; }
+        .gda-logo-text p { margin-top: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: #FFD700; }
+        
+        .live-mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 15px 20px; margin-top: 10px; }
+        .mini-box { background: white; padding: 14px 10px; border-radius: 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border-left: 4px solid var(--primary); }
+        .mini-box p { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin: 0; }
+        .mini-box h3 { font-size: 16px; margin-top: 6px; color: var(--text-main); font-weight: 700; }
+        
+        .section-title { padding: 20px 20px 12px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+        .nav-card { background: var(--card-bg); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text-main); border: 1px solid #e1bee7; transition: transform 0.2s; }
+        .nav-card:active { transform: scale(0.98); }
+        .nav-card.add-customer { border-left: 5px solid var(--primary); }
+        .nav-card.collection { border-left: 5px solid var(--success); }
+        .nav-card.due-list { border-left: 5px solid var(--danger); }
+        .nav-card.history { border-left: 5px solid var(--secondary); }
+        .icon-wrapper { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; background: var(--primary); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; border-top: 1px solid #e1bee7; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
+        .nav-item.active { color: var(--secondary); font-weight: 600; }
+    </style>
+</head>
+<body>
 
-        // HTML Elements
-        const txtTodayCollected = document.getElementById("txtTodayCollected");
-        const txtTodayMissed = document.getElementById("txtTodayMissed");
-        const txtActiveAccounts = document.getElementById("txtActiveAccounts");
-        const txtTodayDemand = document.getElementById("txtTodayDemand");
-        const lblDueCount = document.getElementById("lblDueCount");
+    <header class="app-header">
+        <div class="gda-logo-container">
+            <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+            <div class="gda-logo-text">
+                <h1>GDA</h1>
+                <p>Finance Services</p>
+            </div>
+        </div>
+        <button onclick="window.refreshApp()" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;">Refresh</button>
+    </header>
 
-        const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    <section class="live-mini-grid">
+        <div class="mini-box" style="border-left-color: var(--success);"><p>Today Collected</p><h3 id="txtTodayCollected">₹0 / ₹0</h3></div>
+        <div class="mini-box" style="border-left-color: var(--danger);">
+            <p>Today's Overdue</p>
+            <h3 id="txtTodayMissed" style="color: var(--danger);">₹0</h3>
+            <small style="font-size: 10px; color: var(--text-muted);">Pending: <span id="lblDueCount" style="color: var(--danger); font-weight: 700;">0</span></small>
+        </div>
+        <div class="mini-box" style="border-left-color: var(--accent);"><p>Active Accounts</p><h3 id="txtActiveAccounts">0</h3></div>
+        <div class="mini-box" style="border-left-color: var(--secondary);"><p>Today's Target</p><h3 id="txtTodayDemand" style="color: var(--primary);">₹0</h3></div>
+    </section>
 
-        try {
-            // 1. आज का पेमेंट डेटा फेच करें
-            const collectSnapshot = await getDocs(collection(db, "collections"));
-            let todayCollected = 0;
-            const paidTodayIds = []; 
+    <section class="section-title">Quick Navigation</section>
 
-            collectSnapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.date === todayIST) {
-                    todayCollected += Number(data.amount || 0);
-                    paidTodayIds.push(data.customerId); 
-                }
-            });
+    <main class="menu-grid">
+        <a href="register.html" class="nav-card add-customer">
+            <div class="card-left" style="display:flex; align-items:center; gap:16px;">
+                <div class="icon-wrapper" style="background: var(--primary);"><span class="material-symbols-outlined">person_add</span></div>
+                <div><h3>New Registration</h3><p>Create Account & Loan Entry</p></div>
+            </div>
+        </a>
+        <a href="collection.html" class="nav-card collection">
+            <div class="card-left" style="display:flex; align-items:center; gap:16px;">
+                <div class="icon-wrapper" style="background: var(--success);"><span class="material-symbols-outlined">payments</span></div>
+                <div><h3>Daily Collection</h3><p>Collect & Record Today's EMI</p></div>
+            </div>
+        </a>
+        <a href="due-customers.html" class="nav-card due-list">
+            <div class="card-left" style="display:flex; align-items:center; gap:16px;">
+                <div class="icon-wrapper" style="background: var(--danger);"><span class="material-symbols-outlined">assignment_late</span></div>
+                <div><h3>Pending Due List</h3><p>View Overdue Accounts</p></div>
+            </div>
+        </a>
+        <a href="history.html" class="nav-card history">
+            <div class="card-left" style="display:flex; align-items:center; gap:16px;">
+                <div class="icon-wrapper" style="background: var(--secondary);"><span class="material-symbols-outlined">history</span></div>
+                <div><h3>Collection History</h3><p>Logs of All Transactions</p></div>
+            </div>
+        </a>
+    </main>
 
-            // 2. कस्टमर डेटा फेच करें
-            const custSnapshot = await getDocs(collection(db, "customers"));
-            let active = 0;
-            let totalDemand = 0;
-            let missedCount = 0;
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active"><span class="material-symbols-outlined">home</span>Home</a>
+        <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+        <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+        <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+        <a href="#" id="logoutBtn" class="nav-item" style="color:#e91e63;"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </nav>
 
-            custSnapshot.forEach(doc => {
-                const cust = doc.data();
-                const emi = Number(cust.dailyEmi || cust.emi || 0);
-
-                if (cust.status !== "Closed") {
-                    active++;
-                    totalDemand += emi;
-                    
-                    // अगर आज पेमेंट नहीं किया है, तो उसे पेंडिंग में गिनें
-                    if (!paidTodayIds.includes(doc.id)) {
-                        missedCount++; 
-                    }
-                }
-            });
-
-            // 3. UI डेटा अपडेट करें
-            const currentTodayOverdue = Math.max(0, totalDemand - todayCollected);
-
-            if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected} / ₹${totalDemand}`;
-            if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand}`;
-            if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
-            if (txtActiveAccounts) txtActiveAccounts.innerText = active;
-            
-            // पेंडिंग कस्टमर की संख्या अपडेट करें
-            if (lblDueCount) {
-                lblDueCount.innerText = missedCount; 
-            }
-
-        } catch (err) { 
-            console.error("Dashboard Render Error:", err); 
-        }
-    });
-}
-
-// 🔄 रिफ्रेश फंक्शन
-window.refreshApp = () => window.location.reload();
-
-window.addEventListener('DOMContentLoaded', loadDashboard);
+    <!-- इंजन्स लोड हो रहे हैं -->
+    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
