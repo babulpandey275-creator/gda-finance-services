@@ -6,11 +6,11 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 const dueList = document.getElementById("dueList");
-const dueCounter = document.getElementById("dueCounter"); // सुनिश्चित करें कि HTML में यह ID मौजूद है
+const dueCounter = document.getElementById("dueCounter");
 
 async function loadDueCustomers() {
     try {
-        // आज की तारीख (IST)
+        // आज की तारीख (IST) - यह फॉर्मेट YYYY-MM-DD ही रहेगा
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         // 1. आज का पेमेंट डेटा लाएं (ताकि पता चले किसने आज पेमेंट कर दिया)
@@ -26,7 +26,7 @@ async function loadDueCustomers() {
         // 2. कस्टमर डेटा लोड करें
         const querySnapshot = await getDocs(collection(db, "customers"));
         let htmlContent = "";
-        let pendingCount = 0; // पेंडिंग कस्टमर्स की गिनती के लिए
+        let pendingCount = 0;
 
         querySnapshot.forEach((doc) => {
             const cust = doc.data();
@@ -35,20 +35,23 @@ async function loadDueCustomers() {
             if (cust.status === "Closed" || paidTodayIds.includes(doc.id)) return;
 
             // पेंडिंग ड्यू कैलकुलेशन
+            // ध्यान दें: loanDate डेटाबेस में YYYY-MM-DD फॉर्मेट में होना चाहिए
             const loanDate = new Date(cust.loanDate);
             const today = new Date();
-            let daysElapsed = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24)) + 1;
-            if (daysElapsed < 1) daysElapsed = 1;
+            
+            // दिनों का अंतर (लोन की तारीख से आज तक)
+            let daysElapsed = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
+            if (daysElapsed < 0) daysElapsed = 0;
             
             // EMI कैलकुलेशन
             const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
             const expectedAmt = daysElapsed * dailyEmi;
-            const totalPaid = Number(cust.paidAmount || cust.totalCollected || 0);
+            const totalPaid = Number(cust.totalCollected || 0);
             const currentDue = Math.max(0, expectedAmt - totalPaid);
 
             // अगर बकाया है, तो टेबल रो बनाएं
             if (currentDue > 0) {
-                pendingCount++; // काउंटर अपडेट करें
+                pendingCount++;
                 htmlContent += `
                 <tr>
                     <td><strong>${cust.name}</strong><br><small>${cust.customerCode || 'GDA'}</small></td>
@@ -69,7 +72,6 @@ async function loadDueCustomers() {
             if (dueCounter) dueCounter.innerText = "Pending Due List (0)";
         } else {
             dueList.innerHTML = htmlContent;
-            // हेडिंग में संख्या दिखाएं
             if (dueCounter) dueCounter.innerText = `Pending Due List (${pendingCount})`;
         }
 
