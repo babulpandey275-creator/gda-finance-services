@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
-            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]";
+            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]"; 
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
             document.getElementById("lblAddress").innerText = cust.address || "-";
             document.getElementById("lblLoanAmount").innerText = `₹${cust.loanAmount || 0}`;
@@ -49,25 +49,40 @@ window.addEventListener('DOMContentLoaded', async () => {
             logs.sort((a,b) => new Date(b.date) - new Date(a.date));
             logs.forEach(l => totalCollected += Number(l.amount || 0));
 
-            // 3. Calculation & Fine Logic
-            document.getElementById("lblPaidDays").innerText = `${logs.length} Days`;
+            // 3. Calculation, Fine, and Gap Logic
+            const planDays = Number(cust.planDuration) || 60; 
+            const dailyEmi = Number(cust.dailyEmi) || 0;
+            const totalDaysPassed = Math.ceil((new Date() - new Date(cust.loanDate)) / (1000 * 60 * 60 * 24));
+            const paidDays = logs.length;
+            const pendingDays = Math.max(0, totalDaysPassed - paidDays);
+
+            let fineAmount = 0;
+            let fineMessage = "";
+
+            // Fine Logic: Plan duration ke baad hi fine lagega
+            if (totalDaysPassed > planDays) {
+                const overdueDays = totalDaysPassed - planDays;
+                // 80 din ke liye 30%, baki ke liye 20%
+                const fineRate = (planDays >= 80) ? 0.30 : 0.20; 
+                fineAmount = overdueDays * (dailyEmi * fineRate);
+                
+                fineMessage = `<br><span style="color:red; font-weight:bold;">⚠️ Penalty: ${overdueDays} Days Overdue (₹${Math.round(fineAmount)} Fine)</span>`;
+            }
+
+            // Display Values
+            document.getElementById("lblPaidDays").innerText = `${paidDays} Days Paid`;
             document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
             
             const baseLoan = Number(cust.loanAmount) || 0;
             const remaining = Math.max(0, baseLoan - totalCollected);
+            
             let netDueHtml = `₹${remaining}`;
-
-            if (cust.loanDate) {
-                const diffTime = new Date() - new Date(cust.loanDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays > 60) {
-                    const extraDays = diffDays - 60;
-                    netDueHtml += `<br><small style="color:red; font-size:12px;">⚠️ Fine Applicable: ${extraDays} दिन ऊपर</small>`;
-                }
-            }
+            netDueHtml += `<br><small style="color:orange; font-weight:bold;">⏳ Gap/Pending: ${pendingDays} Days</small>`;
+            netDueHtml += fineMessage; 
+            
             document.getElementById("lblRemaining").innerHTML = netDueHtml;
 
-            // 4. History Table
+            // 4. History Table Rendering
             const historyRows = document.getElementById("historyRows");
             historyRows.innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
@@ -78,20 +93,16 @@ window.addEventListener('DOMContentLoaded', async () => {
                 </tr>
             `).join("") : "<tr><td colspan='4' style='text-align:center;'>No data found</td></tr>";
 
-            // 5. Updated Button Handlers
-            const btnWhatsapp = document.getElementById("btnWhatsapp");
-            if (btnWhatsapp) btnWhatsapp.onclick = () => window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
+            // 5. Button Handlers
+            document.getElementById("btnWhatsapp").onclick = () => {
+                window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
+            };
 
-            const btnPdf = document.getElementById("btnPdf");
-            if (btnPdf) btnPdf.onclick = () => window.print();
+            document.getElementById("btnPdf").onclick = () => window.print();
 
-            // FIX: disbursement-bond.html का सही पाथ लगाया गया है
-            const btnOpenBond = document.getElementById("btnOpenBond");
-            if (btnOpenBond) {
-                btnOpenBond.onclick = () => {
-                    window.location.href = `disbursement-bond.html?id=${custId}`;
-                };
-            }
+            document.getElementById("btnOpenBond").onclick = () => {
+                window.location.href = `disbursement-bond.html?id=${custId}`;
+            };
 
             // Delete Action
             document.querySelectorAll(".btn-row-del").forEach(btn => {
