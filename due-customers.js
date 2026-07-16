@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - DUE CUSTOMER LIST ENGINE (CLEAN & UPDATED)
+// 🚀 GDA FINANCE - DUE CUSTOMER LIST ENGINE (BACKLOG RECOVERY)
 // ==========================================================
 
 import { db } from "./firebase.js"; 
@@ -10,20 +10,6 @@ const dueCounter = document.getElementById("dueCounter");
 
 async function loadDueCustomers() {
     try {
-        // आज की तारीख (IST) - यह फॉर्मेट YYYY-MM-DD ही रहेगा
-        const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-
-        // 1. आज का पेमेंट डेटा लाएं (ताकि पता चले किसने आज पेमेंट कर दिया)
-        const collectSnapshot = await getDocs(collection(db, "collections"));
-        const paidTodayIds = [];
-        
-        collectSnapshot.forEach(doc => {
-            if (doc.data().date === todayIST) {
-                paidTodayIds.push(doc.data().customerId);
-            }
-        });
-
-        // 2. कस्टमर डेटा लोड करें
         const querySnapshot = await getDocs(collection(db, "customers"));
         let htmlContent = "";
         let pendingCount = 0;
@@ -31,25 +17,26 @@ async function loadDueCustomers() {
         querySnapshot.forEach((doc) => {
             const cust = doc.data();
             
-            // अगर अकाउंट बंद है या आज पेमेंट कर दिया है, तो उसे लिस्ट में न दिखाएं
-            if (cust.status === "Closed" || paidTodayIds.includes(doc.id)) return;
+            // अगर अकाउंट बंद है तो आगे बढ़ें
+            if (cust.status === "Closed") return;
 
-            // पेंडिंग ड्यू कैलकुलेशन
-            // ध्यान दें: loanDate डेटाबेस में YYYY-MM-DD फॉर्मेट में होना चाहिए
+            // 1. तारीख का हिसाब (लोन शुरू होने से आज तक)
             const loanDate = new Date(cust.loanDate);
             const today = new Date();
             
-            // दिनों का अंतर (लोन की तारीख से आज तक)
+            // दिनों का अंतर
             let daysElapsed = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
             if (daysElapsed < 0) daysElapsed = 0;
             
-            // EMI कैलकुलेशन
+            // 2. कैलकुलेशन
             const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
             const expectedAmt = daysElapsed * dailyEmi;
+            
+            // मान लिया कि आपने कलेक्शन रिकॉर्ड में 'totalCollected' को हर बार अपडेट किया है
             const totalPaid = Number(cust.totalCollected || 0);
             const currentDue = Math.max(0, expectedAmt - totalPaid);
 
-            // अगर बकाया है, तो टेबल रो बनाएं
+            // 3. अगर बकाया है, तो टेबल रो बनाएं (आज पेमेंट किया है या नहीं, ये भी देख सकते हैं)
             if (currentDue > 0) {
                 pendingCount++;
                 htmlContent += `
@@ -66,9 +53,9 @@ async function loadDueCustomers() {
             }
         });
 
-        // 3. रिजल्ट डिस्प्ले करें
+        // 4. रिजल्ट डिस्प्ले करें
         if (htmlContent === "") {
-            dueList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">✅ आज कोई बकाया नहीं है!</td></tr>`;
+            dueList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">✅ सब कुछ क्लियर है, कोई बकाया नहीं!</td></tr>`;
             if (dueCounter) dueCounter.innerText = "Pending Due List (0)";
         } else {
             dueList.innerHTML = htmlContent;
@@ -81,5 +68,5 @@ async function loadDueCustomers() {
     }
 }
 
-// फंक्शन रन करें
+// रन करें
 loadDueCustomers();
