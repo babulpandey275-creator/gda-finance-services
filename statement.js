@@ -1,3 +1,7 @@
+// ==========================================
+// 🚀 GDA FINANCE - STATEMENT ENGINE (Final Version)
+// ==========================================
+
 import { db } from "./firebase.js"; 
 import { doc, getDoc, collection, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
@@ -5,19 +9,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const custId = urlParams.get('id');
 
-    if (!custId) { window.location.href = "customer-list.html"; return; }
+    if (!custId) { 
+        window.location.href = "customer-list.html"; 
+        return; 
+    }
 
     async function loadFullStatement() {
         try {
             const custDoc = await getDoc(doc(db, "customers", custId));
-            if (!custDoc.exists()) return;
+            if (!custDoc.exists()) {
+                alert("कस्टमर नहीं मिला!");
+                return;
+            }
             const cust = custDoc.data();
 
             // 1. UI Basic Data Mapping
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
-            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]";
+            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]"; // सुरक्षित
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
             document.getElementById("lblAddress").innerText = cust.address || "-";
             document.getElementById("lblLoanAmount").innerText = `₹${cust.loanAmount || 0}`;
@@ -52,13 +62,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const diffTime = new Date() - new Date(cust.loanDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 if (diffDays > 60) {
-                    netDueHtml += `<br><small style="color:red;">⚠️ Fine: ${diffDays - 60} दिन एक्स्ट्रा</small>`;
+                    const extraDays = diffDays - 60;
+                    netDueHtml += `<br><small style="color:red; font-size:12px;">⚠️ Fine Applicable: ${extraDays} दिन ऊपर</small>`;
                 }
             }
             document.getElementById("lblRemaining").innerHTML = netDueHtml;
 
-            // 4. History Table
-            document.getElementById("historyRows").innerHTML = logs.length > 0 ? logs.map(log => `
+            // 4. History Table Rendering
+            const historyRows = document.getElementById("historyRows");
+            historyRows.innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
                     <td>📅 ${log.date}</td>
                     <td>${log.note || 'EMI Received'}</td>
@@ -69,7 +81,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // 5. Button Handlers
             document.getElementById("btnWhatsapp").onclick = () => {
-                window.open(`https://wa.me/91${cust.mobile}?text=Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
+                window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
             };
 
             document.getElementById("btnPdf").onclick = () => window.print();
@@ -78,17 +90,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = `agreement.html?id=${custId}`;
             };
 
-            // Delete Action
+            // Delete Action (Admin Protected)
             document.querySelectorAll(".btn-row-del").forEach(btn => {
                 btn.onclick = async (e) => {
                     if (prompt("Enter Admin Password:") === "GDA@2026") {
                         await deleteDoc(doc(db, "collections", e.target.getAttribute("data-colid")));
-                        loadFullStatement(); // Refresh
+                        loadFullStatement(); // Refresh data
                     }
                 };
             });
 
-        } catch (err) { console.error("Error loading statement:", err); }
+        } catch (err) { 
+            console.error("Error loading statement:", err); 
+        }
     }
     loadFullStatement();
 });
