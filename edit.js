@@ -7,22 +7,39 @@ const custId = urlParams.get("id");
 
 const form = document.getElementById("editForm");
 const photoInput = document.getElementById("customerPhoto");
+const photoPreview = document.getElementById("photoPreview"); // HTML में यह ID होनी चाहिए
 const updateBtn = document.getElementById("updateBtn");
 
-// 1. डेटा लोड करें (जब पेज खुले)
+// 1. डेटा लोड करें
 async function loadCustomerData() {
     if (!custId) return;
-    const docSnap = await getDoc(doc(db, "customers", custId));
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("customerName").value = data.name || "";
-        document.getElementById("mobileNumber").value = data.mobile || "";
-        document.getElementById("address").value = data.address || "";
-        document.getElementById("panNumber").value = data.panCard || "";
-        document.getElementById("loanAmount").value = data.loanAmount || "";
-        document.getElementById("loanPlan").value = data.planDuration || "";
+    try {
+        const docSnap = await getDoc(doc(db, "customers", custId));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById("customerName").value = data.name || "";
+            document.getElementById("mobileNumber").value = data.mobile || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("panNumber").value = data.panCard || "";
+            document.getElementById("loanAmount").value = data.loanAmount || "";
+            document.getElementById("loanPlan").value = data.planDuration || "";
+            
+            // पुरानी फोटो दिखाएं
+            if (data.photoUrl) {
+                photoPreview.src = data.photoUrl;
+            }
+        }
+    } catch (err) {
+        console.error("Error loading data:", err);
     }
 }
+
+// 2. नई फोटो चुनने पर प्रिव्यू
+photoInput.addEventListener("change", function() {
+    if (this.files && this.files[0]) {
+        photoPreview.src = URL.createObjectURL(this.files[0]);
+    }
+});
 
 // ImgBB Upload Function
 async function uploadToImgBB(file) {
@@ -37,7 +54,7 @@ async function uploadToImgBB(file) {
     return result.data.url;
 }
 
-// 2. Update Profile
+// 3. Update Profile
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     updateBtn.disabled = true;
@@ -51,16 +68,16 @@ form.addEventListener("submit", async (e) => {
         }
 
         const updateData = {
-            name: document.getElementById("customerName").value,
-            mobile: document.getElementById("mobileNumber").value,
-            address: document.getElementById("address").value,
-            panCard: document.getElementById("panNumber").value.toUpperCase(),
+            name: document.getElementById("customerName").value.trim(),
+            mobile: document.getElementById("mobileNumber").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            panCard: document.getElementById("panNumber").value.toUpperCase().trim(),
             loanAmount: Number(document.getElementById("loanAmount").value),
             planDuration: Number(document.getElementById("loanPlan").value),
             updatedAt: new Date().toISOString()
         };
 
-        // अगर नई फोटो अपलोड हुई है, तो उसे डेटा में जोड़ें
+        // अगर फोटो बदली है, तो नया लिंक जोड़ें
         if (photoUrl) {
             updateData.photoUrl = photoUrl;
         }
