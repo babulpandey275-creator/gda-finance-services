@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
-            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]"; // सुरक्षित
+            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]";
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
             document.getElementById("lblAddress").innerText = cust.address || "-";
             document.getElementById("lblLoanAmount").innerText = `₹${cust.loanAmount || 0}`;
@@ -57,7 +57,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             const remaining = Math.max(0, baseLoan - totalCollected);
             let netDueHtml = `₹${remaining}`;
 
-            // Fine Logic (60 Days)
             if (cust.loanDate) {
                 const diffTime = new Date() - new Date(cust.loanDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -68,7 +67,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
             document.getElementById("lblRemaining").innerHTML = netDueHtml;
 
-            // 4. History Table Rendering
+            // 4. History Table
             const historyRows = document.getElementById("historyRows");
             historyRows.innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
@@ -79,23 +78,27 @@ window.addEventListener('DOMContentLoaded', async () => {
                 </tr>
             `).join("") : "<tr><td colspan='4' style='text-align:center;'>No data found</td></tr>";
 
-            // 5. Button Handlers
-            document.getElementById("btnWhatsapp").onclick = () => {
-                window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
-            };
+            // 5. Updated Button Handlers
+            const btnWhatsapp = document.getElementById("btnWhatsapp");
+            if (btnWhatsapp) btnWhatsapp.onclick = () => window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
 
-            document.getElementById("btnPdf").onclick = () => window.print();
+            const btnPdf = document.getElementById("btnPdf");
+            if (btnPdf) btnPdf.onclick = () => window.print();
 
-            document.getElementById("btnOpenBond").onclick = () => {
-                window.location.href = `agreement.html?id=${custId}`;
-            };
+            // FIX: disbursement-bond.html का सही पाथ लगाया गया है
+            const btnOpenBond = document.getElementById("btnOpenBond");
+            if (btnOpenBond) {
+                btnOpenBond.onclick = () => {
+                    window.location.href = `disbursement-bond.html?id=${custId}`;
+                };
+            }
 
-            // Delete Action (Admin Protected)
+            // Delete Action
             document.querySelectorAll(".btn-row-del").forEach(btn => {
                 btn.onclick = async (e) => {
                     if (prompt("Enter Admin Password:") === "GDA@2026") {
                         await deleteDoc(doc(db, "collections", e.target.getAttribute("data-colid")));
-                        loadFullStatement(); // Refresh data
+                        loadFullStatement(); 
                     }
                 };
             });
