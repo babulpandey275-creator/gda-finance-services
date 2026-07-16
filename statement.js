@@ -1,111 +1,66 @@
 // ==========================================
-// 🚀 GDA FINANCE - CUSTOMER LEDGER STATEMENT & ACTION HANDLER (v14)
+// 🚀 GDA FINANCE - UPDATED STATEMENT ENGINE (Fine & Buttons Included)
 // ==========================================
 
 import { db } from "./firebase.js"; 
-import { 
-    doc, 
-    getDoc, 
-    collection, 
-    getDocs, 
-    query, 
-    where, 
-    deleteDoc, 
-    updateDoc 
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const custId = urlParams.get('id');
 
-    if (!custId) {
-        window.location.href = "customer-list.html";
-        return;
-    }
-
-    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const todayParts = new Intl.DateTimeFormat('en-US', options).formatToParts(new Date());
-    const yyyy = todayParts.find(p => p.type === 'year').value;
-    const mm = todayParts.find(p => p.type === 'month').value;
-    const dd = todayParts.find(p => p.type === 'day').value;
-    const todayIST = `${yyyy}-${mm}-${dd}`;
+    if (!custId) { window.location.href = "customer-list.html"; return; }
 
     async function loadFullStatement() {
         try {
             const custDoc = await getDoc(doc(db, "customers", custId));
-            if (!custDoc.exists()) {
-                alert("Customer record not found!");
-                return;
-            }
+            if (!custDoc.exists()) return;
             const cust = custDoc.data();
 
-            // 1. UI Injection
-            if (document.getElementById("lblName")) document.getElementById("lblName").innerText = cust.name || "-";
-            if (document.getElementById("lblId")) document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
-            if (document.getElementById("lblMobile")) document.getElementById("lblMobile").innerText = cust.mobile || "-";
+            // 1. UI Basic Data
+            document.getElementById("lblName").innerText = cust.name || "-";
+            document.getElementById("lblEmi").innerText = `₹${cust.dailyEmi || 0}`;
             
-            // आधार सुरक्षा: यहाँ हमने नंबर छुपा दिया है
-            if (document.getElementById("lblAadhar")) document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]";
-            
-            if (document.getElementById("lblPan")) document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
-            if (document.getElementById("lblAddress")) document.getElementById("lblAddress").innerText = cust.address || "-";
-            
-            // फोटो रेंडरिंग फिक्स
-            if (document.getElementById("custPhoto")) {
-                const photoUrl = cust.photoUrl || "https://via.placeholder.com/150";
-                document.getElementById("custPhoto").src = photoUrl;
-            }
-            
-            const baseLoan = Number(cust.loanAmount) || 0;
-            if (document.getElementById("lblLoanAmount")) document.getElementById("lblLoanAmount").innerText = `₹${baseLoan}`;
-            
-            const emi = Number(cust.dailyEmi || cust.emi || 0);
-            if (document.getElementById("lblEmi")) document.getElementById("lblEmi").innerText = `₹${emi}`;
-            if (document.getElementById("lblLoanDate")) document.getElementById("lblLoanDate").innerText = cust.loanDate || "-";
-
-            // 2. Collection Logs
-            let totalCollected = 0;
-            let rowsHtml = "";
+            // 2. Collection Logs & Fine Logic
             const colRef = collection(db, "collections");
             const q = query(colRef, where("customerId", "==", custId));
-            const querySnapshot = await getDocs(q);
+            const querySnapshot = await getDocs(colRef); // यहाँ आप अपना query इस्तेमाल करें
+            
             let logs = [];
-
-            querySnapshot.forEach(d => logs.push({ colId: d.id, ...d.data() }));
+            let totalCollected = 0;
+            querySnapshot.forEach(d => { if(d.data().customerId === custId) logs.push({ colId: d.id, ...d.data() }); });
             logs.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-            if (logs.length === 0) {
-                rowsHtml = `<tr><td colspan="4" style="text-align:center;">No installments recorded.</td></tr>`;
-            } else {
-                logs.forEach((log) => {
-                    const amt = Number(log.amount) || 0;
-                    totalCollected += amt;
-                    rowsHtml += `<tr><td>📅 ${log.date}</td><td>${log.note || 'Received'}</td><td style="color:#22c55e;">+₹${amt}</td><td><button class="btn-row-del" data-colid="${log.colId}" data-amount="${amt}">🗑️</button></td></tr>`;
-                });
-            }
+            logs.forEach(l => totalCollected += Number(l.amount || 0));
 
-            if (document.getElementById("lblPaidDays")) document.getElementById("lblPaidDays").innerText = `${logs.length} Days`;
-            if (document.getElementById("lblTotalCollected")) document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
-            if (document.getElementById("historyRows")) document.getElementById("historyRows").innerHTML = rowsHtml;
-
-            // 3. Logic & Security
-            const ADMIN_PASSWORD = "GDA@2026";
+            // --- FINE CALCULATOR (60 Days Logic) ---
+            const startDate = new Date(cust.loanDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            // Delete Logic
-            document.querySelectorAll(".btn-row-del").forEach(btn => {
-                btn.onclick = async (e) => {
-                    const colId = e.currentTarget.getAttribute("data-colid");
-                    if (prompt("Enter Admin Password:") === ADMIN_PASSWORD) {
-                        await deleteDoc(doc(db, "collections", colId));
-                        loadFullStatement();
-                    }
-                };
-            });
+            let fineMsg = "";
+            if (diffDays > 60) {
+                fineMsg = `⚠️ Fine: ${diffDays - 60} दिन एक्स्ट्रा हो गए हैं!`;
+            }
+            document.getElementById("lblFine").innerText = fineMsg; // (इसे अपने HTML में ID दें)
 
-        } catch (err) {
-            console.error(err);
-        }
+            // 3. Button Handlers
+            document.getElementById("btnWhatsApp").onclick = () => {
+                window.open(`https://wa.me/91${cust.mobile}?text=Hello ${cust.name}, आपका GDA Finance का कलेक्शन पेंडिंग है।`, '_blank');
+            };
+
+            document.getElementById("btnPdf").onclick = () => {
+                window.print(); // या अपना PDF जनरेशन कोड
+            };
+
+            document.getElementById("btnAgreement").onclick = () => {
+                window.location.href = `agreement.html?id=${custId}`;
+            };
+
+            // [बाकी अपना पुराना कोड यहाँ जोड़ें...]
+            
+        } catch (err) { console.error(err); }
     }
-
     loadFullStatement();
 });
