@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtRemaining = document.getElementById("txtRemaining");
     const txtPaidDays = document.getElementById("txtPaidDays");
 
+    // आज की तारीख का सही फॉर्मेट सेट करना
     const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     if (collectionDate) collectionDate.value = todayIST;
 
@@ -49,7 +50,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (custDoc.exists()) {
                 const data = custDoc.data();
                 
-                // डेटाबेस फील्ड्स के साथ कैलकुलेशन
                 const dailyEmi = Number(data.dailyEmi || 0);
                 const totalTarget = Number(data.totalCollection || 0);
                 const collectedSoFar = Number(data.totalCollected || 0);
@@ -75,7 +75,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         submitCollectionBtn.onclick = async () => {
             const selectedId = customerSelect.value;
             const amount = Number(collectAmount.value);
-            const date = collectionDate.value;
+            // डेट फॉर्मेट को सुरक्षित किया गया ताकि यह YYYY-MM-DD में ही रहे
+            const date = new Date(collectionDate.value).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
             if (!selectedId || !amount || amount <= 0) {
                 alert("⚠️ कृपया सही जानकारी भरें!");
@@ -118,7 +119,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // इनिशियलाइज़
     await loadCustomersDropdown();
     
-    // URL ID Auto-fill (अगर कहीं और से आ रहे हैं)
+    // URL ID Auto-fill
     const urlParams = new URLSearchParams(window.location.search);
     const idFromUrl = urlParams.get('id');
     if (idFromUrl) {
