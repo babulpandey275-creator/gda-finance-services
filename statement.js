@@ -1,7 +1,3 @@
-// ==========================================
-// 🚀 GDA FINANCE - STATEMENT ENGINE (Final Version)
-// ==========================================
-
 import { db } from "./firebase.js"; 
 import { doc, getDoc, collection, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
@@ -17,23 +13,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (!custDoc.exists()) return;
             const cust = custDoc.data();
 
-            // 1. UI Fields
+            // 1. UI Basic Data Mapping
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
-            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]"; // सुरक्षित
+            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]";
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
             document.getElementById("lblAddress").innerText = cust.address || "-";
-            
-            const baseLoan = Number(cust.loanAmount) || 0;
-            document.getElementById("lblLoanAmount").innerText = `₹${baseLoan}`;
+            document.getElementById("lblLoanAmount").innerText = `₹${cust.loanAmount || 0}`;
             document.getElementById("lblLoanDate").innerText = cust.loanDate || "-";
             document.getElementById("lblEmi").innerText = `₹${cust.dailyEmi || 0}`;
+            document.getElementById("lblPlan").innerText = cust.planDuration || "-";
             
             const photoUrl = cust.photoUrl || "https://img.icons8.com/color/96/user-male-circle.png";
             document.getElementById("custPhoto").src = photoUrl;
 
-            // 2. Collection & Logic
+            // 2. Fetch Collection Logs
             const colRef = collection(db, "collections");
             const q = query(colRef, where("customerId", "==", custId));
             const querySnapshot = await getDocs(q);
@@ -44,37 +39,37 @@ window.addEventListener('DOMContentLoaded', async () => {
             logs.sort((a,b) => new Date(b.date) - new Date(a.date));
             logs.forEach(l => totalCollected += Number(l.amount || 0));
 
-            // UI Calculations
+            // 3. Calculation & Fine Logic
             document.getElementById("lblPaidDays").innerText = `${logs.length} Days`;
             document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
             
+            const baseLoan = Number(cust.loanAmount) || 0;
             const remaining = Math.max(0, baseLoan - totalCollected);
-            document.getElementById("lblRemaining").innerText = `₹${remaining}`;
+            let netDueHtml = `₹${remaining}`;
 
-            // --- 60 दिन वाला फाइन लॉजिक ---
+            // Fine Logic (60 Days)
             if (cust.loanDate) {
                 const diffTime = new Date() - new Date(cust.loanDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 if (diffDays > 60) {
-                    const extraDays = diffDays - 60;
-                    document.getElementById("lblRemaining").innerHTML += `<br><small style="color:red; font-size:12px;">⚠️ Fine Applicable: ${extraDays} दिन ऊपर</small>`;
+                    netDueHtml += `<br><small style="color:red;">⚠️ Fine: ${diffDays - 60} दिन एक्स्ट्रा</small>`;
                 }
             }
+            document.getElementById("lblRemaining").innerHTML = netDueHtml;
 
-            // 3. Table Rendering
-            let rowsHtml = logs.map(log => `
+            // 4. History Table
+            document.getElementById("historyRows").innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
                     <td>📅 ${log.date}</td>
-                    <td>${log.note || 'Received'}</td>
+                    <td>${log.note || 'EMI Received'}</td>
                     <td style="color:#22c55e; text-align:right;">+₹${log.amount}</td>
                     <td><button class="btn-row-del" data-colid="${log.colId}">🗑️</button></td>
                 </tr>
-            `).join("");
-            document.getElementById("historyRows").innerHTML = rowsHtml || "<tr><td colspan='4'>No data</td></tr>";
+            `).join("") : "<tr><td colspan='4' style='text-align:center;'>No data found</td></tr>";
 
-            // 4. Buttons
+            // 5. Button Handlers
             document.getElementById("btnWhatsapp").onclick = () => {
-                window.open(`https://wa.me/91${cust.mobile}?text=GDA Finance: Hello ${cust.name}, आपका बकाया ₹${remaining} है।`);
+                window.open(`https://wa.me/91${cust.mobile}?text=Hello ${cust.name}, आपका बकाया ${remaining} है।`, '_blank');
             };
 
             document.getElementById("btnPdf").onclick = () => window.print();
@@ -83,17 +78,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = `agreement.html?id=${custId}`;
             };
 
-            // Delete Logic
+            // Delete Action
             document.querySelectorAll(".btn-row-del").forEach(btn => {
                 btn.onclick = async (e) => {
                     if (prompt("Enter Admin Password:") === "GDA@2026") {
                         await deleteDoc(doc(db, "collections", e.target.getAttribute("data-colid")));
-                        loadFullStatement();
+                        loadFullStatement(); // Refresh
                     }
                 };
             });
 
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error("Error loading statement:", err); }
     }
     loadFullStatement();
 });
