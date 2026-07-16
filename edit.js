@@ -25,7 +25,7 @@ async function loadCustomerData() {
     } catch (err) { console.error("Load Error:", err); }
 }
 
-// 2. अपडेट प्रोफाइल (Submit Handler)
+// 2. अपडेट प्रोफाइल का फंक्शन
 const form = document.getElementById("editForm");
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -36,29 +36,33 @@ form.addEventListener("submit", async (e) => {
     updateBtn.innerText = "Updating...";
     updateBtn.disabled = true;
 
-    let updateData = {
-        name: document.getElementById("customerName").value,
-        mobile: document.getElementById("mobileNumber").value,
-        address: document.getElementById("address").value,
-        panCard: document.getElementById("panNumber").value,
-        loanAmount: document.getElementById("loanAmount").value,
-        loanPlan: document.getElementById("loanPlan").value,
-        loanDate: document.getElementById("loanDate").value,
-        totalAmount: document.getElementById("totalAmount").value,
-        emi: document.getElementById("emi").value
-    };
-
     try {
+        let updateData = {
+            name: document.getElementById("customerName").value,
+            mobile: document.getElementById("mobileNumber").value,
+            address: document.getElementById("address").value,
+            panCard: document.getElementById("panNumber").value,
+            loanAmount: document.getElementById("loanAmount").value,
+            loanPlan: document.getElementById("loanPlan").value,
+            loanDate: document.getElementById("loanDate").value,
+            totalAmount: document.getElementById("totalAmount").value,
+            emi: document.getElementById("emi").value
+        };
+
+        // फोटो अपलोड लॉजिक
         if (photoInput.files && photoInput.files[0]) {
             const storageRef = ref(storage, 'customers/' + custId);
             await uploadBytes(storageRef, photoInput.files[0]);
             updateData.customerPhoto = await getDownloadURL(storageRef);
         }
 
+        // Firestore अपडेट करें
         await updateDoc(doc(db, "customers", custId), updateData);
-        alert("✅ प्रोफाइल अपडेट हो गई!");
+        
+        alert("✅ प्रोफाइल सफलतापूर्वक अपडेट हो गई!");
         window.location.href = "customer-list.html"; 
     } catch (err) {
+        console.error("Update Error:", err);
         alert("❌ एरर: " + err.message);
         updateBtn.innerText = "💾 Update Profile";
         updateBtn.disabled = false;
