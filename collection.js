@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const txtRemaining = document.getElementById("txtRemaining");
     const txtPaidDays = document.getElementById("txtPaidDays");
 
-    // आज की तारीख का सही फॉर्मेट सेट करना
+    // आज की तारीख का सही फॉर्मेट सेट करना (YYYY-MM-DD)
     const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     if (collectionDate) collectionDate.value = todayIST;
 
@@ -75,10 +75,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         submitCollectionBtn.onclick = async () => {
             const selectedId = customerSelect.value;
             const amount = Number(collectAmount.value);
-            // डेट फॉर्मेट को सुरक्षित किया गया ताकि यह YYYY-MM-DD में ही रहे
-            const date = new Date(collectionDate.value).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+            
+            // --- UPDATED DATE LOGIC ---
+            // यह सुनिश्चित करता है कि तारीख हमेशा YYYY-MM-DD फॉर्मेट में ही रहे, 
+            // चाहे यूजर HTML इनपुट से कुछ भी चुने।
+            const rawDate = collectionDate.value;
+            const date = new Date(rawDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-            if (!selectedId || !amount || amount <= 0) {
+            if (!selectedId || !amount || amount <= 0 || !rawDate) {
                 alert("⚠️ कृपया सही जानकारी भरें!");
                 return;
             }
@@ -91,7 +95,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 await addDoc(collection(db, "collections"), {
                     customerId: selectedId,
                     amount: amount,
-                    date: date,
+                    date: date, // अब यह हमेशा YYYY-MM-DD है
                     note: "EMI Received",
                     timestamp: new Date()
                 });
