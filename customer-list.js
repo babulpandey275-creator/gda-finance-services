@@ -5,7 +5,7 @@ const listContainer = document.getElementById("listContainer");
 const searchInp = document.getElementById("searchInp");
 const ADMIN_PASSWORD = "GDA@2026";
 
-let allCustomers = []; // पूरी लिस्ट यहाँ स्टोर होगी
+let allCustomers = [];
 
 // 1. डेटा लोड करें
 async function loadCustomers() {
@@ -20,7 +20,7 @@ async function loadCustomers() {
     }
 }
 
-// 2. लिस्ट रेंडर करें
+// 2. लिस्ट रेंडर करें (फोटो एरर हैंडलिंग के साथ)
 function renderList(data) {
     listContainer.innerHTML = "";
     if (data.length === 0) {
@@ -33,9 +33,16 @@ function renderList(data) {
         card.className = "cust-card";
         card.style.cssText = "display:flex; flex-direction:column; gap:10px; padding:15px; border-bottom:1px solid #ddd;";
         
+        // फोटो के लिए सुरक्षित URL हैंडलिंग
+        const imageUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) 
+            ? cust.photoUrl 
+            : 'https://via.placeholder.com/55';
+
         card.innerHTML = `
         <div onclick="window.location.href='statement.html?id=${cust.id}'" style="display:flex;gap:12px;align-items:center;cursor:pointer;">
-            <img src="${cust.photoUrl || 'https://via.placeholder.com/55'}" style="width:55px;height:55px;border-radius:50%;object-fit:cover;">
+            <img src="${imageUrl}" 
+                 onerror="this.src='https://via.placeholder.com/55'" 
+                 style="width:55px;height:55px;border-radius:50%;object-fit:cover; border: 1px solid #eee;">
             <div>
                 <h4 style="margin:0;font-size:16px;">${cust.name || "N/A"}</h4>
                 <p style="margin:0;font-size:12px;color:#64748b;">📱 ${cust.mobile || "N/A"}</p>
@@ -52,13 +59,16 @@ function renderList(data) {
 }
 
 // 3. सर्च फंक्शन
-searchInp.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = allCustomers.filter(c => 
-        c.name.toLowerCase().includes(term) || c.mobile.includes(term)
-    );
-    renderList(filtered);
-});
+if (searchInp) {
+    searchInp.addEventListener("input", (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allCustomers.filter(c => 
+            (c.name && c.name.toLowerCase().includes(term)) || 
+            (c.mobile && c.mobile.includes(term))
+        );
+        renderList(filtered);
+    });
+}
 
 // 4. सुरक्षित एडिट
 window.secureEdit = (docId) => {
@@ -78,7 +88,7 @@ window.secureDelete = async (docId) => {
         try {
             await deleteDoc(doc(db, "customers", docId));
             alert("✅ डिलीट सफल!");
-            loadCustomers(); // रिफ्रेश करें
+            loadCustomers(); // लिस्ट को ताज़ा करें
         } catch (err) {
             alert("❌ एरर: " + err.message);
         }
@@ -87,5 +97,5 @@ window.secureDelete = async (docId) => {
     }
 };
 
-// इनिशियलाइज़ करें
+// पेज लोड होते ही डेटा लोड करें
 loadCustomers();
