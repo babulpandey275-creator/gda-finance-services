@@ -1,7 +1,7 @@
 import { db, auth } from "./firebase.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-// ===== 🔥 नया (New) – Date Picker और Total Amount के लिए References =====
+// ===== References =====
 const historyList = document.getElementById("historyList");
 const datePicker = document.getElementById("historyDatePicker");
 const btnToday = document.getElementById("btnToday");
@@ -13,18 +13,10 @@ if (datePicker) datePicker.value = todayIST;
 // =========================================================
 // 1️⃣ हिस्ट्री (History) लोड (Load) करें – सिर्फ Selected Date की
 // =========================================================
-async function loadFilteredHistory(dateStr) {
+async function loadFilteredHistory(dateStr, userId) {
     if (!dateStr) {
         historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कोई तारीख (Date) चुनें!</td></tr>`;
         if (totalLabel) totalLabel.innerText = "₹0";
-        return;
-    }
-
-    // ✅ लॉगिन (Login) चेक (Check)
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कृपया पहले लॉगिन (Login) करें!</td></tr>`;
-        window.location.href = "login.html";
         return;
     }
 
@@ -36,7 +28,7 @@ async function loadFilteredHistory(dateStr) {
         const q = query(collection(db, "collections"), where("date", "==", dateStr));
         const qSnap = await getDocs(q);
 
-        // 🔥 2. सारे (All) कस्टमर (Customers) फेच (Fetch) करें (नाम (Name) और मोबाइल (Mobile) मैप (Map) करने के लिए)
+        // 🔥 2. सारे (All) कस्टमर (Customers) फेच (Fetch) करें
         const custSnap = await getDocs(collection(db, "customers"));
         let customerMap = {};
         custSnap.forEach((cDoc) => {
@@ -57,24 +49,16 @@ async function loadFilteredHistory(dateStr) {
             logArray.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Sort by timestamp (नया (New) से पुराना (Old))
         logArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
         logArray.forEach((collect) => {
             const linkedCustomer = customerMap[collect.customerId] || {};
             totalAmount += Number(collect.amount || 0);
 
-            let finalDateDisplay = "-";
-            if (collect.date) {
-                finalDateDisplay = collect.date;
-            } else if (collect.createdAt) {
-                finalDateDisplay = collect.createdAt.split("T")[0];
-            }
-
+            let finalDateDisplay = collect.date || (collect.createdAt ? collect.createdAt.split("T")[0] : "-");
             let finalNameDisplay = collect.customerName || linkedCustomer.name || "Unknown Customer";
             let finalMobileDisplay = collect.customerMobile || collect.mobile || linkedCustomer.mobile || "Not Recorded";
             let memberIdDisplay = collect.customerCode || collect.memberId || linkedCustomer.customerCode || linkedCustomer.memberId || "";
-
             let paymentMode = collect.mode || "Cash";
             let transactionNote = collect.note || "EMI Collection";
 
@@ -93,7 +77,6 @@ async function loadFilteredHistory(dateStr) {
             historyList.appendChild(tr);
         });
 
-        // 🔥 कुल (Total) राशि (Amount) दिखाएँ
         if (totalLabel) totalLabel.innerText = `₹${totalAmount}`;
 
     } catch (error) {
@@ -108,6 +91,7 @@ async function loadFilteredHistory(dateStr) {
 // =========================================================
 if (datePicker) {
     datePicker.addEventListener("change", (e) => {
+        // यूज़र (User) लॉगिन (Login) है या नहीं – यह ऊपर (Above) चेक (Check) हो चुका है
         loadFilteredHistory(e.target.value);
     });
 }
@@ -122,10 +106,16 @@ if (btnToday) {
 }
 
 // =========================================================
-// 3️⃣ पेज (Page) लोड (Load) होते ही आज (Today) का हिस्ट्री (History) दिखाएँ
+// 3️⃣ 🔥 पेज (Page) लोड (Load) होने पर – `onAuthStateChanged` का इंतज़ार (Wait) करें
 // =========================================================
-window.addEventListener('DOMContentLoaded', async () => {
-    // पहले से (Already) लोड (Load) होने वाला कोड (Code) – हमने उसे ऊपर फंक्शन (Function) में बदल (Replaced) दिया है
-    // इसलिए बस (Just) आज (Today) का डेटा (Data) लोड (Load) करें
-    await loadFilteredHistory(todayIST);
+auth.onAuthStateChanged((user) => {
+    if (!user) {
+        // यूज़र (User) लॉगिन (Login) नहीं है – तुरंत (Immediately) रीडायरेक्ट (Redirect) करें
+        historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कृपया पहले लॉगिन (Login) करें!</td></tr>`;
+        window.location.href = "login.html";
+        return;
+    }
+
+    // ✅ यूज़र (User) लॉगिन (Logged in) है – आज (Today) का हिस्ट्री (History) लोड (Load) करें
+    loadFilteredHistory(todayIST);
 });
