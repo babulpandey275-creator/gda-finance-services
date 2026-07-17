@@ -6,7 +6,7 @@
     <title>Financial Reports</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <style>
-        /* ===== सिर्फ रंग (Colors) बदले गए हैं – बाकी सब आपका पुराना कोड ===== */
+        /* ===== सिर्फ रंग (Colors) बदले गए हैं – बाकी सब आपका पुराना स्ट्रक्चर (Structure) ===== */
         :root {
             --primary: #3a1c62;
             --secondary: #e91e63;
@@ -25,12 +25,24 @@
         .app-header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         .app-header h1 { font-size: 22px; font-weight: 700; }
         .app-header a { color: white; text-decoration: none; font-size: 14px; }
-        .app-header small { font-size: 13px; font-weight: 400; opacity: 0.8; }
-
-        /* बाकी सब आपका पुराना कोड – बिल्कुल वैसा ही */
+        
         .container { padding: 15px; }
+        
+        /* ===== 🔥 Date Picker + Expense Button (जोड़ा गया) ===== */
+        .report-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+        .report-controls input[type="date"] { 
+            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; background: white; 
+            min-width: 150px;
+        }
+        .btn-expense { 
+            background: var(--secondary); color: white; padding: 12px 20px; border-radius: 10px; 
+            text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-expense:active { transform: scale(0.96); }
+        
         .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .report-box { background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .report-box { background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #f0e6f6; }
         .report-box.full { grid-column: span 2; }
         .report-box p { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin: 0; }
         .report-box h3 { font-size: 18px; margin-top: 4px; color: var(--text-main); font-weight: 700; }
@@ -49,15 +61,22 @@
 
     <!-- Header -->
     <header class="app-header">
-        <div>
-            <h1>📊 Financial Reports</h1>
-            <small id="reportDate">Month: 07/17/2026</small>
-        </div>
+        <div><h1>📊 Financial Reports</h1></div>
         <a href="index.html">← Home</a>
     </header>
 
     <!-- Content -->
     <div class="container">
+        
+        <!-- 🔥🔥🔥 Date Picker + Expense Button (यही था जो गायब हो गया था) -->
+        <div class="report-controls">
+            <input type="date" id="reportDate">
+            <a href="expense-manager.html" class="btn-expense">
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Expense
+            </a>
+        </div>
+
+        <!-- Report Grid (आपका पुराना ग्रिड – IDs बिल्कुल वैसे ही हैं) -->
         <div class="report-grid">
             <div class="report-box full primary">
                 <p>TOTAL PORTFOLIO (MARKET RUNNING)</p>
@@ -82,6 +101,7 @@
         <a href="#" id="logoutBtn" class="nav-item" style="color:var(--danger);"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
+    <!-- 🔥 Scripts – 'report.js' आपका पुराना वाला ही चलेगा, क्योंकि IDs वैसी ही हैं -->
     <script type="module" src="report.js"></script>
     <script type="module" src="app.js"></script>
 </body>
