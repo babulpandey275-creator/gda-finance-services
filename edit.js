@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - EDIT CUSTOMER (FIXED: NO LOGOUT ISSUE)
+// 🚀 GDA FINANCE - EDIT CUSTOMER (FIXED PHOTO UPLOAD)
 // ==========================================================
 
 import { db, auth } from "./firebase.js";
@@ -20,9 +20,7 @@ const loanPlan = document.getElementById("loanPlan");
 const totalAmount = document.getElementById("totalAmount");
 const emi = document.getElementById("emi");
 
-// =========================================================
-// 1️⃣ कैलकुलेशन (Calculation) – वैसा ही (Same)
-// =========================================================
+// कैलकुलेशन (Calculation)
 function calculateValues() {
     const principal = Number(loanAmount.value) || 0;
     const duration = Number(loanPlan.value) || 60;
@@ -35,67 +33,77 @@ loanAmount.addEventListener("input", calculateValues);
 loanPlan.addEventListener("change", calculateValues);
 
 // =========================================================
-// 2️⃣ फोटो प्रीव्यू (Photo Preview) – वैसा ही (Same)
+// 1️⃣ फोटो (Photo) – प्रीव्यू (Preview) – (बिल्कुल (Exactly) – वैसा (Same) – ही (Itself))
 // =========================================================
-photoInput.addEventListener("change", function() {
+photoInput.addEventListener("change", function () {
     if (this.files && this.files[0]) {
-        photoPreview.src = URL.createObjectURL(this.files[0]);
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            photoPreview.src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
     }
 });
 
 // =========================================================
-// 3️⃣ ImgBB अपलोड (Upload) – वैसा ही (Same)
+// 2️⃣ ImgBB – अपलोड (Upload) – फंक्शन (Function) – (एरर (Error) – हैंडलिंग (Handling) – के (With) – साथ (With))
 // =========================================================
 async function uploadToImgBB(file) {
-    const formData = new FormData();
-    formData.append("image", file);
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData
-    });
-    const result = await response.json();
-    if (!result.success) throw new Error("Photo Upload Failed");
-    return result.data.url;
+    try {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+
+        // 🔥 अगर (If) – ImgBB – से (From) – एरर (Error) – आया (Came) – तो (Then) – Alert – दिखाएँ (Show)!
+        if (!result.success) {
+            throw new Error("ImgBB Error: " + (result.status_txt || "Unknown error"));
+        }
+
+        return result.data.url;
+    } catch (err) {
+        console.error("Upload Error:", err);
+        // 🔥 एरर (Error) – को (To) – ऊपर (Up) – भेजें (Throw) – ताकि (So that) – मुख्य (Main) – फंक्शन (Function) – में (In) – पकड़ (Catch) – सके (Can)!
+        throw new Error("फोटो (Photo) अपलोड (Upload) – नहीं (Not) – हो (Be) – पाया (Able) – " + err.message);
+    }
 }
 
 // =========================================================
-// 4️⃣ डेटा लोड (Load Data) और अपडेट (Update) – अब `onAuthStateChanged` के साथ
+// 3️⃣ लोड (Load) – और (And) – अपडेट (Update) – (नया (New) – सेटअप (Setup))
 // =========================================================
 auth.onAuthStateChanged(async (user) => {
-    // 🔥 अगर यूज़र (User) लॉगिन (Login) नहीं है – तुरंत (Immediately) रीडायरेक्ट (Redirect)
     if (!user) {
         alert("❌ कृपया पहले लॉगिन करें!");
         window.location.href = "login.html";
         return;
     }
 
-    // ✅ अगर URL में Customer ID नहीं है – वापस (Back) भेजें
     if (!custId) {
         alert("❌ Customer ID नहीं मिली!");
         window.location.href = "customer-list.html";
         return;
     }
 
-    // ✅ डेटा लोड (Load) करें
+    // ✅ डेटा (Data) – लोड (Load) – करें (Do)
     try {
         const docSnap = await getDoc(doc(db, "customers", custId));
         if (docSnap.exists()) {
             const data = docSnap.data();
-            
-            // 🔥 सारे (All) फील्ड्स (Fields) भरें – जिसमें Guardian और Aadhaar भी शामिल (Included) हैं
             document.getElementById("customerName").value = data.name || "";
             document.getElementById("mobileNumber").value = data.mobile || "";
             document.getElementById("guardianName").value = data.guardianName || "";
             document.getElementById("aadhaar").value = data.aadhaar || "";
             document.getElementById("address").value = data.address || "";
             document.getElementById("panNumber").value = data.panCard || "";
-            
             loanAmount.value = data.loanAmount || "";
             loanPlan.value = data.planDuration || "60";
             document.getElementById("loanDate").value = data.loanDate || "";
-            
-            calculateValues(); // EMI कैलकुलेट (Calculate) करें
-            
+            calculateValues();
             if (data.photoUrl) {
                 photoPreview.src = data.photoUrl;
             }
@@ -109,12 +117,12 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     // =========================================================
-    // 5️⃣ फॉर्म सबमिट (Form Submit) – `GDA@2026` पासवर्ड (Password) के साथ
+    // 4️⃣ फॉर्म (Form) – सबमिट (Submit) – (फोटो (Photo) – अपलोड (Upload) – **सही (Correct)** – तरीके (Way) – से (From))
     // =========================================================
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // 🔐 Admin Password चेक (Check) – GDA@2026
+        // 🔐 Admin Password – चेक (Check)
         const pass = prompt("🔑 Update करने के लिए Admin Password डालें:");
         if (pass !== ADMIN_PASSWORD) {
             if (pass !== null) alert("❌ गलत पासवर्ड!");
@@ -125,12 +133,20 @@ auth.onAuthStateChanged(async (user) => {
         updateBtn.innerText = "⏳ Updating...";
 
         try {
-            let photoUrl = photoPreview.src;
-            if (photoInput.files.length > 0) {
-                photoUrl = await uploadToImgBB(photoInput.files[0]);
+            let photoUrl = photoPreview.src; // पुरानी (Old) – फोटो (Photo) – का (Of) – यूआरएल (URL)
+
+            // 🔥🔥🔥 **अगर (If) – नई (New)** – फोटो (Photo) – **चुनी (Selected)** – है (Is) – तो (Then) – **ImgBB** – पर (On) – **अपलोड (Upload)** – करें (Do)!
+            if (photoInput.files && photoInput.files.length > 0) {
+                const file = photoInput.files[0];
+                // ✅ चेतावनी (Warning) – फोटो (Photo) – का (Of) – साइज़ (Size) – चेक (Check) – करें (Do) – (ImgBB – 20MB – तक (Till) – अपलोड (Upload) – कर सकता (Can) – है (Is))
+                if (file.size > 20 * 1024 * 1024) {
+                    throw new Error("फोटो (Photo) – 20MB – से (From) – बड़ी (Larger) – है (Is)! – कृपया (Please) – छोटी (Smaller) – फोटो (Photo) – चुनें (Select) – करें (Do)!");
+                }
+                // फोटो (Photo) – अपलोड (Upload) – करें (Do)
+                photoUrl = await uploadToImgBB(file);
             }
 
-            // 🔥 सारा (All) डेटा (Data) अपडेट (Update) – जिसमें Guardian और Aadhaar भी शामिल (Included) हैं
+            // ✅ डेटा (Data) – अपडेट (Update) – करें (Do)
             const updateData = {
                 name: document.getElementById("customerName").value.trim(),
                 mobile: document.getElementById("mobileNumber").value.trim(),
@@ -146,18 +162,23 @@ auth.onAuthStateChanged(async (user) => {
                 updatedAt: new Date().toISOString()
             };
 
-            if (photoUrl) updateData.photoUrl = photoUrl;
+            // ✅ अगर (If) – नई (New) – फोटो (Photo) – अपलोड (Upload) – हुई (Was) – है (Is) – तो (Then) – डेटा (Data) – में (In) – जोड़ें (Add)!
+            if (photoUrl) {
+                updateData.photoUrl = photoUrl;
+            }
 
+            // 🔥 Firestore – में (In) – सेव (Save) – करें (Do)
             await updateDoc(doc(db, "customers", custId), updateData);
 
-            alert("✅ कस्टमर डेटा सफलतापूर्वक अपडेट हो गया!");
+            alert("✅ कस्टमर (Customer) – डेटा (Data) – सफलतापूर्वक (Successfully) – अपडेट (Updated) – हो (Be) – गया (Has been) – है (Is)!");
             window.location.href = "customer-list.html";
 
         } catch (err) {
-            console.error(err);
-            alert("❌ Error: " + err.message);
+            console.error("Update Error:", err);
+            // 🔥🔥🔥 **यहाँ (Here)** – **एरर (Error)** – **Alert** – **में (In)** – **दिखेगा (Will show)!** – **ताकि (So that)** – **आपको (You)** – **पता (Know)** – **चले (Will)** – **कि (That)** – **फोटो (Photo)** – **क्यों (Why)** – **नहीं (Not)** – **आ (Come)** – **रही (Is)** – **है (Is)!**
+            alert("❌ एरर (Error): " + err.message);
             updateBtn.disabled = false;
-            updateBtn.innerText = "Update Profile";
+            updateBtn.innerText = "🔄 Update Profile";
         }
     });
 
