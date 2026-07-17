@@ -1,7 +1,19 @@
 import { db, auth } from "./firebase.js";
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-// ===== References =====
+// ✅ हेल्पर (Helper) – डेट (Date) – को (To) – YYYY-MM-DD – में (In) – बदलें (Convert)
+function normalizeDate(dateStr) {
+    if (!dateStr) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString().split('T')[0];
+    } catch {
+        return null;
+    }
+}
+
 const historyList = document.getElementById("historyList");
 const datePicker = document.getElementById("historyDatePicker");
 const btnToday = document.getElementById("btnToday");
@@ -10,9 +22,6 @@ const totalLabel = document.getElementById("totalAmountLabel");
 const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 if (datePicker) datePicker.value = todayIST;
 
-// =========================================================
-// 1️⃣ हिस्ट्री (History) लोड (Load) करें – सिर्फ Selected Date की
-// =========================================================
 async function loadFilteredHistory(dateStr) {
     if (!dateStr) {
         historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कोई तारीख (Date) चुनें!</td></tr>`;
@@ -24,34 +33,44 @@ async function loadFilteredHistory(dateStr) {
     if (totalLabel) totalLabel.innerText = "₹0";
 
     try {
-        const q = query(collection(db, "collections"), where("date", "==", dateStr));
-        const qSnap = await getDocs(q);
+        // 🔥 सारा (All) – कलेक्शन (Collection) – फेच (Fetch) – करें (Do) – और (And) – JavaScript – में (In) – फ़िल्टर (Filter) – करें (Do)!
+        const [collectionsSnap, customersSnap] = await Promise.all([
+            getDocs(collection(db, "collections")),
+            getDocs(collection(db, "customers"))
+        ]);
 
-        const custSnap = await getDocs(collection(db, "customers"));
+        // 1. कस्टमर (Customer) – मैप (Map) – बनाएँ (Create)
         let customerMap = {};
-        custSnap.forEach((cDoc) => {
+        customersSnap.forEach((cDoc) => {
             customerMap[cDoc.id] = cDoc.data();
+        });
+
+        // 2. कलेक्शन (Collection) – को (To) – फ़िल्टर (Filter) – करें (Do) – और (And) – डेट (Date) – को (To) – नॉर्मलाइज़ (Normalize) – करें (Do)
+        let logArray = [];
+        let totalAmount = 0;
+
+        collectionsSnap.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (!data.date) return;
+            const normDate = normalizeDate(data.date);
+            if (normDate === dateStr) {
+                logArray.push({ id: docSnap.id, ...data });
+                totalAmount += Number(data.amount || 0);
+            }
         });
 
         historyList.innerHTML = "";
 
-        if (qSnap.empty) {
+        if (logArray.length === 0) {
             historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">📭 ${dateStr} को कोई कलेक्शन (Collection) नहीं हुआ।</td></tr>`;
             if (totalLabel) totalLabel.innerText = "₹0";
             return;
         }
 
-        let totalAmount = 0;
-        let logArray = [];
-        qSnap.forEach((docSnap) => {
-            logArray.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
         logArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
         logArray.forEach((collect) => {
             const linkedCustomer = customerMap[collect.customerId] || {};
-            totalAmount += Number(collect.amount || 0);
 
             let finalDateDisplay = collect.date || (collect.createdAt ? collect.createdAt.split("T")[0] : "-");
             let finalNameDisplay = collect.customerName || linkedCustomer.name || "Unknown Customer";
@@ -84,9 +103,6 @@ async function loadFilteredHistory(dateStr) {
     }
 }
 
-// =========================================================
-// 2️⃣ इवेंट (Events) – Date Picker बदलने (Change) पर और "Today" बटन (Button) पर
-// =========================================================
 if (datePicker) {
     datePicker.addEventListener("change", (e) => {
         loadFilteredHistory(e.target.value);
@@ -102,9 +118,6 @@ if (btnToday) {
     });
 }
 
-// =========================================================
-// 3️⃣ 🔥 पेज (Page) लोड (Load) होने पर – `onAuthStateChanged` का इंतज़ार (Wait) करें
-// =========================================================
 auth.onAuthStateChanged((user) => {
     if (!user) {
         historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कृपया पहले लॉगिन (Login) करें!</td></tr>`;
