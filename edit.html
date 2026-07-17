@@ -20,7 +20,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg-gradient); min-height: 100vh; padding-bottom: 80px; }
 
-        /* Header – Dashboard जैसा */
         .app-header {
             background: var(--primary);
             color: white;
@@ -33,75 +32,20 @@
             align-items: center;
         }
         .gda-logo-container { display: flex; align-items: center; gap: 14px; }
-        .gda-logo-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            background: var(--secondary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid rgba(255,255,255,.35);
-        }
+        .gda-logo-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--secondary); display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,.35); }
         .gda-logo-icon .material-symbols-outlined { font-size: 30px; color: #FFFFFF; }
         .gda-logo-text h1 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1; color: #FFFFFF; }
         .gda-logo-text p { margin-top: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: #FFD700; }
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            text-decoration: none;
-        }
+        .back-btn { background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; text-decoration: none; }
 
         .container { padding: 15px 20px; max-width: 600px; margin: 0 auto; }
-        .form-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            border: 1px solid #f0e6f6;
-        }
-        .form-card .title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .form-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid #f0e6f6; }
+        .form-card .title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .form-group { margin-bottom: 14px; }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid #e1bee7;
-            font-size: 14px;
-            background: #faf7fc;
-            transition: 0.2s;
-            outline: none;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(58, 28, 98, 0.1);
-        }
-        .form-group input[readonly] {
-            background: #f0ecf3;
-            color: var(--text-muted);
-        }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e1bee7; font-size: 14px; background: #faf7fc; transition: 0.2s; outline: none; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 28, 98, 0.1); }
+        .form-group input[readonly] { background: #f0ecf3; color: var(--text-muted); }
 
         .photo-section {
             display: flex;
@@ -113,74 +57,22 @@
             border-radius: 12px;
             border: 1px dashed #e1bee7;
         }
-        .photo-section img {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary);
-            background: white;
-        }
-        .photo-section input[type="file"] {
-            flex: 1;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .photo-section input[type="file"]::file-selector-button {
-            padding: 6px 14px;
-            border-radius: 8px;
-            border: none;
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        .photo-section img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); background: white; }
+        .photo-section input[type="file"] { flex: 1; font-size: 13px; color: var(--text-muted); }
+        .photo-section input[type="file"]::file-selector-button { padding: 6px 14px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: 600; font-size: 12px; cursor: pointer; }
 
-        .btn-update {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        .btn-update { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-update:active { transform: scale(0.98); }
         .btn-update:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 65px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            align-items: center;
-            border-top: 1px solid #e1bee7;
-            z-index: 1000;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #94a3b8;
-            font-size: 11px;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; border-top: 1px solid #e1bee7; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
         .nav-item.active { color: var(--secondary); font-weight: 600; }
         .nav-item .material-symbols-outlined { font-size: 24px; }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header class="app-header">
         <div class="gda-logo-container">
             <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
@@ -195,78 +87,28 @@
 
             <form id="editForm" onsubmit="return false;">
 
-                <!-- फोटो -->
                 <div class="photo-section">
                     <img id="photoPreview" src="https://via.placeholder.com/70" alt="Photo">
                     <input type="file" id="customerPhoto" accept="image/*">
                 </div>
 
-                <!-- फील्ड्स -->
-                <div class="form-group">
-                    <label>👤 CUSTOMER NAME</label>
-                    <input type="text" id="customerName" placeholder="पूरा नाम" required>
-                </div>
-
-                <div class="form-group">
-                    <label>📱 MOBILE NUMBER</label>
-                    <input type="tel" id="mobileNumber" placeholder="10 अंकों का मोबाइल" required>
-                </div>
-
-                <!-- Guardian Name -->
-                <div class="form-group">
-                    <label>👨‍👦 पिता / पति का नाम (FATHER/HUSBAND)</label>
-                    <input type="text" id="guardianName" placeholder="पिता या पति का पूरा नाम" required>
-                </div>
-
-                <div class="form-group">
-                    <label>🆔 AADHAAR NUMBER</label>
-                    <input type="text" id="aadhaar" placeholder="12 अंकों का आधार नंबर" required>
-                </div>
-
-                <div class="form-group">
-                    <label>🏠 ADDRESS</label>
-                    <input type="text" id="address" placeholder="पता (Address)">
-                </div>
-
-                <div class="form-group">
-                    <label>🪪 PAN CARD NUMBER</label>
-                    <input type="text" id="panNumber" placeholder="PAN कार्ड नंबर" style="text-transform:uppercase;">
-                </div>
-
-                <div class="form-group">
-                    <label>💰 LOAN AMOUNT (₹)</label>
-                    <input type="number" id="loanAmount" required>
-                </div>
-
-                <div class="form-group">
-                    <label>📅 PLAN DURATION</label>
-                    <select id="loanPlan">
-                        <option value="60">60 Days</option>
-                        <option value="80">80 Days</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>📅 LOAN DATE</label>
-                    <input type="date" id="loanDate" required>
-                </div>
-
-                <div class="form-group">
-                    <label>💰 TOTAL PAYABLE (₹)</label>
-                    <input type="number" id="totalAmount" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label>📆 DAILY EMI (₹)</label>
-                    <input type="number" id="emi" readonly>
-                </div>
+                <div class="form-group"><label>👤 CUSTOMER NAME</label><input type="text" id="customerName" required></div>
+                <div class="form-group"><label>📱 MOBILE NUMBER</label><input type="tel" id="mobileNumber" required></div>
+                <div class="form-group"><label>👨‍👦 पिता / पति का नाम</label><input type="text" id="guardianName"></div>
+                <div class="form-group"><label>🆔 AADHAAR NUMBER</label><input type="text" id="aadhaar"></div>
+                <div class="form-group"><label>🏠 ADDRESS</label><input type="text" id="address"></div>
+                <div class="form-group"><label>🪪 PAN CARD NUMBER</label><input type="text" id="panNumber" style="text-transform:uppercase;"></div>
+                <div class="form-group"><label>💰 LOAN AMOUNT (₹)</label><input type="number" id="loanAmount" required></div>
+                <div class="form-group"><label>📅 PLAN DURATION</label><select id="loanPlan"><option value="60">60 Days</option><option value="80">80 Days</option></select></div>
+                <div class="form-group"><label>📅 LOAN DATE</label><input type="date" id="loanDate" required></div>
+                <div class="form-group"><label>💰 TOTAL PAYABLE (₹)</label><input type="number" id="totalAmount" readonly></div>
+                <div class="form-group"><label>📆 DAILY EMI (₹)</label><input type="number" id="emi" readonly></div>
 
                 <button type="submit" class="btn-update" id="updateBtn">💾 Update Profile</button>
             </form>
         </div>
     </div>
 
-    <!-- Bottom Nav -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
         <a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a>
