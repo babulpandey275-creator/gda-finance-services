@@ -1,14 +1,23 @@
-// ==========================================
-// 🚀 GDA FINANCE - STATEMENT ENGINE (Final Settlement Integrated)
-// ==========================================
 
-import { db } from "./firebase.js"; 
+// ==========================================================
+// 🚀 GDA FINANCE - STATEMENT ENGINE (FIXED: REMAINING AMOUNT)
+// ==========================================================
+
+import { db, auth } from "./firebase.js"; 
 import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
+const ADMIN_PASSWORD = "GDA@2026";
+
 window.addEventListener('DOMContentLoaded', async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert("❌ कृपया पहले लॉगिन करें!");
+        window.location.href = "login.html";
+        return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const custId = urlParams.get('id');
-
     if (!custId) { window.location.href = "customer-list.html"; return; }
 
     async function loadFullStatement() {
@@ -17,11 +26,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (!custDoc.exists()) { alert("कस्टमर नहीं मिला!"); return; }
             const cust = custDoc.data();
 
-            // 1. Basic Data Mapping
+            // Basic Data Mapping
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
-            document.getElementById("lblAadhar").innerText = "[Aadhaar Redacted]"; 
+            document.getElementById("lblAadhar").innerText = cust.aadhaar || "[Aadhaar Redacted]"; 
             document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
             document.getElementById("lblAddress").innerText = cust.address || "-";
             document.getElementById("lblLoanAmount").innerText = `₹${cust.loanAmount || 0}`;
@@ -30,7 +39,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById("lblPlan").innerText = cust.planDuration || "-";
             document.getElementById("custPhoto").src = cust.photoUrl || "https://img.icons8.com/color/96/user-male-circle.png";
 
-            // 2. Fetch Collection Logs
+            // Fetch Collection Logs
             const colRef = collection(db, "collections");
             const q = query(colRef, where("customerId", "==", custId));
             const querySnapshot = await getDocs(q);
@@ -41,7 +50,21 @@ window.addEventListener('DOMContentLoaded', async () => {
             logs.sort((a,b) => new Date(b.date) - new Date(a.date));
             logs.forEach(l => totalCollected += Number(l.amount || 0));
 
-            // 3. Calculation & Logic
+            // =========================================================
+            // 🔥🔥🔥 यहाँ (Here) – **सबसे (The most) ज़रूरी (Important) – बदलाव (Change)** – है (Is)! 🔥🔥🔥
+            // =========================================================
+            
+            // ✅ सही (Correct) तरीका (Way) – कुल (Total) देय (Payable) – में (In) से (From) – जमा (Collected) – घटाना (Subtract)!
+            // पुराना (Old): const remaining = Math.max(0, Number(cust.loanAmount) - totalCollected);
+            
+            // 🔥 नया (New) – `cust.totalPayable` – इस्तेमाल (Use) करें (Do)!
+            const totalPayable = Number(cust.totalPayable || cust.loanAmount * 1.20); // अगर (If) `totalPayable` न (Not) हो (Is) – तो (Then) – 20% ब्याज (Interest) – जोड़ें (Add)!
+            const remaining = Math.max(0, totalPayable - totalCollected);
+            
+            // =========================================================
+            // बाकी (Rest) – सब (Everything) – **वैसा (Same) ही (Itself)** – है (Is)!
+            // =========================================================
+
             const isSettled = cust.status === "Settled";
             const planDays = Number(cust.planDuration) || 60; 
             const dailyEmi = Number(cust.dailyEmi) || 0;
@@ -53,10 +76,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (isSettled) {
                 netDueHtml = `<span style="color:purple; font-weight:bold;">₹${cust.settlementAmount} (Settled)</span>`;
             } else {
-                const remaining = Math.max(0, Number(cust.loanAmount) - totalCollected);
                 netDueHtml = `₹${remaining}`;
-                
-                // Fine Logic
                 if (totalDaysPassed > planDays) {
                     const overdueDays = totalDaysPassed - planDays;
                     const fineRate = (planDays >= 80) ? 0.30 : 0.20; 
@@ -70,20 +90,25 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById("lblPaidDays").innerText = `${paidDays} Days Paid`;
             document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
 
-            // 4. Buttons & Settlement Handler
+            // Buttons & Settlement
             document.getElementById("btnWhatsapp").onclick = () => window.open(`https://wa.me/91${cust.mobile}`, '_blank');
             document.getElementById("btnPdf").onclick = () => window.print();
             document.getElementById("btnOpenBond").onclick = () => window.location.href = `disbursement-bond.html?id=${custId}`;
 
             document.getElementById("btnSettlement").onclick = async () => {
+                const pass = prompt("Admin Password डालें:");
+                if (pass !== ADMIN_PASSWORD) { if (pass !== null) alert("❌ गलत पासवर्ड!"); return; }
                 const amt = prompt("Enter Final Settlement Amount:");
-                if (amt && prompt("Enter Admin Password:") === "GDA@2026") {
+                if (amt !== null && !isNaN(amt) && Number(amt) >= 0) {
                     await updateDoc(doc(db, "customers", custId), { status: "Settled", settlementAmount: Number(amt) });
+                    alert("✅ Settlement Successful!");
                     location.reload();
+                } else if (amt !== null) {
+                    alert("❌ कृपया एक सही राशि डालें!");
                 }
             };
 
-            // 5. History Table
+            // History Table
             const historyRows = document.getElementById("historyRows");
             historyRows.innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
@@ -94,17 +119,22 @@ window.addEventListener('DOMContentLoaded', async () => {
                 </tr>
             `).join("") : "<tr><td colspan='4' style='text-align:center;'>No data found</td></tr>";
 
-            // Delete Action
             document.querySelectorAll(".btn-row-del").forEach(btn => {
                 btn.onclick = async (e) => {
-                    if (prompt("Enter Admin Password:") === "GDA@2026") {
+                    const pass = prompt("Admin Password डालें:");
+                    if (pass !== ADMIN_PASSWORD) { if (pass !== null) alert("❌ गलत पासवर्ड!"); return; }
+                    if (confirm("⚠️ क्या आप वाकई इस पेमेंट एंट्री को डिलीट करना चाहते हैं?")) {
                         await deleteDoc(doc(db, "collections", e.target.getAttribute("data-colid")));
+                        alert("✅ एंट्री डिलीट हो गई!");
                         location.reload();
                     }
                 };
             });
 
-        } catch (err) { console.error("Error loading statement:", err); }
+        } catch (err) { 
+            console.error("Error loading statement:", err); 
+            alert("❌ स्टेटमेंट लोड करते समय एरर: " + err.message);
+        }
     }
     loadFullStatement();
 });
