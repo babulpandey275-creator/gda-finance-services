@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - MISSED DATES (AMOUNT-BASED / ROLLING BALANCE)
+// 🚀 GDA FINANCE - MISSED DATES (DATE-BASED / EXACT MATCH)
 // ==========================================================
 
 import { db } from "./firebase.js";
@@ -12,65 +12,66 @@ async function loadMissedDates() {
     if (!listEl || !loadingEl) return;
 
     try {
-        // 1. सारा डेटा एक साथ लोड करें
+        // 1. सारा (All) डेटा (Data) – एक (One) साथ (Together) – लोड (Load) – करें (Do)
         const [custSnapshot, colSnapshot] = await Promise.all([
             getDocs(collection(db, "customers")),
             getDocs(collection(db, "collections"))
         ]);
 
-        // 2. 🔥 हर कस्टमर की 'कुल जमा राशि (Total Collected)' निकालें
-        const paidAmountMap = new Map();
+        // 2. 🔥🔥🔥 पेड (Paid) – तारीखों (Dates) – का (Of) – मैप (Map) – बनाएँ (Create) – (customerId -> Set of Dates)
+        const paidMap = new Map();
         colSnapshot.forEach(doc => {
             const data = doc.data();
             const cId = data.customerId;
-            if (cId) {
-                const amount = Number(data.amount) || 0;
-                paidAmountMap.set(cId, (paidAmountMap.get(cId) || 0) + amount);
+            if (cId && data.date) {
+                if (!paidMap.has(cId)) paidMap.set(cId, new Set());
+                paidMap.get(cId).add(data.date); // data.date – फॉर्मेट (Format): YYYY-MM-DD
             }
         });
 
         let html = "";
         let totalMissedCustomers = 0;
 
-        // 3. हर कस्टमर पर लूप करें
+        // 3. हर (Each) – कस्टमर (Customer) – पर (On) – लूप (Loop) – करें (Do)
         custSnapshot.forEach(doc => {
             const cust = doc.data();
             const id = doc.id;
+            
+            // अगर (If) – अकाउंट (Account) – बंद (Closed) – है (Is) – तो (Then) – छोड़ें (Skip)
             if (cust.status === "Closed") return;
 
             const loanDate = new Date(cust.loanDate);
             const today = new Date();
-            const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
             
-            // अगर EMI 0 है तो छोड़ें (Divide by Zero से बचने के लिए)
-            if (dailyEmi === 0) return;
-
-            // कुल दिन (आज तक) – इसमें +1 इसलिए कि आज का दिन भी गिना जाए
+            // कितने (How many) – दिन (Days) – हुए (Passed) – हैं (Are)?
             let diffDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
             if (diffDays < 0) diffDays = 0;
-            let totalDays = Math.max(0, diffDays) + 1;
+            // 🔥 +1 – इसलिए (So that) – आज (Today) – का (Of) – दिन (Day) – भी (Also) – गिना (Counted) – जाए (Be)!
+            let totalDays = Math.max(0, diffDays) + 1; 
 
-            // 🔥🔥🔥 सबसे ज़रूरी बदलाव: कुल जमा राशि (Total Paid) और कुल बकाया (Total Due)
-            const totalPaid = paidAmountMap.get(id) || 0;
-            
-            // कितने दिनों का पैसा जमा हो चुका है? (पूरे दिन, जैसे 2000/200 = 10 दिन)
-            const effectivePaidDays = Math.min(totalDays, Math.floor(totalPaid / dailyEmi));
-
-            // Missed Dates: वे दिन जो 'effectivePaidDays' के बाद आते हैं
+            // इस (This) – कस्टमर (Customer) – की (Of) – पेड (Paid) – तारीखें (Dates) – लें (Get)
+            const paidSet = paidMap.get(id) || new Set();
             const missedDates = [];
-            // लूप 'effectivePaidDays' से शुरू करें (क्योंकि उससे पहले के दिन Paid माने जाएंगे)
-            for (let i = effectivePaidDays; i < totalDays; i++) {
+            const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+
+            // 🔥🔥🔥 **नया (New) – तारीख (Date) – आधारित (Based) – लॉजिक (Logic)** 🔥🔥🔥
+            // लोन (Loan) – शुरू (Start) – होने (Happening) – वाली (That) – तारीख (Date) – से (From) – आज (Today) – तक (Till) – हर (Each) – तारीख (Date) – चेक (Check) – करें (Do)!
+            for (let i = 0; i < totalDays; i++) {
                 const d = new Date(loanDate);
                 d.setDate(d.getDate() + i);
                 const dateStr = d.toISOString().split('T')[0];
-                missedDates.push(dateStr);
+                
+                // ✅ अगर (If) – इस (This) – तारीख (Date) – पर (On) – पेमेंट (Payment) – **नहीं (Not)** – है (Is) – तो (Then) – मिस्ड (Missed) – में (In) – डालें (Add)!
+                if (!paidSet.has(dateStr)) {
+                    missedDates.push(dateStr);
+                }
             }
 
-            // अगर Missed Dates हैं, तो लिस्ट में दिखाएं
+            // अगर (If) – कोई (Any) – मिस्ड (Missed) – तारीख (Date) – है (Is) – तो (Then) – लिस्ट (List) – में (In) – दिखाएं (Show)
             if (missedDates.length > 0) {
                 totalMissedCustomers++;
                 const missedStr = missedDates.join(', ');
-                const missedAmount = missedDates.length * dailyEmi; // कितना ₹ बाकी है
+                const missedAmount = missedDates.length * dailyEmi;
 
                 html += `
                     <div class="missed-item" onclick="showMissedDetails('${cust.name}', '${missedStr}')">
@@ -86,16 +87,16 @@ async function loadMissedDates() {
             }
         });
 
-        // 4. UI अपडेट करें
+        // 4. यूआई (UI) – अपडेट (Update) – करें (Do)
         if (totalMissedCustomers === 0) {
-            loadingEl.innerText = "✅ सभी ने समय पर (या जमा करके) पेमेंट कर लिया है!";
+            loadingEl.innerText = "✅ सभी ने समय पर (या सही तारीख पर) पेमेंट कर लिया है!";
             listEl.innerHTML = "";
         } else {
             loadingEl.innerText = `📌 ${totalMissedCustomers} कस्टमर की मिस्ड डेट्स हैं:`;
             listEl.innerHTML = html;
         }
 
-        // Alert दिखाने के लिए ग्लोबल फंक्शन
+        // 5. Alert – दिखाने (Showing) – के (For) – लिए (For) – ग्लोबल (Global) – फंक्शन (Function)
         window.showMissedDetails = (name, dates) => {
             const dateArray = dates.split(', ');
             const dateList = dateArray.join('\n  • ');
