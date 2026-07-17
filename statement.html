@@ -60,7 +60,7 @@
 
         .container { padding: 15px 20px; max-width: 700px; margin: 0 auto; }
 
-        /* कस्टमर (Customer) प्रोफाइल (Profile) – आपका (Your) मूल (Original) स्ट्रक्चर (Structure) */
+        /* ===== प्रोफाइल (Profile) कार्ड (Card) – **पुराने (Old) आईडी (IDs)** के (With) साथ (With) ===== */
         .profile-card {
             background: white;
             border-radius: 16px;
@@ -69,6 +69,23 @@
             border: 1px solid #f0e6f6;
             margin-bottom: 16px;
         }
+        .profile-top {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .profile-top img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            background: white;
+        }
+        .profile-top h2 { font-size: 20px; margin: 0; color: var(--text-main); }
+        .profile-top small { color: var(--text-muted); font-size: 14px; }
+
         .profile-row {
             display: flex;
             justify-content: space-between;
@@ -103,7 +120,7 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-warning { background: var(--accent); color: black; }
 
-        /* हिस्ट्री (History) टेबल (Table) – आपका (Your) मूल (Original) स्ट्रक्चर (Structure) */
+        /* ===== हिस्ट्री (History) टेबल (Table) – **पुरानी (Old) आईडी (ID) `historyRows`** के (With) साथ (With) ===== */
         .history-card {
             background: white;
             border-radius: 16px;
@@ -135,7 +152,6 @@
         tr:last-child td { border-bottom: none; }
         .text-danger { color: var(--danger); font-weight: 700; }
         .text-success { color: var(--success); font-weight: 700; }
-
         .btn-row-del {
             background: var(--danger);
             color: white;
@@ -175,7 +191,7 @@
 </head>
 <body>
 
-    <!-- ===== 🔥 नया (New) Header – “GDA Finance Services” ===== -->
+    <!-- ===== 🔥 Header – “GDA Finance Services” ===== -->
     <header class="app-header">
         <div class="gda-logo-container">
             <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
@@ -188,12 +204,27 @@
     </header>
 
     <div class="container">
-        <!-- ===== कस्टमर (Customer) प्रोफाइल (Profile) – आपका (Your) मूल (Original) ===== -->
+        <!-- ===== प्रोफाइल (Profile) – **पुराने (Old) आईडी (IDs)** – **बिल्कुल (Exactly) वैसे (Same) ही (Itself)** ===== -->
         <div class="profile-card" id="customerProfile">
-            <!-- यहाँ (Here) आपका (Your) `statement.js` – डेटा (Data) – डालेगा (Will put) – **बिल्कुल (Exactly) वैसा (Same) ही (Itself)!** -->
-            <div id="profileContent">
-                <!-- सारा (All) कंटेंट (Content) – आपके (Your) `statement.js` – से (From) – आएगा (Will come)! -->
+            <div class="profile-top">
+                <img id="custPhoto" src="https://img.icons8.com/color/96/user-male-circle.png" alt="Photo">
+                <div>
+                    <h2 id="lblName">-</h2>
+                    <small id="lblId">GDA</small>
+                </div>
             </div>
+
+            <div class="profile-row"><span class="label">📱 Mobile</span><span class="value" id="lblMobile">-</span></div>
+            <div class="profile-row"><span class="label">🆔 Aadhaar</span><span class="value" id="lblAadhar">-</span></div>
+            <div class="profile-row"><span class="label">🪪 PAN</span><span class="value" id="lblPan">-</span></div>
+            <div class="profile-row"><span class="label">🏠 Address</span><span class="value" id="lblAddress">-</span></div>
+            <div class="profile-row"><span class="label">💰 Loan Amount</span><span class="value" id="lblLoanAmount">₹0</span></div>
+            <div class="profile-row"><span class="label">📅 Loan Date</span><span class="value" id="lblLoanDate">-</span></div>
+            <div class="profile-row"><span class="label">📆 Daily EMI</span><span class="value" id="lblEmi">₹0</span></div>
+            <div class="profile-row"><span class="label">📋 Plan Duration</span><span class="value" id="lblPlan">-</span></div>
+            <div class="profile-row"><span class="label">💰 Remaining</span><span class="value" id="lblRemaining">₹0</span></div>
+            <div class="profile-row"><span class="label">✅ Paid Days</span><span class="value" id="lblPaidDays">0 Days</span></div>
+            <div class="profile-row"><span class="label">💰 Total Collected</span><span class="value" id="lblTotalCollected">₹0</span></div>
         </div>
 
         <!-- ===== बटन (Buttons) – आपके (Your) मूल (Original) ===== -->
@@ -204,7 +235,7 @@
             <button class="btn btn-danger" id="btnSettlement">✅ Settle</button>
         </div>
 
-        <!-- ===== हिस्ट्री (History) टेबल (Table) – आपका (Your) मूल (Original) ===== -->
+        <!-- ===== हिस्ट्री (History) टेबल (Table) – **पुरानी (Old) आईडी (ID) `historyRows`** ===== -->
         <h3 style="color: var(--text-main); margin-bottom: 10px;">📋 RECEIVED INSTALLMENTS (EMI LOGS)</h3>
         <div class="history-card">
             <table>
@@ -232,7 +263,7 @@
         <a href="#" id="logoutBtn" class="nav-item" style="color:var(--danger);"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
-    <!-- JS – आपका (Your) `statement.js` – **वैसा (Same) ही (Itself)** – रहेगा (Will remain)! – **कोई (No) बदलाव (Change) – नहीं (Not)!** -->
+    <!-- ===== 🔥 JS – आपका (Your) `statement.js` – **वैसा (Same) ही (Itself) – रहेगा (Will remain)!** – **कोई (No) बदलाव (Change) – नहीं (Not)!** ===== -->
     <script type="module" src="statement.js"></script>
     <script type="module" src="app.js"></script>
 </body>
