@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDA Finance - Missed Dates</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3a1c62;
+            --secondary: #e91e63;
+            --accent: #FFC107;
+            --success: #10b981;
+            --danger: #d32f2f;
+            --bg-gradient: #fce4ec;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #3a1c62;
+            --text-muted: #6d5b85;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-gradient); min-height: 100vh; color: var(--text-main); padding-bottom: 80px; }
+        
+        .app-header { background: var(--primary); color: white; padding: 20px 15px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 20px rgba(58, 28, 98, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        .gda-logo-container { display: flex; align-items: center; gap: 14px; }
+        .gda-logo-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--secondary); display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,.35); }
+        .gda-logo-icon .material-symbols-outlined { font-size: 30px; color: #FFFFFF; }
+        .gda-logo-text h1 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1; color: #FFFFFF; }
+        .gda-logo-text p { margin-top: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: #FFD700; }
+
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+
+        .page-title { padding: 20px 20px 10px 20px; font-size: 18px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .missed-card { background: white; margin: 0 20px 20px 20px; border-radius: 16px; padding: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f0e6f6; }
+        .missed-item { padding: 12px 20px; border-bottom: 1px solid #f5edfa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }
+        .missed-item:active { background: #fce4ec; }
+        .missed-item:last-child { border-bottom: none; }
+        .missed-item .name { font-size: 16px; font-weight: 600; color: var(--text-main); }
+        .missed-item .badge { background: var(--danger); color: white; padding: 2px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .missed-empty { text-align: center; padding: 30px; color: var(--text-muted); font-size: 14px; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; border-top: 1px solid #e1bee7; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
+        .nav-item.active { color: var(--secondary); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="gda-logo-container">
+            <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+            <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+        </div>
+        <a href="index.html" class="back-btn"><span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span> Back</a>
+    </header>
+
+    <div class="page-title">
+        <span class="material-symbols-outlined" style="font-size: 24px;">event_busy</span> Missed / Overdue Dates
+    </div>
+
+    <div class="missed-card">
+        <div id="missedLoading" class="missed-empty">⏳ लोड हो रहा है...</div>
+        <div id="missedList"></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+        <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+        <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+        <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+        <a href="#" id="logoutBtn" class="nav-item" style="color:#e91e63;"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </nav>
+
+    <script type="module" src="missed-dates.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
