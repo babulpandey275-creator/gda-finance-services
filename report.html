@@ -6,7 +6,6 @@
     <title>Financial Reports</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <style>
-        /* ===== सिर्फ रंग (Colors) बदले गए हैं – बाकी सब आपका पुराना स्ट्रक्चर (Structure) ===== */
         :root {
             --primary: #3a1c62;
             --secondary: #e91e63;
@@ -20,39 +19,138 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-gradient); min-height: 100vh; padding-bottom: 80px; }
-        
-        /* Header – सिर्फ रंग बदला */
-        .app-header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
         .app-header h1 { font-size: 22px; font-weight: 700; }
         .app-header a { color: white; text-decoration: none; font-size: 14px; }
-        
-        .container { padding: 15px; }
-        
-        /* ===== 🔥 Date Picker + Expense Button (जोड़ा गया) ===== */
-        .report-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
-        .report-controls input[type="date"] { 
-            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; background: white; 
-            min-width: 150px;
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        /* Report Controls - Date Picker + Mode Buttons */
+        .report-controls {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid #f0e6f6;
+            margin-bottom: 15px;
         }
-        .btn-expense { 
-            background: var(--secondary); color: white; padding: 12px 20px; border-radius: 10px; 
-            text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap;
-            display: inline-flex; align-items: center; gap: 6px;
+        .report-controls .date-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .report-controls input[type="date"] {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            background: #f8f4fc;
+            min-width: 140px;
+        }
+        .btn-expense {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
         .btn-expense:active { transform: scale(0.96); }
-        
-        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .report-box { background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #f0e6f6; }
+
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .mode-tab {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .mode-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .mode-tab:active { transform: scale(0.95); }
+
+        /* Report Grid */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .report-box {
+            background: white;
+            padding: 16px 10px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            border: 1px solid #f0e6f6;
+        }
         .report-box.full { grid-column: span 2; }
-        .report-box p { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin: 0; }
-        .report-box h3 { font-size: 18px; margin-top: 4px; color: var(--text-main); font-weight: 700; }
+        .report-box p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+        }
+        .report-box h3 {
+            font-size: 18px;
+            margin: 0;
+            color: var(--text-main);
+            font-weight: 700;
+        }
         .report-box.positive h3 { color: var(--success); }
         .report-box.negative h3 { color: var(--danger); }
         .report-box.primary h3 { color: var(--primary); }
 
-        /* Bottom Nav – सिर्फ रंग बदला */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: white; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid #e1bee7; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: white;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border-top: 1px solid #e1bee7;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #94a3b8;
+            font-size: 11px;
+        }
         .nav-item.active { color: var(--secondary); font-weight: 600; }
         .nav-item .material-symbols-outlined { font-size: 24px; }
     </style>
@@ -65,30 +163,57 @@
         <a href="index.html">← Home</a>
     </header>
 
-    <!-- Content -->
     <div class="container">
-        
-        <!-- 🔥🔥🔥 Date Picker + Expense Button (यही था जो गायब हो गया था) -->
+        <!-- Report Controls -->
         <div class="report-controls">
-            <input type="date" id="reportDate">
-            <a href="expense-manager.html" class="btn-expense">
-                <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Expense
-            </a>
+            <div class="date-row">
+                <input type="date" id="reportDatePicker">
+                <a href="expense-manager.html" class="btn-expense">
+                    <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Expense
+                </a>
+            </div>
+            <div class="mode-tabs">
+                <button class="mode-tab" id="btnDaily">Daily</button>
+                <button class="mode-tab active" id="btnMonthly">Monthly</button>
+                <button class="mode-tab" id="btnQuarterly">Quarterly</button>
+                <button class="mode-tab" id="btnYearly">Yearly</button>
+            </div>
         </div>
 
-        <!-- Report Grid (आपका पुराना ग्रिड – IDs बिल्कुल वैसे ही हैं) -->
+        <!-- Report Grid (Exact IDs as per report.js) -->
         <div class="report-grid">
             <div class="report-box full primary">
                 <p>TOTAL PORTFOLIO (MARKET RUNNING)</p>
                 <h3 id="totalPortfolio">₹0</h3>
             </div>
-            <div class="report-box"><p>DISBURSEMENT</p><h3 id="totalDisbursement">₹0</h3></div>
-            <div class="report-box positive"><p>COLLECTION</p><h3 id="totalCollection">₹0</h3></div>
-            <div class="report-box positive"><p>INTEREST INCOME</p><h3 id="totalInterest">₹0</h3></div>
-            <div class="report-box negative"><p>TOTAL EXPENSES</p><h3 id="totalExpenses">₹0</h3></div>
-            <div class="report-box positive"><p>NET PROFIT</p><h3 id="netProfit">₹0</h3></div>
-            <div class="report-box negative"><p>TOTAL DUE</p><h3 id="totalDue">₹0</h3></div>
-            <div class="report-box"><p>NEW ACCOUNTS</p><h3 id="newAccounts">0</h3></div>
+            <div class="report-box">
+                <p>DISBURSEMENT</p>
+                <h3 id="disbursement">₹0</h3>
+            </div>
+            <div class="report-box positive">
+                <p>COLLECTION</p>
+                <h3 id="collection">₹0</h3>
+            </div>
+            <div class="report-box positive">
+                <p>INTEREST INCOME</p>
+                <h3 id="interestIncome">₹0</h3>
+            </div>
+            <div class="report-box negative">
+                <p>TOTAL EXPENSES</p>
+                <h3 id="totalExpenses">₹0</h3>
+            </div>
+            <div class="report-box positive">
+                <p>NET PROFIT</p>
+                <h3 id="netProfit">₹0</h3>
+            </div>
+            <div class="report-box negative">
+                <p>TOTAL DUE</p>
+                <h3 id="totalDue">₹0</h3>
+            </div>
+            <div class="report-box">
+                <p>NEW ACCOUNTS</p>
+                <h3 id="newAccounts">0</h3>
+            </div>
         </div>
     </div>
 
@@ -101,7 +226,6 @@
         <a href="#" id="logoutBtn" class="nav-item" style="color:var(--danger);"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
-    <!-- 🔥 Scripts – 'report.js' आपका पुराना वाला ही चलेगा, क्योंकि IDs वैसी ही हैं -->
     <script type="module" src="report.js"></script>
     <script type="module" src="app.js"></script>
 </body>
