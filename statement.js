@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - STATEMENT ENGINE (FIXED: LOGOUT ISSUE)
+// 🚀 GDA FINANCE - STATEMENT ENGINE (FINAL FIX - NO LOGOUT ISSUE)
 // ==========================================================
 
 import { db, auth } from "./firebase.js"; 
@@ -8,11 +8,24 @@ import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc } 
 const ADMIN_PASSWORD = "GDA@2026";
 
 // =========================================================
-// 🔥 पूरा (Whole) कोड (Code) – `onAuthStateChanged` – के (With) – अंदर (Inside) – चलेगा (Will run)!
+// 🔥🔥🔥 नया (New) – और (And) – **पक्का (Guaranteed)** – तरीका (Way)! 🔥🔥🔥
 // =========================================================
+
+// ✅ पहले (First) – एक (One) – फ्लैग (Flag) – बनाएँ (Create) – ताकि (So that) – पहला (First) – `null` – इग्नोर (Ignore) – हो (Be) – सके (Can)!
+let isFirstCheck = true;
+
 auth.onAuthStateChanged(async (user) => {
     
-    // ✅ अगर (If) – यूजर (User) – लॉगिन (Login) – नहीं (Not) – है (Is) – तो (Then)
+    // ✅ अगर (If) – यह (This) – पहली (First) – बार (Time) – है (Is) – और (And) – `user` – `null` – है (Is) – तो (Then) – **इग्नोर (Ignore)** – करें (Do) – और (And) – वापस (Back) – आ जाएँ (Return)!
+    if (isFirstCheck && !user) {
+        isFirstCheck = false; // अगली (Next) – बार (Time) – चेक (Check) – करें (Do)!
+        return; // ⏳ इंतज़ार (Wait) – करें (Do) – दूसरी (Second) – कॉल (Call) – का (Of)!
+    }
+
+    // अब (Now) – `isFirstCheck` – को (To) – `false` – करें (Do) – ताकि (So that) – आगे (Forward) – से (From) – सही (Correct) – चेक (Check) – हो (Be) – सके (Can)!
+    isFirstCheck = false;
+
+    // ✅ अब (Now) – असली (Real) – चेक (Check) – करें (Do)!
     if (!user) {
         alert("❌ कृपया पहले लॉगिन करें!");
         window.location.href = "login.html";
@@ -36,7 +49,7 @@ auth.onAuthStateChanged(async (user) => {
             }
             const cust = custDoc.data();
 
-            // बेसिक (Basic) – डेटा (Data) – मैपिंग (Mapping) – (बिल्कुल (Exactly) – वैसा (Same) ही (Itself))
+            // बेसिक (Basic) – डेटा (Data) – मैपिंग (Mapping)
             document.getElementById("lblName").innerText = cust.name || "-";
             document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
             document.getElementById("lblMobile").innerText = cust.mobile || "-";
@@ -61,9 +74,9 @@ auth.onAuthStateChanged(async (user) => {
             logs.forEach(l => totalCollected += Number(l.amount || 0));
 
             // =========================================================
-            // 🔥🔥🔥 बकाया (Remaining) – की (Of) – कैलकुलेशन (Calculation) – **सही (Correct)** – है (Is)! 🔥🔥🔥
+            // 🔥🔥🔥 बकाया (Remaining) – **सही (Correct)** – कैलकुलेशन (Calculation) 🔥🔥🔥
             // =========================================================
-            const totalPayable = Number(cust.totalPayable || cust.loanAmount * 1.20); 
+            const totalPayable = Number(cust.totalPayable || cust.loanAmount * 1.20);
             const remaining = Math.max(0, totalPayable - totalCollected);
             // =========================================================
 
@@ -92,7 +105,7 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById("lblPaidDays").innerText = `${paidDays} Days Paid`;
             document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
 
-            // बटन (Buttons) – और (And) – सेटलमेंट (Settlement) – (बिल्कुल (Exactly) – वैसा (Same) ही (Itself))
+            // बटन (Buttons) – और (And) – सेटलमेंट (Settlement)
             document.getElementById("btnWhatsapp").onclick = () => window.open(`https://wa.me/91${cust.mobile}`, '_blank');
             document.getElementById("btnPdf").onclick = () => window.print();
             document.getElementById("btnOpenBond").onclick = () => window.location.href = `disbursement-bond.html?id=${custId}`;
@@ -113,7 +126,7 @@ auth.onAuthStateChanged(async (user) => {
                 }
             };
 
-            // हिस्ट्री (History) – टेबल (Table) – (बिल्कुल (Exactly) – वैसा (Same) ही (Itself))
+            // हिस्ट्री (History) – टेबल (Table)
             const historyRows = document.getElementById("historyRows");
             historyRows.innerHTML = logs.length > 0 ? logs.map(log => `
                 <tr>
