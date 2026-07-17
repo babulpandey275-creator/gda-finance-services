@@ -13,7 +13,7 @@ if (datePicker) datePicker.value = todayIST;
 // =========================================================
 // 1️⃣ हिस्ट्री (History) लोड (Load) करें – सिर्फ Selected Date की
 // =========================================================
-async function loadFilteredHistory(dateStr, userId) {
+async function loadFilteredHistory(dateStr) {
     if (!dateStr) {
         historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कोई तारीख (Date) चुनें!</td></tr>`;
         if (totalLabel) totalLabel.innerText = "₹0";
@@ -24,11 +24,9 @@ async function loadFilteredHistory(dateStr, userId) {
     if (totalLabel) totalLabel.innerText = "₹0";
 
     try {
-        // 🔥 1. सिर्फ (Only) उसी (Specific) तारीख (Date) के कलेक्शन (Collections) फेच (Fetch) करें
         const q = query(collection(db, "collections"), where("date", "==", dateStr));
         const qSnap = await getDocs(q);
 
-        // 🔥 2. सारे (All) कस्टमर (Customers) फेच (Fetch) करें
         const custSnap = await getDocs(collection(db, "customers"));
         let customerMap = {};
         custSnap.forEach((cDoc) => {
@@ -91,7 +89,6 @@ async function loadFilteredHistory(dateStr, userId) {
 // =========================================================
 if (datePicker) {
     datePicker.addEventListener("change", (e) => {
-        // यूज़र (User) लॉगिन (Login) है या नहीं – यह ऊपर (Above) चेक (Check) हो चुका है
         loadFilteredHistory(e.target.value);
     });
 }
@@ -110,12 +107,9 @@ if (btnToday) {
 // =========================================================
 auth.onAuthStateChanged((user) => {
     if (!user) {
-        // यूज़र (User) लॉगिन (Login) नहीं है – तुरंत (Immediately) रीडायरेक्ट (Redirect) करें
         historyList.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">❌ कृपया पहले लॉगिन (Login) करें!</td></tr>`;
         window.location.href = "login.html";
         return;
     }
-
-    // ✅ यूज़र (User) लॉगिन (Logged in) है – आज (Today) का हिस्ट्री (History) लोड (Load) करें
     loadFilteredHistory(todayIST);
 });
