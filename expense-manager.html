@@ -5,36 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Manager - GDA Finance</title>
     <style>
+        /* ===== सिर्फ रंग (Colors) बदले गए हैं – बाकी सब आपका पुराना कोड ===== */
+        :root {
+            --primary: #3a1c62;
+            --secondary: #e91e63;
+            --accent: #FFC107;
+            --success: #10b981;
+            --danger: #d32f2f;
+            --bg-gradient: #fce4ec;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #3a1c62;
+            --text-muted: #6d5b85;
+        }
         body {
             margin: 0;
             padding: 20px;
-            background: #eef3f8;
-            font-family: Arial, sans-serif;
+            background: var(--bg-gradient); /* हल्का पिंक (Dashboard जैसा) */
+            font-family: 'Poppins', Arial, sans-serif;
         }
         .card {
             max-width: 500px;
             margin: auto;
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,.15);
+            box-shadow: 0 5px 15px rgba(58, 28, 98, 0.15);
+            border: 1px solid #e1bee7;
         }
         .heading {
             text-align: center;
             font-size: 22px;
             margin-bottom: 20px;
-            color: #dc3545;
-            font-weight: bold;
+            color: var(--primary); /* पर्पल (Dashboard जैसा) */
+            font-weight: 700;
         }
         input, select {
             width: 100%;
             padding: 12px;
             font-size: 16px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             margin-bottom: 15px;
             box-sizing: border-box;
-            background: #f9f9f9;
+            background: #f8f4fc;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
         }
         button.save-btn {
             width: 100%;
@@ -43,12 +61,14 @@
             border-radius: 8px;
             font-size: 18px;
             cursor: pointer;
-            font-weight: bold;
-            background: #dc3545;
+            font-weight: 700;
+            background: var(--primary); /* पर्पल (Dashboard जैसा) */
             color: white;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);
+            box-shadow: 0 4px 6px rgba(58, 28, 98, 0.2);
+            transition: transform 0.1s;
         }
+        button.save-btn:active { transform: scale(0.98); }
         button.save-btn:disabled {
             background: #cbd5e1;
             cursor: not-allowed;
@@ -58,24 +78,24 @@
             margin-top: 10px;
         }
         .expense-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: #f8f0fc;
+            border: 1px solid #f0e6f6;
             border-radius: 10px;
             padding: 12px;
             margin-bottom: 10px;
             display: flex;
-            justify-content: space-between; /* ⚡ बटनों को सही जगह रखने के लिए फिक्स */
+            justify-content: space-between;
             align-items: center;
         }
         .exp-details p {
             margin: 0;
             font-size: 14px;
-            color: #334155;
-            font-weight: bold;
+            color: var(--text-main);
+            font-weight: 600;
         }
         .exp-details span {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
             display: block;
             margin-top: 2px;
         }
@@ -89,28 +109,30 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
         }
         .btn-edit {
-            background: #ffb703;
+            background: var(--accent);
             color: black;
         }
         .btn-delete {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
         }
+        .btn-edit:active, .btn-delete:active { transform: scale(0.95); }
         .back-btn {
             display: block;
             text-align: center;
-            background: #475569;
+            background: var(--primary);
             color: white;
             padding: 12px;
             border-radius: 8px;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 700;
             margin-top: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .back-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -128,7 +150,7 @@
             <button type="button" id="btnSaveExpense" class="save-btn">💾 खर्चा सुरक्षित करें</button>
         </form>
 
-        <h3>📋 आज और पुराने खर्चों की सूची</h3>
+        <h3 style="color: var(--text-main); margin-top: 5px; font-weight: 600;">📋 आज और पुराने खर्चों की सूची</h3>
         
         <div class="expense-list" id="expenseListContainer">
             ⏳ खर्चे लोड हो रहे हैं...
