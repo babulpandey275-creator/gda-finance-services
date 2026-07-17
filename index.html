@@ -17,7 +17,6 @@
             --text-main: #3a1c62;
             --text-muted: #6d5b85;
         }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg-gradient); min-height: 100vh; color: var(--text-main); padding-bottom: 80px; }
         
@@ -34,25 +33,36 @@
         .mini-box h3 { font-size: 16px; margin-top: 6px; color: var(--text-main); font-weight: 700; }
         
         .section-title { padding: 20px 20px 12px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-        .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
-        .nav-card { background: var(--card-bg); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text-main); border: 1px solid #e1bee7; transition: transform 0.2s; }
-        .nav-card:active { transform: scale(0.98); }
-        .nav-card.add-customer { border-left: 5px solid var(--primary); }
-        .nav-card.collection { border-left: 5px solid var(--success); }
-        .nav-card.due-list { border-left: 5px solid var(--danger); }
-        .nav-card.history { border-left: 5px solid var(--secondary); }
-        .icon-wrapper { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; background: var(--primary); }
         
-        /* ===== NEW: Missed List Styling (पूरी तरह आपके डिजाइन से मैच करता है) ===== */
-        .missed-card { background: white; margin: 0 20px 10px 20px; border-radius: 16px; padding: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f0e6f6; }
-        .missed-item { padding: 12px 20px; border-bottom: 1px solid #f5edfa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }
-        .missed-item:active { background: #fce4ec; }
-        .missed-item:last-child { border-bottom: none; }
-        .missed-item .name { font-size: 16px; font-weight: 600; color: var(--text-main); }
-        .missed-item .badge { background: var(--danger); color: white; padding: 2px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .missed-empty { text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px; }
-        /* ========================================================== */
-
+        /* ===== सभी कार्ड्स (Cards) एक जैसे (Uniform) रंग (Color) में ===== */
+        .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+        .nav-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            text-decoration: none; 
+            color: var(--text-main); 
+            border: 1px solid #e1bee7; 
+            transition: transform 0.2s;
+            border-left: 5px solid var(--primary); /* सभी का बॉर्डर एक जैसा */
+        }
+        .nav-card:active { transform: scale(0.98); }
+        
+        .icon-wrapper { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            background: var(--primary); /* सभी आइकॉन का बैकग्राउंड एक जैसा */
+        }
+        /* ======================================================== */
+        
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; border-top: 1px solid #e1bee7; z-index: 1000; }
         .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
         .nav-item.active { color: var(--secondary); font-weight: 600; }
@@ -63,15 +73,11 @@
     <header class="app-header">
         <div class="gda-logo-container">
             <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
-            <div class="gda-logo-text">
-                <h1>GDA</h1>
-                <p>Finance Services</p>
-            </div>
+            <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
         </div>
         <button onclick="window.refreshApp()" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;">Refresh</button>
     </header>
 
-    <!-- स्टैट्स कार्ड्स (आपका पुराना) -->
     <section class="live-mini-grid">
         <div class="mini-box" style="border-left-color: var(--success);"><p>Today Collected</p><h3 id="txtTodayCollected">₹0 / ₹0</h3></div>
         <div class="mini-box" style="border-left-color: var(--danger);">
@@ -83,41 +89,36 @@
         <div class="mini-box" style="border-left-color: var(--secondary);"><p>Today's Target</p><h3 id="txtTodayDemand" style="color: var(--primary);">₹0</h3></div>
     </section>
 
-    <!-- ========== 🔥 NEW: MISSED / OVERDUE DATES SECTION (जोड़ा गया) ========== -->
-    <section class="section-title">
-        <span class="material-symbols-outlined" style="font-size: 18px;">event_busy</span> Missed / Overdue Dates
-    </section>
-
-    <div class="missed-card" id="missedContainer">
-        <div id="missedLoading" class="missed-empty">⏳ लोड हो रहा है...</div>
-        <div id="missedList"></div>
-    </div>
-    <!-- ================================================================ -->
-
     <section class="section-title">Quick Navigation</section>
 
     <main class="menu-grid">
-        <a href="register.html" class="nav-card add-customer">
+        <a href="register.html" class="nav-card">
             <div class="card-left" style="display:flex; align-items:center; gap:16px;">
-                <div class="icon-wrapper" style="background: var(--primary);"><span class="material-symbols-outlined">person_add</span></div>
+                <div class="icon-wrapper"><span class="material-symbols-outlined">person_add</span></div>
                 <div><h3>New Registration</h3><p>Create Account & Loan Entry</p></div>
             </div>
         </a>
-        <a href="collection.html" class="nav-card collection">
+        <a href="collection.html" class="nav-card">
             <div class="card-left" style="display:flex; align-items:center; gap:16px;">
-                <div class="icon-wrapper" style="background: var(--success);"><span class="material-symbols-outlined">payments</span></div>
+                <div class="icon-wrapper"><span class="material-symbols-outlined">payments</span></div>
                 <div><h3>Daily Collection</h3><p>Collect & Record Today's EMI</p></div>
             </div>
         </a>
-        <a href="due-customers.html" class="nav-card due-list">
+        <a href="due-customers.html" class="nav-card">
             <div class="card-left" style="display:flex; align-items:center; gap:16px;">
-                <div class="icon-wrapper" style="background: var(--danger);"><span class="material-symbols-outlined">assignment_late</span></div>
+                <div class="icon-wrapper"><span class="material-symbols-outlined">assignment_late</span></div>
                 <div><h3>Pending Due List</h3><p>View Overdue Accounts</p></div>
             </div>
         </a>
-        <a href="history.html" class="nav-card history">
+        <a href="missed-dates.html" class="nav-card">
             <div class="card-left" style="display:flex; align-items:center; gap:16px;">
-                <div class="icon-wrapper" style="background: var(--secondary);"><span class="material-symbols-outlined">history</span></div>
+                <div class="icon-wrapper"><span class="material-symbols-outlined">event_busy</span></div>
+                <div><h3>Missed Dates</h3><p>Check Date-wise Overdue</p></div>
+            </div>
+        </a>
+        <a href="history.html" class="nav-card">
+            <div class="card-left" style="display:flex; align-items:center; gap:16px;">
+                <div class="icon-wrapper"><span class="material-symbols-outlined">history</span></div>
                 <div><h3>Collection History</h3><p>Logs of All Transactions</p></div>
             </div>
         </a>
@@ -131,7 +132,6 @@
         <a href="#" id="logoutBtn" class="nav-item" style="color:#e91e63;"><span class="material-symbols-outlined">logout</span>Logout</a>
     </nav>
 
-    <!-- इंजन्स लोड हो रहे हैं -->
     <script type="module" src="dashboard.js"></script>
     <script type="module" src="app.js"></script>
 </body>
