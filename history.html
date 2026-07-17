@@ -1,81 +1,209 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDA Finance - Collection History</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="index.html"><i class="fas fa-home"></i> Main Dashboard</a></li>
-            <li><a href="customer-list.html"><i class="fas fa-users"></i> Customer Directory</a></li>
-            <li><a href="collection.html"><i class="fas fa-hand-holding-usd"></i> Collect EMI</a></li>
-            <li><a href="report.html"><i class="fas fa-chart-line"></i> Financial Reports</a></li>
-            <li><a href="history.html" class="active"><i class="fas fa-history"></i> Transaction History</a></li>
-        </ul>
-    </div>
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>GDA Finance - Collection History</title> 
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <style>
+        /* ===== नया (New) – Company Header के लिए CSS – बाकी सब आपके style.css पर निर्भर (Dependent) ===== */
+        .company-header {
+            background: #3a1c62;  /* आपका Primary Color */
+            color: white;
+            padding: 20px 15px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 20px rgba(58, 28, 98, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;  /* Sidebar के साथ गैप (Gap) न रहे */
+        }
+        .company-header .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .company-header .logo-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: #e91e63;  /* Secondary Color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255,255,255,.35);
+        }
+        .company-header .logo-icon i {
+            font-size: 30px;
+            color: #FFFFFF;
+        }
+        .company-header .logo-text h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            color: #FFFFFF;
+        }
+        .company-header .logo-text p {
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #FFD700;
+        }
+        .company-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* बाकी सब आपका style.css से आएगा – हमने यहाँ कोई और बदलाव नहीं किया */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .filter-bar input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            flex: 1 1 160px;
+        }
+        .filter-bar .btn-today {
+            background: var(--primary, #0B3D91);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .filter-bar .btn-today:active { transform: scale(0.96); }
+        .filter-bar .total-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0B3D91;
+            background: #e9ecef;
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+            .filter-bar .total-amount { margin-left: 0; width: 100%; text-align: center; }
+        }
+    </style>
+</head> 
+<body> 
 
-    <div class="main-wrapper">
-        <div class="top-header">
-            <div>
-                <h1>Collection History Log</h1>
-                <p>Comprehensive structured ledger of all past customer payments</p>
+    <!-- 🔥🔥🔥 नया (New) Company Header – बिल्कुल Dashboard जैसा -->
+    <header class="company-header">
+        <div class="logo-container">
+            <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="logo-text">
+                <h1>GDA</h1>
+                <p>Finance Services</p>
             </div>
         </div>
-        
-        <div class="container">
-            <div class="dashboard-card" style="border-top: 4px solid var(--primary);">
-                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-list-check" style="color: var(--primary);"></i> Recent Transactions
-                </h2>
-                <div class="table-responsive">
-                    <table id="historyTable">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-calendar-alt"></i> Date & Time</th>
-                                <th><i class="fas fa-user"></i> Customer Name</th>
-                                <th><i class="fas fa-phone"></i> Mobile Number</th>
-                                <th><i class="fas fa-indian-rupee-sign"></i> Amount Collected</th>
-                                <th><i class="fas fa-credit-card"></i> Mode</th>
-                                <th><i class="fas fa-comment-dots"></i> Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyList">
-                            <tr>
-                                <td colspan="6" class="loading" style="text-align: center; padding: 30px; color: var(--text-light);">
-                                    <i class="fas fa-spinner fa-spin"></i> Synchronizing ledger logs...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+    </header>
+
+    <!-- Sidebar (बिल्कुल वैसा ही) -->
+    <div class="sidebar"> 
+        <div class="sidebar-logo"> 
+            <i class="fas fa-wallet" style="color: var(--secondary);"></i> GDA Finance 
+        </div> 
+        <ul class="sidebar-menu"> 
+            <li><a href="index.html"><i class="fas fa-home"></i> Main Dashboard</a></li> 
+            <li><a href="customer-list.html"><i class="fas fa-users"></i> Customer Directory</a></li> 
+            <li><a href="collection.html"><i class="fas fa-hand-holding-usd"></i> Collect EMI</a></li> 
+            <li><a href="report.html"><i class="fas fa-chart-line"></i> Financial Reports</a></li> 
+            <li><a href="history.html" class="active"><i class="fas fa-history"></i> Transaction History</a></li> 
+        </ul> 
+    </div> 
+
+    <div class="main-wrapper"> 
+        <!-- अब "top-header" हटा दिया गया है – क्योंकि अब Company Header ऊपर (Top) है -->
+        <!-- आप चाहें तो "Collection History Log" वाला टाइटल (Title) यहाँ रख सकते हैं -->
+        <div class="container" style="padding-top: 20px;"> 
+            <div class="dashboard-card" style="border-top: 4px solid var(--primary);"> 
+                <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;"> 
+                    <i class="fas fa-list-check" style="color: var(--primary);"></i> Recent Transactions 
+                </h2> 
+
+                <!-- 🔥 Date Filter Bar (पहले जैसा ही) -->
+                <div class="filter-bar">
+                    <input type="date" id="historyDatePicker">
+                    <button class="btn-today" id="btnToday"><i class="fas fa-calendar-check"></i> Today</button>
+                    <span class="total-amount" id="totalAmountLabel">₹0</span>
                 </div>
-            </div>
 
-            <div style="margin-top: 20px;">
-                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);">
-                    <i class="fas fa-arrow-left"></i> Return to Dashboard
-                </a>
-            </div>
-        </div>
+                <div class="table-responsive"> 
+                    <table id="historyTable"> 
+                        <thead> 
+                            <tr> 
+                                <th><i class="fas fa-calendar-alt"></i> Date & Time</th> 
+                                <th><i class="fas fa-user"></i> Customer Name</th> 
+                                <th><i class="fas fa-phone"></i> Mobile Number</th> 
+                                <th><i class="fas fa-indian-rupee-sign"></i> Amount Collected</th> 
+                                <th><i class="fas fa-credit-card"></i> Mode</th> 
+                                <th><i class="fas fa-comment-dots"></i> Notes</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody id="historyList"> 
+                            <tr> 
+                                <td colspan="6" class="loading" style="text-align: center; padding: 30px; color: var(--text-light);"> 
+                                    <i class="fas fa-spinner fa-spin"></i> Synchronizing ledger logs... 
+                                </td> 
+                            </tr> 
+                        </tbody> 
+                    </table> 
+                </div> 
+            </div> 
 
-        <div class="footer">
-            &copy; 2026 GDA Finance Services | Transaction Ledger
-        </div>
-    </div>
+            <div style="margin-top: 20px;"> 
+                <a href="index.html" class="btn" style="width: auto; display: inline-flex; gap: 8px; text-decoration: none; background: var(--text-light);"> 
+                    <i class="fas fa-arrow-left"></i> Return to Dashboard 
+                </a> 
+            </div> 
+        </div> 
 
-    <div class="bottom-nav">
-        <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
-        <a href="customer-list.html"><i class="fas fa-users"></i><span>Customers</span></a>
-        <a href="collection.html"><i class="fas fa-hand-holding-usd"></i><span>Collect</span></a>
-        <a href="report.html"><i class="fas fa-chart-line"></i><span>Reports</span></a>
-    </div>
+        <div class="footer"> &copy; 2026 GDA Finance Services | Transaction Ledger </div> 
+    </div> 
 
-    <script type="module" src="history.js"></script>
-</body>
+    <!-- Bottom Nav (बिल्कुल वैसा ही) -->
+    <div class="bottom-nav"> 
+        <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a> 
+        <a href="customer-list.html"><i class="fas fa-users"></i><span>Customers</span></a> 
+        <a href="collection.html"><i class="fas fa-hand-holding-usd"></i><span>Collect</span></a> 
+        <a href="report.html"><i class="fas fa-chart-line"></i><span>Reports</span></a> 
+    </div> 
+
+    <!-- 🔥 JS – आपका पुराना (Old) `history.js` ही रहेगा – हमने उसमें Date Filter जोड़ा था, वही काम (Work) करेगा -->
+    <script type="module" src="history.js"></script> 
+</body> 
 </html>
