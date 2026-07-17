@@ -1,5 +1,5 @@
 // ==========================================================
-// 🚀 GDA FINANCE - MISSED DATES (DATE-BASED / EXACT MATCH)
+// 🚀 GDA FINANCE - MISSED DATES (DATE-WISE EXACT MATCH)
 // ==========================================================
 
 import { db } from "./firebase.js";
@@ -24,8 +24,10 @@ async function loadMissedDates() {
             const data = doc.data();
             const cId = data.customerId;
             if (cId && data.date) {
+                // ✅ डेट (Date) – को (To) – साफ (Clean) – करें (Do) – (सिर्फ (Only) YYYY-MM-DD – ही (Only) – लें (Take))
+                const cleanDate = data.date.split('T')[0]; // अगर (If) – समय (Time) – जुड़ा (Attached) – है (Is) – तो (Then) – हटाएँ (Remove)!
                 if (!paidMap.has(cId)) paidMap.set(cId, new Set());
-                paidMap.get(cId).add(data.date); // data.date – फॉर्मेट (Format): YYYY-MM-DD
+                paidMap.get(cId).add(cleanDate);
             }
         });
 
@@ -54,12 +56,12 @@ async function loadMissedDates() {
             const missedDates = [];
             const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
 
-            // 🔥🔥🔥 **नया (New) – तारीख (Date) – आधारित (Based) – लॉजिक (Logic)** 🔥🔥🔥
+            // 🔥🔥🔥 **तारीख (Date) – आधारित (Based) – सटीक (Exact) – मिलान (Match)** 🔥🔥🔥
             // लोन (Loan) – शुरू (Start) – होने (Happening) – वाली (That) – तारीख (Date) – से (From) – आज (Today) – तक (Till) – हर (Each) – तारीख (Date) – चेक (Check) – करें (Do)!
             for (let i = 0; i < totalDays; i++) {
                 const d = new Date(loanDate);
                 d.setDate(d.getDate() + i);
-                const dateStr = d.toISOString().split('T')[0];
+                const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
                 
                 // ✅ अगर (If) – इस (This) – तारीख (Date) – पर (On) – पेमेंट (Payment) – **नहीं (Not)** – है (Is) – तो (Then) – मिस्ड (Missed) – में (In) – डालें (Add)!
                 if (!paidSet.has(dateStr)) {
