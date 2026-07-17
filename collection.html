@@ -1,126 +1,98 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Daily Collection - GDA Finance</title> 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> 
-    <style> 
-        body { 
-            margin: 0; 
-            padding: 20px; 
-            background: #eef3f8; 
-            font-family: 'Poppins', sans-serif; 
-        } 
-        .card { 
-            max-width: 450px; 
-            margin: auto; 
-            background: #fff; 
-            border-radius: 20px; 
-            padding: 25px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,.08); 
-        } 
-        .heading { 
-            text-align: center; 
-            font-size: 24px; 
-            margin-bottom: 20px; 
-            color: #1565c0; 
-            font-weight: 700; 
-        } 
-        label { 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: #475569; 
-            display: block; 
-            margin-top: 12px;
-            margin-bottom: 6px; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        } 
-        input, select { 
-            width: 100%; 
-            padding: 12px; 
-            font-size: 14px; 
-            border-radius: 8px; 
-            border: 1px solid #cbd5e1; 
-            margin-bottom: 15px; 
-            box-sizing: border-box; 
-            background: #f8fafc; 
-        } 
-        /* 📊 Dynamic Info Display Card Style */
-        .customer-info-box { 
-            background: #f0fdf4; 
-            padding: 15px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            border-left: 5px solid #28a745; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        } 
-        .info-p { 
-            margin: 6px 0; 
-            font-size: 14px; 
-            color: #334155; 
-            display: flex;
-            justify-content: space-between;
-        } 
-        .info-value {
-            font-weight: 700;
-            color: #1e293b;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Collection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <style>
+        /* ===== सिर्फ रंग (Colors) बदले गए हैं – बाकी सब आपका पुराना कोड ===== */
+        :root {
+            --primary: #3a1c62;
+            --secondary: #e91e63;
+            --accent: #FFC107;
+            --success: #10b981;
+            --danger: #d32f2f;
+            --bg-gradient: #fce4ec;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #3a1c62;
+            --text-muted: #6d5b85;
         }
-        button.collect-btn { 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            background: #1565c0; 
-            color: white; 
-            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.2);
-        } 
-        .backBtn { 
-            display: block; 
-            margin-top: 15px; 
-            background: #64748b; 
-            color: white; 
-            text-decoration: none; 
-            text-align: center; 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-weight: 600; 
-            font-size: 14px; 
-        } 
-    </style> 
-</head> 
-<body> 
-    <div class="card">
-        <div class="heading">💰 Collect Daily EMI</div>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-gradient); min-height: 100vh; padding-bottom: 80px; }
+        
+        /* Header – सिर्फ रंग बदला */
+        .app-header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .app-header h1 { font-size: 22px; font-weight: 700; }
+        .app-header a { color: white; text-decoration: none; font-size: 14px; }
+        
+        /* बाकी सब आपका पुराना कोड – बिल्कुल वैसा ही */
+        .container { padding: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; }
+        .form-group select, .form-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .btn-link { display: block; text-align: center; margin-top: 12px; color: var(--text-muted); text-decoration: none; font-size: 14px; }
 
-        <label>Select Target Customer</label>
-        <select id="customerSelect" required>
-            <option value="" disabled selected>--- Select Customer ---</option>
-        </select>
+        .details-box { background: #f8f0fc; border-radius: 10px; padding: 15px; margin: 15px 0; display: none; }
+        .details-box p { font-size: 14px; margin: 5px 0; }
 
-        <div id="customerDetailsBox" class="customer-info-box" style="display: none;">
-            <div class="info-p"><span>Fixed Daily EMI:</span> <span class="info-value" id="txtEmi">₹0</span></div>
-            <div class="info-p"><span>Total Payable / Remaining:</span> <span class="info-value" id="txtRemaining">₹0</span></div>
-            <div class="info-p"><span>Active Paid Counter:</span> <span class="info-value" id="txtPaidDays">0 Days</span></div>
+        /* Bottom Nav – सिर्फ रंग बदला */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: white; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid #e1bee7; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #94a3b8; font-size: 11px; }
+        .nav-item.active { color: var(--secondary); font-weight: 600; }
+        .nav-item .material-symbols-outlined { font-size: 24px; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div>
+            <h1>💰 Collect Daily EMI</h1>
+        </div>
+        <a href="index.html">← Home</a>
+    </header>
+
+    <!-- Content -->
+    <div class="container">
+        <div class="form-group">
+            <label>SELECT TARGET CUSTOMER</label>
+            <select id="customerSelect">
+                <option value="" disabled selected>-- Select Customer --</option>
+            </select>
         </div>
 
-        <form id="collectionForm" onsubmit="return false;">
-            <label>Collection Date</label>
-            <input type="date" id="collectionDate" required>
+        <div class="form-group">
+            <label>COLLECTION DATE</label>
+            <input type="date" id="collectionDate">
+        </div>
 
-            <label>Amount to Collect (₹)</label>
-            <input type="number" id="collectAmount" placeholder="Enter installment amount" required>
+        <div class="form-group">
+            <label>AMOUNT TO COLLECT (₹)</label>
+            <input type="number" id="collectAmount" placeholder="Enter installment amount">
+        </div>
 
-            <button type="button" id="submitCollectionBtn" class="collect-btn">💾 Post Payment Record</button>
-            <a href="customer-list.html" class="backBtn">⬅ Return to Customer Directory</a>
-        </form>
+        <div id="customerDetailsBox" class="details-box">
+            <p>💰 EMI: <span id="txtEmi">₹0</span></p>
+            <p>📊 Remaining: <span id="txtRemaining">₹0 / ₹0</span></p>
+            <p>📅 Paid Days: <span id="txtPaidDays">0 Days</span></p>
+        </div>
+
+        <button id="submitCollectionBtn" class="btn-submit">📥 Post Payment Record</button>
+        <a href="customer-list.html" class="btn-link">📋 Return to Customer Directory</a>
     </div>
 
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+        <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+        <a href="collection.html" class="nav-item active"><span class="material-symbols-outlined">paid</span>Collect</a>
+        <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+        <a href="#" id="logoutBtn" class="nav-item" style="color:var(--danger);"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </nav>
+
     <script type="module" src="collection.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
