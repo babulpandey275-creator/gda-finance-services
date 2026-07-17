@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Member IDs</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fce4ec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(58, 28, 98, 0.15);
+            border: 1px solid #f0e6f6;
+        }
+        h1 { color: #3a1c62; font-size: 24px; margin-bottom: 10px; }
+        p { color: #6d5b85; font-size: 14px; margin-bottom: 20px; }
+        button {
+            background: #3a1c62;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:active { transform: scale(0.96); }
+        #log {
+            background: #f8f0fc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #3a1c62;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e1bee7;
+        }
+        .success { color: #10b981; font-weight: 600; }
+        .error { color: #d32f2f; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔧 Fix Customer IDs</h1>
+        <p>यह स्क्रिप्ट (Script) आपके सभी (All) पुराने (Old) कस्टमर (Customers) को <br> <strong>Date (तारीख)</strong> के हिसाब से (According to) <strong>GDA001, GDA002...</strong> में अपडेट (Update) करेगी।</p>
+        <button id="fixBtn">🚀 Start Fixing IDs</button>
+        <div id="log">⏳ इंतज़ार (Wait)...</div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase.js";
+        import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        const logEl = document.getElementById('log');
+        const fixBtn = document.getElementById('fixBtn');
+
+        function logMessage(msg, type = 'info') {
+            const color = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--danger)' : 'var(--text-main)');
+            logEl.innerHTML += `<div style="color:${color};">${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        fixBtn.onclick = async () => {
+            fixBtn.disabled = true;
+            fixBtn.innerText = "⏳ Processing...";
+            logEl.innerHTML = "⏳ शुरू (Starting)...<br>";
+
+            try {
+                // 1. सारे (All) कस्टमर (Customers) लोड (Load) करें
+                logMessage("📥 सारे (All) कस्टमर (Customers) लोड (Load) हो रहे हैं...");
+                const snapshot = await getDocs(collection(db, "customers"));
+                let customers = [];
+                snapshot.forEach(d => customers.push({ id: d.id, ...d.data() }));
+                
+                if (customers.length === 0) {
+                    logMessage("❌ कोई (No) कस्टमर (Customer) नहीं मिला (Found)!", 'error');
+                    fixBtn.disabled = false;
+                    fixBtn.innerText = "🚀 Start Fixing IDs";
+                    return;
+                }
+
+                logMessage(`✅ ${customers.length} कस्टमर (Customers) मिले (Found).`);
+
+                // 2. Date (तारीख) के हिसाब से (According to) सॉर्ट (Sort) करें (पुराना (Old) से नया (New))
+                logMessage("🔄 Date (तारीख) के हिसाब से (According to) सॉर्ट (Sort) कर रहे हैं...");
+                customers.sort((a, b) => new Date(a.loanDate) - new Date(b.loanDate));
+
+                let count = 0;
+                // 3. हर (Each) कस्टमर (Customer) को अपडेट (Update) करें
+                for (let i = 0; i < customers.length; i++) {
+                    const newCode = `GDA${String(i + 1).padStart(4, '0')}`;
+                    const newNumber = i + 1;
+                    
+                    // अगर (If) पुरानी (Old) ID अलग (Different) है – तो (Then) अपडेट (Update) करें
+                    if (customers[i].member_id !== newCode || customers[i].member_no !== newNumber) {
+                        await updateDoc(doc(db, "customers", customers[i].id), {
+                            member_id: newCode,
+                            member_no: newNumber,
+                            customerCode: newCode // सुरक्षा (Safety) के लिए (For) दोनों (Both) फील्ड्स (Fields) अपडेट (Update) करें
+                        });
+                        count++;
+                        logMessage(`✅ ${customers[i].name} → ${newCode}`, 'success');
+                    }
+                }
+
+                logMessage(`🎉 ${count} कस्टमर (Customers) सफलतापूर्वक (Successfully) अपडेट (Updated) हो गए!`, 'success');
+                
+                // 4. आखिरी (Final) स्टेप (Step) – Counter अपडेट (Update) करने की याद (Reminder) दिलाएँ
+                logMessage(`⚠️ अब (Now) Firestore Console में जाकर (Go to) 'metadata/customerCounter' Document का 'lastNumber' = ${customers.length} कर दें (Set it to).`, 'error');
+
+                fixBtn.disabled = false;
+                fixBtn.innerText = "✅ Done!";
+
+            } catch (err) {
+                logMessage(`❌ Error: ${err.message}`, 'error');
+                console.error(err);
+                fixBtn.disabled = false;
+                fixBtn.innerText = "🚀 Start Fixing IDs";
+            }
+        };
+    </script>
+</body>
+</html>
