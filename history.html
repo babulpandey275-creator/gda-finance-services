@@ -10,7 +10,7 @@
     <style>
         /* ===== नया (New) – Company Header के लिए CSS – बाकी सब आपके style.css पर निर्भर (Dependent) ===== */
         .company-header {
-            background: #3a1c62;  /* आपका Primary Color */
+            background: #3a1c62;
             color: white;
             padding: 20px 15px;
             border-bottom-left-radius: 24px;
@@ -19,7 +19,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0;  /* Sidebar के साथ गैप (Gap) न रहे */
+            margin-bottom: 0;
+            position: relative;
+            z-index: 10;
+            width: 100%;
         }
         .company-header .logo-container {
             display: flex;
@@ -30,7 +33,7 @@
             width: 52px;
             height: 52px;
             border-radius: 16px;
-            background: #e91e63;  /* Secondary Color */
+            background: #e91e63;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -116,11 +119,23 @@
         @media (max-width: 600px) {
             .filter-bar .total-amount { margin-left: 0; width: 100%; text-align: center; }
         }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-gradient, #f4f7fc);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .company-header { order: 0; }
+        .main-wrapper { order: 2; padding: 20px; flex: 1; }
+        .sidebar { order: 1; }
     </style>
 </head> 
 <body> 
 
-    <!-- 🔥🔥🔥 नया (New) Company Header – बिल्कुल Dashboard जैसा -->
+    <!-- 🔥🔥🔥 नया (New) Company Header – बिल्कुल Dashboard जैसा – अब ऊपर (Top) आएगा -->
     <header class="company-header">
         <div class="logo-container">
             <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
@@ -147,15 +162,13 @@
     </div> 
 
     <div class="main-wrapper"> 
-        <!-- अब "top-header" हटा दिया गया है – क्योंकि अब Company Header ऊपर (Top) है -->
-        <!-- आप चाहें तो "Collection History Log" वाला टाइटल (Title) यहाँ रख सकते हैं -->
         <div class="container" style="padding-top: 20px;"> 
             <div class="dashboard-card" style="border-top: 4px solid var(--primary);"> 
                 <h2 class="section-title" style="margin-top: 0; display: flex; align-items: center; gap: 10px;"> 
                     <i class="fas fa-list-check" style="color: var(--primary);"></i> Recent Transactions 
                 </h2> 
 
-                <!-- 🔥 Date Filter Bar (पहले जैसा ही) -->
+                <!-- Date Filter Bar (पहले जैसा ही) -->
                 <div class="filter-bar">
                     <input type="date" id="historyDatePicker">
                     <button class="btn-today" id="btnToday"><i class="fas fa-calendar-check"></i> Today</button>
@@ -203,7 +216,7 @@
         <a href="report.html"><i class="fas fa-chart-line"></i><span>Reports</span></a> 
     </div> 
 
-    <!-- 🔥 JS – आपका पुराना (Old) `history.js` ही रहेगा – हमने उसमें Date Filter जोड़ा था, वही काम (Work) करेगा -->
+    <!-- 🔥 JS – `history.js` (जो आपने पहले (Earlier) अपडेट (Update) किया था – वही (Same) रहेगा) -->
     <script type="module" src="history.js"></script> 
 </body> 
 </html>
