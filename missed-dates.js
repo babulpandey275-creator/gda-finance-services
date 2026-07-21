@@ -25,12 +25,13 @@ async function loadMissedDates() {
     if (!listEl || !loadingEl) return;
 
     try {
+        // 1️⃣ सारा (All) – डेटा (Data) – लोड (Load) – करें (Do) – (जैसे (Like) – कलेक्शन (Collection) – हिस्ट्री (History) – में (In) – होता (Is) – है (Is))
         const [custSnapshot, colSnapshot] = await Promise.all([
             getDocs(collection(db, "customers")),
             getDocs(collection(db, "collections"))
         ]);
 
-        // 🔥 1. हर (Each) – कस्टमर (Customer) – की (Of) – कुल (Total) – जमा (Deposited) – राशि (Amount) – निकालें (Calculate)
+        // 2️⃣ हर (Each) – कस्टमर (Customer) – की (Of) – कुल (Total) – जमा (Deposited) – राशि (Amount) – निकालें (Calculate) – (बिल्कुल (Exactly) – वैसे (Same) – जैसे (As) – हिस्ट्री (History) – में (In) – दिखती (Shows) – है (Is))
         const paidAmountMap = new Map();
         colSnapshot.forEach(doc => {
             const data = doc.data();
@@ -44,7 +45,7 @@ async function loadMissedDates() {
         let html = "";
         let totalMissedCustomers = 0;
 
-        // 🔥 2. हर (Each) – कस्टमर (Customer) – पर (On) – लूप (Loop) – करें (Do)
+        // 3️⃣ हर (Each) – कस्टमर (Customer) – पर (On) – लूप (Loop) – करें (Do)
         custSnapshot.forEach(doc => {
             const cust = doc.data();
             const id = doc.id;
@@ -59,10 +60,11 @@ async function loadMissedDates() {
             const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
             const totalPaid = paidAmountMap.get(id) || 0;
 
-            // 🔥🔥🔥 3. कितने (How many) – दिनों (Days) – का (Of) – पैसा (Money) – जमा (Deposited) – हुआ (Was) – है (Is)?
+            // 🔥🔥🔥 4. कितने (How many) – दिनों (Days) – का (Of) – पैसा (Money) – जमा (Deposited) – हुआ (Was) – है (Is)?
+            // यह (This) – पूरी (Completely) – तरह (Way) – से (From) – कलेक्शन (Collection) – हिस्ट्री (History) – पर (On) – आधारित (Based) – है (Is)!
             let effectivePaidDays = Math.min(totalDays, Math.floor(totalPaid / dailyEmi));
 
-            // 🔥🔥🔥 4. मिस्ड (Missed) – तारीखें (Dates) – निकालें (Calculate) – (पुरानी (Oldest) – से (From) – शुरू (Start) – करें (Do))
+            // 5. मिस्ड (Missed) – तारीखें (Dates) – निकालें (Calculate) – (पुरानी (Oldest) – से (From) – शुरू (Start) – करें (Do))
             const missedDates = [];
             for (let i = effectivePaidDays; i < totalDays; i++) {
                 const d = new Date(loanDate);
@@ -90,6 +92,7 @@ async function loadMissedDates() {
             }
         });
 
+        // 6. यूआई (UI) – अपडेट (Update) – करें (Do)
         if (totalMissedCustomers === 0) {
             loadingEl.innerText = "✅ सभी ने समय पर (या जमा करके) पेमेंट कर लिया है!";
             listEl.innerHTML = "";
@@ -98,6 +101,7 @@ async function loadMissedDates() {
             listEl.innerHTML = html;
         }
 
+        // 7. Alert – दिखाने (Showing) – के (For) – लिए (For) – ग्लोबल (Global) – फंक्शन (Function)
         window.showMissedDetails = (name, dates) => {
             const dateArray = dates.split(', ');
             const dateList = dateArray.join('\n  • ');
