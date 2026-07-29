@@ -7,181 +7,98 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="theme.css">
   <style>
-    /* Theme-based styles – same as before */
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
-    body {
-      background: var(--color-bg, #F8FAFF);
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .card {
-      max-width: 500px;
-      width: 100%;
-      margin: auto;
-      background: var(--color-bg-card, #FFFFFF);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: var(--shadow-card, 0 4px 20px rgba(0,0,0,0.04));
-      border: 1px solid var(--color-border-light, #F1F5F9);
-    }
-    .card h2 {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--color-text, #0F172A);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 16px;
-      font-size: 11px;
-      color: var(--color-text-muted, #64748B);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px 14px;
-      margin-top: 4px;
-      border: 1.5px solid var(--color-border, #E2E8F0);
+    body { background:var(--color-bg, #F8FAFF); min-height:100vh; padding:20px; }
+    .card { max-width:500px; margin:auto; background:#fff; border-radius:24px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.05); border:1px solid #F1F5F9; }
+    .card h2 { font-size:20px; font-weight:800; color:#0F172A; margin-bottom:18px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+    .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px 14px; border:1.5px solid #E2E8F0; border-radius:12px; font-size:14px; background:#fff; outline:none; }
+    .form-group input:focus { border-color:#3A1C62; box-shadow:0 0 0 4px rgba(58,28,98,0.08); }
+    .form-group input[readonly] { background:#F1F5F9; color:#64748B; }
+    .row-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    
+    /* Document Upload Styles */
+    .doc-upload-box {
+      border: 2px dashed #E2E8F0;
       border-radius: 12px;
-      font-size: 14px;
-      background: var(--color-bg, #F8FAFF);
-      color: var(--color-text, #0F172A);
-      outline: none;
-      transition: 0.2s;
-      box-sizing: border-box;
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--color-primary, #3A1C62);
-      box-shadow: 0 0 0 4px rgba(58,28,98,0.08);
-    }
-    input[readonly] {
-      background: var(--color-bg-hover, #F1F5F9);
-      color: var(--color-text-muted, #64748B);
-    }
-    textarea { resize: vertical; min-height: 60px; }
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--color-primary-gradient, linear-gradient(135deg, #2A1742 0%, #3A1C62 50%, #4C2A7A 100%));
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      margin-top: 20px;
-      font-weight: 800;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.15s;
-      box-shadow: 0 8px 20px rgba(58,28,98,0.25);
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn:disabled { background: var(--color-border, #E2E8F0); color: var(--color-text-muted, #94A3B8); box-shadow: none; cursor: not-allowed; }
-
-    .photo-box {
+      padding: 12px;
       text-align: center;
-      margin-bottom: 20px;
-    }
-    .photo-preview {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      border: 3px solid var(--color-primary, #3A1C62);
-      object-fit: cover;
-      background: var(--color-bg, #F8FAFF);
-    }
-    .photo-box label {
-      background: var(--color-primary, #3A1C62);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 10px;
+      background: #F8FAFF;
       cursor: pointer;
-      display: inline-block;
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: none;
+      transition: 0.2s;
     }
-    .photo-box label input[type="file"] { display: none; }
+    .doc-upload-box:hover { border-color: #3A1C62; }
+    .doc-upload-box .preview { width:100%; max-height:120px; object-fit:cover; border-radius:8px; display:none; }
+    .doc-upload-box .placeholder { color:#94A3B8; font-size:12px; font-weight:600; }
+    .doc-upload-box .placeholder .material-symbols-outlined { font-size:32px; display:block; margin:0 auto 4px; }
+    .doc-upload-box input[type="file"] { display:none; }
+    .doc-label { font-size:11px; font-weight:700; color:#3A1C62; display:flex; align-items:center; gap:6px; margin-top:6px; }
 
-    .theme-switcher-container {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 16px;
-    }
+    .btn { width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98); color:#fff; border:none; border-radius:14px; font-weight:800; font-size:16px; cursor:pointer; }
+    .btn:disabled { background:#E2E8F0; color:#94A3B8; }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <div id="themeSwitcherContainer" class="theme-switcher-container"></div>
   <h2>📝 New Registration</h2>
   <form id="regForm">
-    <!-- PHOTO -->
-    <div class="photo-box">
-      <img src="https://via.placeholder.com/120" id="photoPreview" class="photo-preview" alt="Customer Photo">
-      <br>
-      <label for="customerPhoto">
-        <i class="material-symbols-outlined" style="font-size:18px; vertical-align:middle;">camera</i> Upload Photo
-        <input type="file" id="customerPhoto" accept="image/*" capture="environment" hidden>
-      </label>
+    <!-- Personal Details -->
+    <div class="form-group"><label>Full Name</label><input type="text" id="customerName" required></div>
+    <div class="form-group"><label>Mobile Number</label><input type="tel" id="mobile" maxlength="10" required></div>
+    <div class="form-group"><label>Guardian Name</label><input type="text" id="guardianName"></div>
+
+    <!-- KYC Numbers -->
+    <div class="row-grid">
+      <div class="form-group"><label>Aadhaar Number</label><input type="text" id="aadhaar" placeholder="12 digits"></div>
+      <div class="form-group"><label>PAN Card Number</label><input type="text" id="panNumber" style="text-transform:uppercase;"></div>
+    </div>
+    <div class="form-group"><label>Residential Address</label><textarea id="address" rows="2"></textarea></div>
+
+    <!-- Loan Details -->
+    <div class="row-grid">
+      <div class="form-group"><label>Loan Amount (₹)</label><input type="number" id="loanAmount" required></div>
+      <div class="form-group"><label>Plan Duration</label><select id="loanPlan"><option value="60">60 Days</option><option value="80">80 Days</option><option value="120">120 Days</option></select></div>
+    </div>
+    <div class="row-grid">
+      <div class="form-group"><label>Total Payable</label><input type="text" id="totalPayable" readonly></div>
+      <div class="form-group"><label>Daily EMI</label><input type="text" id="dailyCollection" readonly></div>
     </div>
 
-    <!-- PERSONAL DETAILS -->
-    <label>Full Name</label>
-    <input type="text" id="customerName" placeholder="Enter full name" required>
+    <!-- ===== 📁 DOCUMENT UPLOADS (NEW) ===== -->
+    <div style="margin:18px 0; border-top:2px dashed #E9D5FF; padding-top:16px;">
+      <p style="font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:12px;">📁 KYC DOCUMENTS (Upload Photos)</p>
 
-    <label>Mobile Number</label>
-    <input type="tel" id="mobile" placeholder="Enter mobile number" maxlength="10" required>
+      <!-- Aadhar Card -->
+      <div class="doc-upload-box" id="aadharBox" onclick="document.getElementById('aadharInput').click()">
+        <img class="preview" id="aadharPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">credit_card</span> Tap to upload Aadhar Card</span>
+        <input type="file" id="aadharInput" accept="image/*">
+        <div class="doc-label">🆔 Aadhar Card</div>
+      </div>
 
-    <label>Guardian Name (Father/Husband)</label>
-    <input type="text" id="guardianName" placeholder="Enter father/husband name" required>
+      <!-- PAN Card -->
+      <div class="doc-upload-box" id="panBox" onclick="document.getElementById('panInput').click()">
+        <img class="preview" id="panPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">description</span> Tap to upload PAN Card</span>
+        <input type="file" id="panInput" accept="image/*">
+        <div class="doc-label">📇 PAN Card</div>
+      </div>
 
-    <!-- KYC -->
-    <label>Aadhaar Number</label>
-    <input type="text" id="aadhaar" placeholder="12-digit Aadhaar number" required>
-
-    <label>PAN Card Number</label>
-    <input type="text" id="panNumber" placeholder="Enter PAN number" style="text-transform:uppercase;">
-
-    <label>Residential Address</label>
-    <textarea id="address" placeholder="Enter full address"></textarea>
-
-    <!-- LOAN DETAILS -->
-    <label>Loan Amount (₹)</label>
-    <input type="number" id="loanAmount" placeholder="e.g. 15000" required>
-
-    <!-- 🔥 NEW: केवल 60, 80, 120 Days के विकल्प -->
-    <label>Plan Duration</label>
-    <select id="loanPlan" required>
-      <option value="60">60 Days</option>
-      <option value="80">80 Days</option>
-      <option value="120">120 Days</option>
-    </select>
-
-    <label>Total Payable (₹)</label>
-    <input type="number" id="totalPayable" readonly>
-
-    <label>Daily EMI (₹)</label>
-    <input type="number" id="dailyCollection" readonly>
+      <!-- Voter Card -->
+      <div class="doc-upload-box" id="voterBox" onclick="document.getElementById('voterInput').click()">
+        <img class="preview" id="voterPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">how_to_vote</span> Tap to upload Voter ID</span>
+        <input type="file" id="voterInput" accept="image/*">
+        <div class="doc-label">🗳️ Voter ID Card</div>
+      </div>
+    </div>
 
     <button type="submit" class="btn" id="regBtn">💾 Register Customer</button>
   </form>
 </div>
 
 <script type="module" src="register.js"></script>
-<script type="module">
-  import { createThemeSwitcher } from './theme-switcher.js';
-  document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('themeSwitcherContainer');
-    if (container) createThemeSwitcher('themeSwitcherContainer');
-  });
-</script>
 </body>
 </html>
