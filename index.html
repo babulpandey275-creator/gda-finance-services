@@ -3,72 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GDA Finance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<title>GDA Finance - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 <style>
+:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--card:#fff;--muted:#64748B;--line:#F1F5F9;--success:#059669;--danger:#DC2626;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#F8FAFF;padding-bottom:85px;}
-.header{background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 100%);color:#fff;padding:18px 16px;border-radius:0 0 22px 22px;display:flex;justify-content:space-between;align-items:center;}
-.logo{display:flex;gap:10px;align-items:center}
-.logo-icon{width:42px;height:42px;background:#fff;color:#1E3A8A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;}
-.header h1{font-size:17px;font-weight:800;line-height:1}
-.header p{font-size:8px;color:#93C5FD;letter-spacing:1px;font-weight:700;margin-top:2px}
-.greet{font-size:10px;color:#CBD5E1;margin-top:2px}
-.refresh{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:600}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
-.card{background:#fff;border-radius:16px;padding:14px;border:1px solid #F1F5F9;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
-.card label{font-size:8px;color:#64748B;font-weight:700;letter-spacing:0.8px;text-transform:uppercase}
-.card .val{font-size:18px;font-weight:800;color:#0F172A;margin-top:5px}
-.card .val.red{color:#DC2626}
-.card .sub{font-size:11px;color:#94A3B8;margin-top:3px}
-.quick{padding:0 14px}
-.quick h2{font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:1px;margin:6px 0 10px;text-transform:uppercase}
-.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.nav-item{background:#fff;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;border:1px solid #F1F5F9}
-.nav-icon{width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800}
-.nav-item b{font-size:13px;color:#0F172A;display:block;font-weight:700}
-.nav-item span{font-size:11px;color:#64748B}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:99}
-.bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none}
-.bnav-item.active{color:#1E3A8A}
+body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
+
+/* === SAME PINK LOGO GDA HEADER === */
+.app-header{
+  background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
+  padding:18px 16px 20px;border-radius:0 0 26px 26px;
+  display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 12px 32px rgba(58,28,98,0.28);position:sticky;top:0;z-index:20;
+}
+.gda-logo-container{display:flex;align-items:center;gap:13px;}
+.gda-logo-icon{
+  width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);
+  display:flex;justify-content:center;align-items:center;
+  border:2px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(233,30,99,0.35);
+}
+.gda-logo-icon.material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1;}
+.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;line-height:1;color:#fff;letter-spacing:0.5px;}
+.gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:3.2px;color:var(--gold);}
+.btn-refresh{background:rgba(255,255,255,0.14);color:#fff;border:1px solid rgba(255,255,255,0.18);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+.container{padding:14px;max-width:600px;margin:0 auto;}
+.greet{font-size:12px;font-weight:600;color:var(--muted);margin:8px 2px 12px;display:flex;align-items:center;gap:6px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.card{background:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:1px solid var(--line);}
+.card.full{grid-column:span 2;}
+.card p{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;}
+.card h2{font-size:18px;font-weight:800;color:#0F172A;}
+.card h2 small{font-size:12px;font-weight:600;color:var(--muted);}
+.card.green{border-color:#A7F3D0;background:#ECFDF5;}.card.green h2{color:var(--success);}
+.card.red{border-color:#FECDD3;background:#FFF1F2;}.card.red h2{color:var(--danger);}
+.card.dark{background:linear-gradient(135deg,#0F172A,#1E3A8A);border:none;}.card.dark p{color:#93C5FD;}.card.dark h2{color:#fff;}
+
+.progress{height:6px;background:#E2E8F0;border-radius:10px;margin-top:10px;overflow:hidden;}
+.progressBar{height:100%;background:linear-gradient(90deg,#059669,#10B981);border-radius:10px;width:0%;transition:0.8s;}
+
+.quickRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.qBtn{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;text-decoration:none;color:var(--primary);font-weight:700;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,0.03);}
+.qBtn.ico{width:36px;height:36px;border-radius:10px;background:#F8F0FF;display:flex;align-items:center;justify-content:center;color:var(--primary);}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
+.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
+.nav-item.active{color:var(--pink);font-weight:700;}
+.nav-item.material-symbols-outlined{font-size:24px;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">
-    <div class="logo-icon">G</div>
-    <div><h1>GDA FINANCE</h1><p>TRUST • GROWTH • SECURITY</p><div class="greet" id="greetText">Good Morning, Babul • Garhwa</div></div>
+<header class="app-header">
+  <div class="gda-logo-container">
+    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
   </div>
-  <button class="refresh" onclick="window.refreshApp()">↻ Refresh</button>
-</div>
+  <button class="btn-refresh" onclick="window.location.reload()"><span class="material-symbols-outlined" style="font-size:20px;">refresh</span></button>
+</header>
 
-<div class="stats">
-  <div class="card"><label>Today's Overdue</label><div class="val red" id="txtTodayMissed">₹0</div><div class="sub">Pending: <b id="lblDueCount">0</b> accounts</div></div>
-  <div class="card"><label>Today Collected</label><div class="val" id="txtTodayCollected">₹0 / ₹0</div><div class="sub" id="txtCollectedSub">0% Completed</div></div>
-  <div class="card"><label>Today's Target</label><div class="val" id="txtTodayDemand">₹0</div><div class="sub">Daily Demand</div></div>
-  <div class="card"><label>Active Accounts</label><div class="val" id="txtActiveAccounts">0</div><div class="sub">Live Loans</div></div>
-</div>
+<div class="container">
+  <div class="greet" id="greetText">Good Morning, Babul • Loading...</div>
 
-<div class="quick">
-  <h2>Quick Navigation</h2>
-  <div class="nav-grid">
-    <a class="nav-item" href="register.html" style="text-decoration:none;"><div class="nav-icon">+</div><div><b>New Registration</b><span>Create Account</span></div></a>
-    <a class="nav-item" href="collection.html" style="text-decoration:none;"><div class="nav-icon">$</div><div><b>Daily Collection</b><span>Collect EMI</span></div></a>
-    <a class="nav-item" href="due-customers.html" style="text-decoration:none;"><div class="nav-icon">!</div><div><b>Pending Due</b><span>Overdue List</span></div></a>
-    <a class="nav-item" href="missed-dates.html" style="text-decoration:none;"><div class="nav-icon">◷</div><div><b>Missed Dates</b><span>Date-wise Due</span></div></a>
+  <div class="grid">
+    <div class="card full dark">
+      <p>Today Collected / Demand</p>
+      <h2 id="txtTodayCollected">₹0 / ₹0</h2>
+      <div style="font-size:11px;color:#93C5FD;margin-top:4px;font-weight:600;" id="txtCollectedSub">0% Completed</div>
+      <div class="progress"><div class="progressBar" id="progressBar"></div></div>
+    </div>
+
+    <div class="card red">
+      <p>Today Due</p>
+      <h2 id="txtTodayMissed">₹0</h2>
+      <div style="font-size:11px;color:#E11D48;margin-top:4px;font-weight:600;"><span id="lblDueCount">0</span> Customers Pending</div>
+    </div>
+
+    <div class="card">
+      <p>Active Accounts</p>
+      <h2 id="txtActiveAccounts">0</h2>
+    </div>
+
+    <div class="card">
+      <p>Today Demand</p>
+      <h2 id="txtTodayDemand">₹0</h2>
+    </div>
+
+    <div class="card green">
+      <p>System Status</p>
+      <h2 style="font-size:14px;">🟢 Live & Synced</h2>
+    </div>
+  </div>
+
+  <div class="quickRow">
+    <a href="customer-list.html" class="qBtn"><div class="ico"><span class="material-symbols-outlined">group</span></div> Customers</a>
+    <a href="collection.html" class="qBtn"><div class="ico"><span class="material-symbols-outlined">paid</span></div> Collect EMI</a>
+    <a href="report.html" class="qBtn"><div class="ico"><span class="material-symbols-outlined">analytics</span></div> Reports</a>
+    <a href="add-customer.html" class="qBtn"><div class="ico"><span class="material-symbols-outlined">person_add</span></div> New Account</a>
   </div>
 </div>
 
-<div class="bottom-nav">
-  <a class="bnav-item active" href="index.html"><span>⌂</span><span>Home</span></a>
-  <a class="bnav-item" href="customer-list.html"><span>◫</span><span>Customers</span></a>
-  <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
-  <a class="bnav-item" href="reports.html"><span>◱</span><span>Reports</span></a>
-  <a class="bnav-item" href="#" id="logoutBtn"><span>↪</span><span>Logout</span></a>
-</div>
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item active"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+  <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+</nav>
 
-<!-- AAPKA DASHBOARD.JS YAHAN LOAD HOGA -->
-<script type="module" src="dashboard.js"></script>
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+const txtTodayCollected = document.getElementById("txtTodayCollected");
+const txtTodayMissed = document.getElementById("txtTodayMissed");
+const txtActiveAccounts = document.getElementById("txtActiveAccounts");
+const txtTodayDemand = document.getElementById("txtTodayDemand");
+const lblDueCount = document.getElementById("lblDueCount");
+const txtCollectedSub = document.getElementById("txtCollectedSub");
+const progressBar = document.getElementById("progressBar");
+const greetText = document.getElementById("greetText");
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.href="login.html"; return; }
+  const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const hour = new Date().getHours();
+  let greet = "Good Morning"; if(hour>=12&&hour<16) greet="Good Afternoon"; else if(hour>=16) greet="Good Evening";
+  if(greetText) greetText.innerText = `${greet}, Babul • ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} • Garhwa`;
+
+  const [colSnap, custSnap] = await Promise.all([getDocs(collection(db,"collections")), getDocs(collection(db,"customers"))]);
+  let todayCollected=0; const paidIds=new Set();
+  colSnap.forEach(d=>{ const data=d.data(); const cDate=(data.date||data.collectionDate||"").split('T')[0]; if(cDate===todayIST){ todayCollected+=Number(data.amount||0); if(data.customerId) paidIds.add(data.customerId); } });
+  let active=0,totalDemand=0,missedCount=0,overdueAmt=0;
+  custSnap.forEach(d=>{ const c=d.data(); const emi=Number(c.dailyEmi||c.emi||0); if(c.status!=="Closed"&&emi>0){ active++; totalDemand+=emi; if(!paidIds.has(d.id)){ missedCount++; overdueAmt+=emi; } } });
+  const percent = totalDemand>0? Math.round((todayCollected/totalDemand)*100):0;
+  if(txtTodayCollected) txtTodayCollected.innerText=`₹${todayCollected.toLocaleString('en-IN')} / ₹${totalDemand.toLocaleString('en-IN')}`;
+  if(txtTodayDemand) txtTodayDemand.innerText=`₹${totalDemand.toLocaleString('en-IN')}`;
+  if(txtTodayMissed) txtTodayMissed.innerText=`₹${overdueAmt.toLocaleString('en-IN')}`;
+  if(txtActiveAccounts) txtActiveAccounts.innerText=active;
+  if(lblDueCount) lblDueCount.innerText=missedCount;
+  if(txtCollectedSub) txtCollectedSub.innerText=`${percent}% Completed`;
+  if(progressBar) progressBar.style.width=`${percent}%`;
+});
+
+document.getElementById("logoutBtn").onclick=async(e)=>{ e.preventDefault(); await signOut(auth); location.href="login.html"; };
+</script>
 </body>
 </html>
