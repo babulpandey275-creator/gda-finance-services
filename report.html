@@ -131,6 +131,67 @@
       margin-top: 10px;
       display: none;
     }
+
+    /* ===== BACKUP & RESTORE SECTION STYLES ===== */
+    .backup-section {
+      margin-top: 20px;
+    }
+    .backup-section .box {
+      border: 2px dashed var(--primary);
+      background: #faf7fc;
+      padding: 20px;
+    }
+    .backup-section .box .title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .backup-section .box .title .material-symbols-outlined {
+      font-size: 20px;
+    }
+    .backup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .backup-actions button,
+    .backup-actions label {
+      flex: 1;
+      min-width: 150px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      transition: 0.15s;
+    }
+    .backup-actions button:active,
+    .backup-actions label:active { transform: scale(0.96); }
+    .btn-download { background: var(--primary); color: #fff; }
+    .btn-restore { background: var(--danger); color: #fff; }
+    .backup-status {
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+      display: none;
+      padding: 8px 12px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e1bee7;
+    }
   </style>
 </head>
 <body>
@@ -181,6 +242,25 @@
       <div class="box red"><p>Total Due</p><h3 id="totalDue">₹0</h3></div>
       <div class="box"><p>New Accounts</p><h3 id="newAccounts">0</h3></div>
     </div>
+
+    <!-- ===== BACKUP & RESTORE SECTION (नया जोड़ा गया) ===== -->
+    <div class="backup-section">
+      <div class="box full">
+        <div class="title">
+          <span class="material-symbols-outlined">backup</span> Data Management (Backup & Restore)
+        </div>
+        <div class="backup-actions">
+          <button id="backupDownloadBtn" class="btn-download">
+            <span class="material-symbols-outlined" style="font-size:20px;">download</span> Download Backup (JSON)
+          </button>
+          <label for="restoreFileInput" class="btn-restore">
+            <span class="material-symbols-outlined" style="font-size:20px;">upload_file</span> Upload & Restore Backup
+          </label>
+          <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
+        </div>
+        <div id="backupStatus" class="backup-status"></div>
+      </div>
+    </div>
   </div>
 
   <nav class="bottom-nav">
@@ -194,7 +274,7 @@
 
 <script type="module">
   // ============================================================
-  // ADMIN LOCK LOGIC
+  // ADMIN LOCK LOGIC (वैसा ही जैसा आपने भेजा था)
   // ============================================================
   const ADMIN_PASSWORD = "GDA@2026";
   const lockOverlay = document.getElementById('lockOverlay');
@@ -207,22 +287,18 @@
   if (sessionStorage.getItem('reportUnlocked') === 'true') {
     lockOverlay.classList.add('hidden');
     appContent.style.display = 'block';
-    // Load report data
     initReport();
   } else {
-    // Show lock
     lockOverlay.classList.remove('hidden');
     appContent.style.display = 'none';
   }
 
-  // Unlock function
   function unlock() {
     const pwd = lockPassword.value.trim();
     if (pwd === ADMIN_PASSWORD) {
       sessionStorage.setItem('reportUnlocked', 'true');
       lockOverlay.classList.add('hidden');
       appContent.style.display = 'block';
-      // Load report
       initReport();
     } else {
       lockError.style.display = 'block';
@@ -231,17 +307,17 @@
     }
   }
 
-  // Enter key to unlock
   lockPassword.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') unlock();
   });
   unlockBtn.addEventListener('click', unlock);
 
   // ============================================================
-  // REPORT ENGINE – DASHBOARD-STYLE OVERDUE
+  // REPORT ENGINE – DASHBOARD-STYLE OVERDUE (वैसा ही)
   // ============================================================
+  // 🔥 Import updated: अब setDoc और writeBatch भी जोड़े गए हैं (Backup के लिए)
   import { db, auth } from "./firebase.js";
-  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
   // DOM Elements
@@ -268,7 +344,6 @@
     if (activeBtn) activeBtn.classList.add("active");
   }
 
-  // 🔥 Total Due – Dashboard style
   function calculateTotalDue(customers, targetDateStr) {
     const targetDate = new Date(targetDateStr);
     let totalDue = 0;
@@ -317,7 +392,6 @@
     }
 
     try {
-      // --- Expenses ---
       let expensesSum = 0;
       const expSnap = await getDocs(collection(db, "expenses"));
       expSnap.forEach(doc => {
@@ -327,7 +401,6 @@
         }
       });
 
-      // --- Collections ---
       let lifetimeCollectionUptoTarget = 0;
       let rangeCollectionSum = 0;
       const colSnap = await getDocs(collection(db, "collections"));
@@ -342,7 +415,6 @@
         }
       });
 
-      // --- Customers ---
       const custSnap = await getDocs(collection(db, "customers"));
       let lifetimeDisbursementUptoTarget = 0;
       let lifetimeInterestUptoTarget = 0;
@@ -354,7 +426,6 @@
       custSnap.forEach(doc => {
         const cust = doc.data();
         const loanAmt = Number(cust.loanAmount || 0);
-        const emi = Number(cust.dailyEmi || cust.emi || 0);
         allCustomers.push({ ...cust, id: doc.id });
 
         if (cust.loanDate && cust.loanDate <= targetDate) {
@@ -368,14 +439,12 @@
         }
       });
 
-      // 🔥 Total Due – Dashboard style
       const totalOverdue = calculateTotalDue(allCustomers, targetDate);
 
       const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
       const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
       const netProfitSum = rangeInterestSum - expensesSum;
 
-      // Render UI
       if (totalPortfolio) totalPortfolio.innerText = `₹${Math.round(portfolioRemaining).toLocaleString('en-IN')}`;
       if (disbursement) disbursement.innerText = `₹${Math.round(rangeDisbursementSum).toLocaleString('en-IN')}`;
       if (collectionEl) collectionEl.innerText = `₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')}`;
@@ -390,7 +459,124 @@
     }
   }
 
-  // --- Auth check (only for login; but report content locked separately) ---
+  // ============================================================
+  // 🔥 BACKUP & RESTORE FUNCTIONS (नया जोड़ा गया)
+  // ============================================================
+  async function downloadBackup() {
+    const statusDiv = document.getElementById("backupStatus");
+    statusDiv.style.display = 'block';
+    statusDiv.innerText = '⏳ Preparing backup... Please wait.';
+    statusDiv.style.color = '#f59e0b';
+
+    try {
+      const collections = ['customers', 'collections', 'expenses', 'metadata'];
+      let backupData = {};
+
+      for (const colName of collections) {
+        const snapshot = await getDocs(collection(db, colName));
+        backupData[colName] = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+      }
+
+      backupData._backupInfo = {
+        generatedAt: new Date().toISOString(),
+        version: 'GDA_Backup_v1',
+        totalCustomers: backupData.customers?.length || 0,
+        totalCollections: backupData.collections?.length || 0
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.download = `GDA_Backup_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      statusDiv.innerText = `✅ Backup successful! (${backupData._backupInfo.totalCustomers} customers, ${backupData._backupInfo.totalCollections} collections)`;
+      statusDiv.style.color = '#10b981';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+
+    } catch (err) {
+      console.error('Backup Error:', err);
+      statusDiv.innerText = '❌ Error: ' + err.message;
+      statusDiv.style.color = '#d32f2f';
+    }
+  }
+
+  async function restoreBackup(file) {
+    const statusDiv = document.getElementById("backupStatus");
+    statusDiv.style.display = 'block';
+
+    if (!file) {
+      statusDiv.innerText = '❌ No file selected!';
+      statusDiv.style.color = '#d32f2f';
+      return;
+    }
+
+    if (!confirm("⚠️ WARNING: This will OVERWRITE all existing data in Firestore!\n\nAre you sure you want to continue?")) {
+      statusDiv.innerText = '⏹️ Restore cancelled.';
+      statusDiv.style.color = '#64748B';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 2000);
+      return;
+    }
+
+    try {
+      statusDiv.innerText = '⏳ Reading backup file...';
+      statusDiv.style.color = '#f59e0b';
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+
+      if (!backupData.customers || !backupData.collections) {
+        throw new Error('Invalid backup file! Missing required collections.');
+      }
+
+      statusDiv.innerText = '⏳ Restoring data... This may take a few moments.';
+
+      const collections = ['customers', 'collections', 'expenses', 'metadata'];
+      let totalWritten = 0;
+
+      for (const colName of collections) {
+        if (!backupData[colName]) continue;
+        const docs = backupData[colName];
+        let batch = writeBatch(db);
+        let batchCount = 0;
+        for (let i = 0; i < docs.length; i++) {
+          const docData = docs[i];
+          const docRef = doc(db, colName, docData.id);
+          const { id, ...rest } = docData;
+          batch.set(docRef, rest, { merge: true });
+          batchCount++;
+          totalWritten++;
+          if (batchCount === 500 || i === docs.length - 1) {
+            await batch.commit();
+            batch = writeBatch(db);
+            batchCount = 0;
+          }
+        }
+      }
+
+      statusDiv.innerText = `✅ Restore successful! ${totalWritten} documents updated.`;
+      statusDiv.style.color = '#10b981';
+      alert(`✅ Restore complete!\n${totalWritten} documents restored.\nPlease refresh the page to see the updated data.`);
+      window.location.reload();
+
+    } catch (err) {
+      console.error('Restore Error:', err);
+      statusDiv.innerText = '❌ Restore failed: ' + err.message;
+      statusDiv.style.color = '#d32f2f';
+    }
+  }
+
+  // ============================================================
+  // INIT REPORT & EVENT LISTENERS
+  // ============================================================
   function initReport() {
     onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -399,22 +585,30 @@
         renderReport();
       }
     });
+
+    btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReport(); };
+    btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReport(); };
+    btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReport(); };
+    btnYearly.onclick = () => { currentMode = "Yearly"; updateTabUI(btnYearly); renderReport(); };
+    reportDatePicker.onchange = () => renderReport();
+
+    document.getElementById("logoutBtn").onclick = async (e) => {
+      e.preventDefault();
+      sessionStorage.removeItem('reportUnlocked');
+      await signOut(auth);
+      location.href = "login.html";
+    };
+
+    // 🔥 Backup & Restore event listeners (नया)
+    document.getElementById('backupDownloadBtn').addEventListener('click', downloadBackup);
+    document.getElementById('restoreFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        restoreBackup(file);
+      }
+      e.target.value = '';
+    });
   }
-
-  // --- Event listeners for tabs & date ---
-  btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReport(); };
-  btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReport(); };
-  btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReport(); };
-  btnYearly.onclick = () => { currentMode = "Yearly"; updateTabUI(btnYearly); renderReport(); };
-  reportDatePicker.onchange = () => renderReport();
-
-  document.getElementById("logoutBtn").onclick = async (e) => {
-    e.preventDefault();
-    // Clear unlock session and logout
-    sessionStorage.removeItem('reportUnlocked');
-    await signOut(auth);
-    location.href = "login.html";
-  };
 </script>
 </body>
 </html>
