@@ -1,63 +1,48 @@
-import { db } from "./firebase.js"; 
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 window.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const custId = urlParams.get('id');
-    if (!custId) {
-        alert("Customer validation parameter not found!");
-        window.location.href = "customer-list.html";
-        return;
-    }
-    async function loadBondData() {
-        try {
-            const docSnap = await getDoc(doc(db, "customers", custId));
-            if (!docSnap.exists()) {
-                alert("No records available for this customer ledger profile!");
-                window.location.href = "customer-list.html";
-                return;
-            }
-            const cust = docSnap.data();
-            if(document.getElementById("bondName")) document.getElementById("bondName").innerText = cust.name || "-";
-            if(document.getElementById("bondId")) document.getElementById("bondId").innerText = cust.customerCode || "GDA" + custId.substring(0,4).toUpperCase();
-            if(document.getElementById("bondMobile")) document.getElementById("bondMobile").innerText = cust.mobile || "-";
-            if(document.getElementById("bondDate")) document.getElementById("bondDate").innerText = cust.loanDate || "-";
-            if(document.getElementById("bondAadhar")) document.getElementById("bondAadhar").innerText = "[Aadhaar Redacted]";
-            if(document.getElementById("bondPan")) document.getElementById("bondPan").innerText = cust.panCard || "-";
-            if(document.getElementById("bondAddress")) document.getElementById("bondAddress").innerText = cust.address || "-";
-            const loanAmount = Number(cust.loanAmount) || 0;
-            if(document.getElementById("bondAmount")) document.getElementById("bondAmount").innerText = `₹${loanAmount}`;
-            const rawDuration = cust.planDuration || cust.duration || "60";
-            if(document.getElementById("bondPlan")) document.getElementById("bondPlan").innerText = `${rawDuration} Days`;
-            const emi = Number(cust.dailyEmi || cust.emi || 0);
-            if(document.getElementById("bondEmi")) document.getElementById("bondEmi").innerText = `₹${emi}`;
-            const totalPayable = loanAmount + (loanAmount * 0.20);
-            if(document.getElementById("bondTotalPayable")) document.getElementById("bondTotalPayable").innerText = `₹${Math.round(totalPayable)}`;
+    const custId = new URLSearchParams(window.location.search).get('id');
+    if (!custId) return;
 
-            // PHOTO LOGIC
-            const photoEl = document.getElementById("bondPhoto");
-            const placeholder = document.getElementById("photoPlaceholder");
-            const photoUrl = cust.photoUrl || cust.photo || cust.customerPhoto || cust.imageUrl || cust.profilePic || cust.custPhoto || "";
-            if(photoUrl){
-                photoEl.src = photoUrl;
-                photoEl.style.display = "block";
-                placeholder.style.display = "none";
-                photoEl.onerror = () => {
-                    photoEl.style.display="none";
-                    placeholder.innerText = (cust.name||'C').charAt(0).toUpperCase();
-                    placeholder.style.display="flex";
-                };
-            } else {
-                photoEl.style.display="none";
-                placeholder.innerText = (cust.name||'C').charAt(0).toUpperCase();
-                placeholder.style.display="flex";
-            }
+    const docSnap = await getDoc(doc(db, "customers", custId));
+    if (!docSnap.exists()) return;
+    const cust = docSnap.data();
 
-        } catch (error) {
-            console.error("Bond Data Loading Core Exception: ", error);
+    console.log("CUSTOMER DATA:", cust); // <-- Isme dekho photo ka naam kya hai
+
+    // Aapke saare data fill
+    document.getElementById("bondName").innerText = cust.name || "-";
+    document.getElementById("bondId").innerText = cust.customerCode || custId.substring(0,6);
+    document.getElementById("bondMobile").innerText = cust.mobile || "-";
+    document.getElementById("bondDate").innerText = cust.loanDate || "-";
+    document.getElementById("bondAddress").innerText = cust.address || "-";
+    document.getElementById("bondAmount").innerText = `₹${cust.loanAmount || 0}`;
+    document.getElementById("bondPlan").innerText = `${cust.planDuration || 60} Days`;
+    document.getElementById("bondEmi").innerText = `₹${cust.dailyEmi || 0}`;
+    document.getElementById("bondTotalPayable").innerText = `₹${Math.round((Number(cust.loanAmount||0)*1.2))}`;
+
+    // PHOTO - 10 naam try karega
+    const photoEl = document.getElementById("bondPhoto");
+    const placeholder = document.getElementById("photoPlaceholder");
+    const possibleKeys = ['photoUrl','photo','customerPhoto','imageUrl','profilePic','custPhoto','customerImage','image','photoURL','imgUrl'];
+    let foundUrl = null;
+    for(let k of possibleKeys){
+        if(cust[k] && typeof cust[k] === 'string' && cust[k].startsWith('http')){
+            foundUrl = cust[k];
+            console.log("PHOTO MILA Key:", k, "URL:", foundUrl);
+            break;
         }
     }
-    const btnPrintBond = document.getElementById("btnPrintBond");
-    if (btnPrintBond) btnPrintBond.onclick = () => window.print();
-    await loadBondData();
+    if(foundUrl){
+        photoEl.src = foundUrl;
+        photoEl.style.display = "block";
+        placeholder.style.display = "none";
+    } else {
+        console.log("PHOTO KA KOI URL NAHI MILA, Keys hain:", Object.keys(cust));
+        photoEl.style.display="none";
+        placeholder.innerText = (cust.name||'C').charAt(0).toUpperCase();
+        placeholder.style.display="flex";
+    }
+    document.getElementById("btnPrintBond").onclick = () => window.print();
 });
