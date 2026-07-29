@@ -3,53 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Due Customers - GDA Finance</title>
+<title>Due List - GDA Finance</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
+:root{--bg:#F8FAFF;--card:#fff;--line:#F1F5F9;--text:#0F172A;--muted:#64748B;--danger:#DC2626;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#F8FAFF;padding-bottom:85px;}
-.header{position:sticky;top:0;z-index:10;background:rgba(248,250,255,0.9);backdrop-filter:blur(20px);padding:16px 14px 12px;border-bottom:1px solid #F1F5F9;}
-.header h1{font-size:18px;font-weight:800;color:#0F172A;}
-.header p{font-size:11px;color:#64748B;margin-top:2px;}
-.statsRow{display:flex;gap:10px;margin-top:12px;}
-.stat{background:#fff;border:1px solid #F1F5F9;border-radius:14px;padding:10px 12px;flex:1;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
-.stat label{font-size:8px;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
-.stat b{font-size:16px;color:#0F172A;display:block;margin-top:4px;}
-.stat b.red{color:#DC2626;}
-.searchWrap{position:relative;margin-top:12px;}
-.searchWrap input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 14px 12px 40px;font-size:14px;outline:none;}
-.searchWrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
+body{background:var(--bg);padding-bottom:85px;}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(248,250,255,0.92);backdrop-filter:blur(20px);padding:14px;border-bottom:1px solid var(--line);}
+.topbar h1{font-size:17px;font-weight:800;color:var(--text);}
+.topbar p{font-size:11px;color:var(--muted);margin-top:2px;}
 
-.list{padding:12px;display:flex;flex-direction:column;gap:10px;}
-.due-card{background:#fff;border-radius:18px;padding:12px;border:1px solid #FEE2E2;box-shadow:0 6px 18px rgba(220,38,38,0.06);display:flex;gap:12px;align-items:center;}
-.avatar{width:50px;height:50px;border-radius:14px;object-fit:cover;background:#FFF1F2;flex-shrink:0;}
-.info{flex:1;min-width:0;}
-.name{font-size:14px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.meta{font-size:11px;color:#64748B;margin-top:2px;}
-.meta b{color:#0F172A;}
-.badge-due{background:#FEF2F2;color:#DC2626;border:1px solid #FECDD3;font-size:9px;font-weight:800;padding:4px 8px;border-radius:20px;}
-.btn-collect{background:#0F172A;color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:12px;font-weight:700;flex-shrink:0;}
+.filterCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,0.04);}
+.filterCard label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;}
+.filterCard input[type="date"]{flex:1;border:1px solid #E2E8F0;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;outline:none;}
+.btnToday{background:#0F172A;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:99;}
+.statsRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
+.stat label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+.stat b{font-size:15px;color:var(--text);display:block;margin-top:4px;}
+.stat b.red{color:var(--danger);}
+
+.tableWrap{padding:12px;}
+table{width:100%;background:var(--card);border-radius:16px;border:1px solid var(--line);border-collapse:separate;border-spacing:0;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.04);}
+thead th{background:#F8FAFF;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:12px 10px;text-align:left;border-bottom:1px solid var(--line);}
+tbody td{padding:12px 10px;font-size:12px;color:var(--text);border-bottom:1px solid #F8FAFF;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+.empty-msg{text-align:center;padding:30px;color:#94A3B8;font-size:13px;}
+.btn-collect-sm{background:#0F172A;color:#fff;text-decoration:none;padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;display:inline-block;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);z-index:30;}
 .bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:3px;}
 .bnav-item.active{color:#DC2626;}
-.empty{padding:50px 20px;text-align:center;color:#94A3B8;font-size:13px;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Pending Due Customers</h1>
-  <p id="dateText">Today's dues • Garhwa Branch</p>
-  <div class="statsRow">
-    <div class="stat"><label>Total Due Amount</label><b class="red" id="totalDueAmt">₹0</b></div>
-    <div class="stat"><label>Total Due Members</label><b id="totalDueCount">0</b></div>
+<div class="topbar">
+  <h1 id="dueCounter">Pending Due List (0)</h1>
+  <p>Select date to view due till that day</p>
+
+  <div class="filterCard">
+    <div style="flex:1;">
+      <label>Select Date</label>
+      <input type="date" id="dueDatePicker">
+    </div>
+    <button class="btnToday" id="btnToday">Today</button>
   </div>
-  <div class="searchWrap"><i>⌕</i><input id="searchInput" placeholder="Search name, mobile..." oninput="onSearch(this.value)"></div>
+
+  <div class="statsRow">
+    <div class="stat"><label>Total Due Amount</label><b class="red" id="totalDueAmount">Total Due: ₹0</b></div>
+    <div class="stat"><label>Branch</label><b>Garhwa • GDA</b></div>
+  </div>
 </div>
 
-<div class="list" id="dueList">
-  <div class="empty">Loading due list...</div>
+<div class="tableWrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name / Code</th>
+        <th>Mobile</th>
+        <th>EMI</th>
+        <th>Due</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="dueList">
+      <tr><td colspan="5" class="empty-msg">⏳ लोड हो रहा है...</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <div class="bottom-nav">
@@ -57,99 +79,96 @@ body{background:#F8FAFF;padding-bottom:85px;}
   <a class="bnav-item" href="customer-list.html"><span>◫</span><span>Customers</span></a>
   <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
   <a class="bnav-item active"><span>!</span><span>Due</span></a>
-  <a class="bnav-item" href="#" id="logoutBtn"><span>↪</span><span>Logout</span></a>
+  <a class="bnav-item" href="login.html"><span>↪</span><span>Logout</span></a>
 </div>
 
+<!-- AAPKA JS FILE - ISKO alag file me rakho due-customers.js naam se -->
 <script type="module">
-import { db, auth } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-
-let allCustomers = [];
-let paidTodaySet = new Set();
-let searchQ = '';
+import { db, auth } from "./firebase.js"; 
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
 const dueList = document.getElementById("dueList");
-const totalDueAmtEl = document.getElementById("totalDueAmt");
-const totalDueCountEl = document.getElementById("totalDueCount");
-const dateText = document.getElementById("dateText");
+const dueCounter = document.getElementById("dueCounter");
+const datePicker = document.getElementById("dueDatePicker");
+const btnToday = document.getElementById("btnToday");
+const totalDueLabel = document.getElementById("totalDueAmount");
 
-onAuthStateChanged(auth, u=>{
-  if(!u) location.href="login.html";
-  else loadDue();
-});
+const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+if (datePicker) datePicker.value = todayIST;
 
-async function loadDue(){
-  const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-  dateText.innerText = `Today's dues • ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} • Garhwa`;
-
-  const [custSnap, colSnap] = await Promise.all([
-    getDocs(collection(db,"customers")),
-    getDocs(collection(db,"collections"))
-  ]);
-
-  paidTodaySet = new Set();
-  colSnap.forEach(d=>{
-    const data = d.data();
-    const cDate = (data.date || data.collectionDate || "").split('T')[0];
-    if(cDate === todayIST && data.customerId){
-      paidTodaySet.add(data.customerId);
+async function loadDueCustomers(targetDateStr) {
+    if (!targetDateStr) {
+        dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">❌ कोई तारीख चुनें!</td></tr>`;
+        if (totalDueLabel) totalDueLabel.innerText = "Total Due: ₹0";
+        if (dueCounter) dueCounter.innerText = "Pending Due List (0)";
+        return;
     }
-  });
-
-  allCustomers = [];
-  custSnap.forEach(d=>{
-    allCustomers.push({id:d.id,...d.data()});
-  });
-
-  render();
+    const targetDate = new Date(targetDateStr);
+    dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">⏳ ${targetDateStr} का डेटा लोड हो रहा है...</td></tr>`;
+    if (totalDueLabel) totalDueLabel.innerText = "Total Due: ₹0";
+    try {
+        const querySnapshot = await getDocs(collection(db, "customers"));
+        let htmlContent = "";
+        let pendingCount = 0;
+        let totalDueSum = 0;
+        querySnapshot.forEach((doc) => {
+            const cust = doc.data();
+            if (cust.status === "Closed") return;
+            const loanDate = new Date(cust.loanDate);
+            const today = new Date(targetDate);
+            let diffDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
+            let daysElapsed = Math.max(0, diffDays) + 1; 
+            const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+            const expectedAmt = daysElapsed * dailyEmi;
+            const totalPaid = Number(cust.totalCollected || 0);
+            const currentDue = Math.max(0, expectedAmt - totalPaid);
+            if (currentDue > 0) {
+                pendingCount++;
+                totalDueSum += currentDue;
+                htmlContent += `
+                <tr>
+                    <td><strong>${cust.name}</strong><br><small style="color:#64748B; font-size:11px;">${cust.customerCode || 'GDA'}</small></td>
+                    <td>${cust.mobile || 'N/A'}</td>
+                    <td>₹${dailyEmi}</td>
+                    <td style="color:#DC2626; font-weight:800;">₹${currentDue.toLocaleString('en-IN')}</td>
+                    <td><a href="collection.html?id=${doc.id}" class="btn-collect-sm">Collect</a></td>
+                </tr>`;
+            }
+        });
+        if (totalDueLabel) { totalDueLabel.innerText = `Total Due: ₹${totalDueSum.toLocaleString('en-IN')}`; }
+        if (htmlContent === "") {
+            dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">✅ ${targetDateStr} तक कोई बकाया नहीं!</td></tr>`;
+            if (dueCounter) dueCounter.innerText = "Pending Due List (0)";
+        } else {
+            dueList.innerHTML = htmlContent;
+            if (dueCounter) dueCounter.innerText = `Pending Due List (${pendingCount})`;
+        }
+    } catch (err) {
+        console.error("Error loading due list:", err);
+        dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">❌ डेटा लोड करने में गलती: ${err.message}</td></tr>`;
+    }
 }
 
-function render(){
-  let filtered = allCustomers.filter(c=>{
-    if((c.status||'Active') === 'Closed') return false;
-    if(paidTodaySet.has(c.id)) return false; // Aaj pay kar diya to due nahi
-    if(!searchQ) return true;
-    const q = searchQ.toLowerCase();
-    return (c.name||'').toLowerCase().includes(q) || (c.mobile||'').includes(q) || (c.customerCode||'').toLowerCase().includes(q);
-  });
-
-  let totalAmt = 0;
-  filtered.forEach(c=>{ totalAmt += Number(c.dailyEmi||c.emi||0); });
-
-  totalDueAmtEl.innerText = `₹${totalAmt.toLocaleString('en-IN')}`;
-  totalDueCountEl.innerText = filtered.length;
-
-  if(filtered.length===0){
-    dueList.innerHTML = `<div class="empty">✅ Aaj ka sab collection ho gaya! Koi due nahi hai.</div>`;
-    return;
-  }
-
-  dueList.innerHTML = filtered.map(c=>{
-    const photo = c.photoUrl || c.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff&bold=true`;
-    const emi = Number(c.dailyEmi||c.emi||0);
-    const mobile = c.mobile || c.phone || '';
-    const code = c.customerCode || c.id.substring(0,6).toUpperCase();
-    return `
-    <div class="due-card">
-      <img class="avatar" src="${photo}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff'">
-      <div class="info">
-        <div class="name">${c.name}</div>
-        <div class="meta">${mobile} • <b>${code}</b></div>
-        <div class="meta">Daily Due: <b>₹${emi}</b> <span class="badge-due" style="margin-left:6px;">DUE TODAY</span></div>
-      </div>
-      <button class="btn-collect" onclick="collectNow('${c.id}')">Collect</button>
-    </div>`;
-  }).join('');
+if (datePicker) {
+    datePicker.addEventListener("change", (e) => { loadDueCustomers(e.target.value); });
+}
+if (btnToday) {
+    btnToday.addEventListener("click", () => {
+        if (datePicker) {
+            datePicker.value = todayIST;
+            loadDueCustomers(todayIST);
+        }
+    });
 }
 
-window.onSearch = (v)=>{ searchQ=v; render(); }
-window.collectNow = (id)=>{ location.href = `collection.html?id=${id}`; }
-
-document.getElementById("logoutBtn").onclick = async()=>{
-  await signOut(auth);
-  location.href="login.html";
-}
+auth.onAuthStateChanged((user) => {
+    if (!user) {
+        dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">❌ कृपया पहले लॉगिन करें!</td></tr>`;
+        window.location.href = "login.html";
+        return;
+    }
+    loadDueCustomers(todayIST);
+});
 </script>
 </body>
 </html>
