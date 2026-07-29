@@ -50,15 +50,6 @@
     .del-btn{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6;padding:4px 10px;border-radius:6px;font-weight:700;cursor:pointer;}
     .empty-msg{text-align:center;padding:20px;color:#94A3B8;}
 
-    /* Bond Modal */
-    .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;justify-content:center;align-items:center;padding:20px;}
-    .modal-overlay.active{display:flex;}
-    .modal-box{background:#fff;max-width:420px;width:100%;border-radius:24px;padding:24px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
-    .modal-box h2{text-align:center;color:#92400E;border-bottom:2px solid #FDE68A;padding-bottom:10px;margin-bottom:12px;}
-    .bond-line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #E2E8F0;font-size:14px;}
-    .bond-line strong{color:#0F172A;}
-    .modal-close{width:100%;padding:12px;background:#0F172A;color:#fff;border:none;border-radius:12px;font-weight:800;margin-top:16px;cursor:pointer;}
-
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
     .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
     .nav-item.active{color:#E91E63;}
@@ -77,18 +68,7 @@
 
 <div class="container" id="mainContainer">
   <div id="loadingMsg" style="text-align:center;padding:40px;color:#94A3B8;">⏳ Loading KYC Data...</div>
-
-  <!-- Profile will be injected here by JS -->
   <div id="profileContent" style="display:none;"></div>
-</div>
-
-<!-- BOND MODAL -->
-<div class="modal-overlay" id="bondModal">
-  <div class="modal-box">
-    <h2>📄 GDA FINANCE - BOND PAPER</h2>
-    <div id="bondContent"></div>
-    <button class="modal-close" id="closeBondModal">Close Bond</button>
-  </div>
 </div>
 
 <nav class="bottom-nav">
