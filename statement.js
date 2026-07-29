@@ -13,7 +13,7 @@ const loadingMsg = document.getElementById("loadingMsg");
 const profileContent = document.getElementById("profileContent");
 
 // ============================================================
-// 🔥 Helper – Multi-Key Search (Aadhar, PAN, Photo)
+// 🔥 Helper – Multi-Key Search (Aadhar, PAN)
 // ============================================================
 function getCustomerValue(cust, keys, defaultValue = 'Not Provided') {
   if (!cust) return defaultValue;
@@ -30,7 +30,7 @@ function getCustomerIdFromUrl() {
 }
 
 // ============================================================
-// 🖥️ RENDER PROFILE (UI)
+// 🖥️ RENDER PROFILE (अब डॉक्यूमेंट्स के साथ)
 // ============================================================
 function renderProfile(cust, logs) {
   const planDur = Number(cust.planDuration || cust.duration || 60);
@@ -45,6 +45,11 @@ function renderProfile(cust, logs) {
 
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
+
+  // 🔥 डॉक्यूमेंट फोटो – अगर URL है तो दिखाएँ, वरना placeholder
+  const aadharPhoto = cust.aadharPhoto || cust.aadharPhotoUrl || '';
+  const panPhoto = cust.panPhoto || cust.panPhotoUrl || '';
+  const voterPhoto = cust.voterPhoto || cust.voterPhotoUrl || '';
 
   let html = `
     <div class="profile-card">
@@ -63,6 +68,8 @@ function renderProfile(cust, logs) {
         <div class="info-item"><div class="label">Paid Days</div><div class="value">${paidDays} Days</div></div>
         <div class="info-item"><div class="label">Total Collected</div><div class="value">₹${totalPaid.toLocaleString('en-IN')}</div></div>
       </div>
+
+      <!-- KYC DETAILS -->
       <div class="kyc-section">
         <h4>🔐 KYC VERIFICATION DETAILS</h4>
         <div class="kyc-row"><span>Aadhar Number</span><b>${aadharValue}</b></div>
@@ -70,6 +77,27 @@ function renderProfile(cust, logs) {
         <div class="kyc-row"><span>Residential Address</span><b>${cust.address || 'Not Provided'}</b></div>
         <div class="kyc-row"><span>Status</span><b style="color:${isSettled ? '#059669' : '#DC2626'};">${cust.status || 'Active'}</b></div>
       </div>
+
+      <!-- ===== 📁 KYC DOCUMENTS (NEW) ===== -->
+      <div class="kyc-section" style="margin-top:12px; background:#F8FAFF; border-color:#E2E8F0;">
+        <h4 style="color:#3A1C62;">📁 KYC DOCUMENTS</h4>
+        <div class="doc-grid">
+          <div class="doc-item">
+            <p>🆔 Aadhar Card</p>
+            ${aadharPhoto ? `<img src="${aadharPhoto}" alt="Aadhar" onclick="window.open('${aadharPhoto}','_blank')" style="cursor:pointer;">` : `<div class="no-doc">No photo uploaded</div>`}
+          </div>
+          <div class="doc-item">
+            <p>📇 PAN Card</p>
+            ${panPhoto ? `<img src="${panPhoto}" alt="PAN" onclick="window.open('${panPhoto}','_blank')" style="cursor:pointer;">` : `<div class="no-doc">No photo uploaded</div>`}
+          </div>
+          <div class="doc-item">
+            <p>🗳️ Voter ID</p>
+            ${voterPhoto ? `<img src="${voterPhoto}" alt="Voter" onclick="window.open('${voterPhoto}','_blank')" style="cursor:pointer;">` : `<div class="no-doc">No photo uploaded</div>`}
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
       <div class="action-bar">
         <button class="action-btn whatsapp" id="whatsappBtn">💬 WhatsApp</button>
         <button class="action-btn pdf" id="pdfBtn">📄 PDF</button>
@@ -79,6 +107,8 @@ function renderProfile(cust, logs) {
         </button>
       </div>
     </div>
+
+    <!-- EMI LOGS TABLE -->
     <div class="table-wrap">
       <h3>📋 RECEIVED INSTALLMENTS (EMI LOGS)</h3>
       <table>
@@ -103,6 +133,7 @@ function renderProfile(cust, logs) {
   loadingMsg.style.display = 'none';
   profileContent.style.display = 'block';
 
+  // Attach Event Listeners
   document.getElementById('whatsappBtn')?.addEventListener('click', () => shareWhatsApp(cust));
   document.getElementById('pdfBtn')?.addEventListener('click', () => generatePDF(cust, logs));
   document.getElementById('settleBtn')?.addEventListener('click', () => handleSettle(cust));
@@ -118,17 +149,21 @@ function renderProfile(cust, logs) {
 }
 
 // ============================================================
-// 💬 WHATSAPP SHARE
+// 💬 WHATSAPP SHARE (सभी डिटेल + डॉक्यूमेंट स्टेटस)
 // ============================================================
 function shareWhatsApp(cust) {
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
-  const msg = `*GDA FINANCE SERVICES*%0A%0A📄 *KYC STATEMENT*%0A%0A👤 *Name:* ${cust.name}%0A📞 *Mobile:* ${cust.mobile}%0A🆔 *Code:* ${cust.customerCode}%0A📅 *Loan Date:* ${cust.loanDate || 'N/A'}%0A💰 *EMI:* ₹${cust.dailyEmi || cust.emi || 0}%0A📆 *Duration:* ${cust.planDuration || cust.duration || 60} Days%0A💵 *Paid:* ₹${cust.totalCollected || 0}%0A🆔 *Aadhar:* ${aadharValue}%0A📇 *PAN:* ${panValue}%0A🏠 *Address:* ${cust.address || 'N/A'}%0A📍 *Branch:* Garhwa`;
+  const hasAadharDoc = cust.aadharPhoto ? '✅' : '❌';
+  const hasPanDoc = cust.panPhoto ? '✅' : '❌';
+  const hasVoterDoc = cust.voterPhoto ? '✅' : '❌';
+  
+  const msg = `*GDA FINANCE SERVICES*%0A%0A📄 *KYC STATEMENT*%0A%0A👤 *Name:* ${cust.name}%0A📞 *Mobile:* ${cust.mobile}%0A🆔 *Code:* ${cust.customerCode}%0A📅 *Loan Date:* ${cust.loanDate || 'N/A'}%0A💰 *EMI:* ₹${cust.dailyEmi || cust.emi || 0}%0A📆 *Duration:* ${cust.planDuration || cust.duration || 60} Days%0A💵 *Paid:* ₹${cust.totalCollected || 0}%0A🆔 *Aadhar:* ${aadharValue}%0A📇 *PAN:* ${panValue}%0A🏠 *Address:* ${cust.address || 'N/A'}%0A%0A📁 *Documents:*%0A🆔 Aadhar: ${hasAadharDoc}%0A📇 PAN: ${hasPanDoc}%0A🗳️ Voter: ${hasVoterDoc}%0A📍 *Branch:* Garhwa`;
   window.open(`https://wa.me/91${cust.mobile}?text=${msg}`, '_blank');
 }
 
 // ============================================================
-// 📄 PDF GENERATION – HEADERS BILKUL SAHI (FIXED)
+// 📄 PDF GENERATION – (डॉक्यूमेंट की स्टेटस भी दिखेगी)
 // ============================================================
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
@@ -140,7 +175,7 @@ function generatePDF(cust, logs) {
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
-  // ---- HEADER (बिल्कुल सही - कोई "O=" नहीं) ----
+  // ---- HEADER ----
   doc.setFillColor(26, 35, 53);
   doc.rect(margin, y, pageW - (margin * 2), 28, 'F');
   doc.setTextColor(255, 255, 255);
@@ -153,7 +188,7 @@ function generatePDF(cust, logs) {
   doc.text('Digital Loan Distribution & Micro Finance System', pageW / 2, y + 22, { align: 'center' });
   y += 32;
 
-  // ---- TITLE (✅ अब "CUSTOMER KYC & STATEMENT REPORT") ----
+  // ---- TITLE ----
   doc.setTextColor(26, 35, 53);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -212,7 +247,7 @@ function generatePDF(cust, logs) {
 
   y += 56;
 
-  // ---- KYC DETAILS BOX (✅ अब "KYC VERIFICATION DETAILS") ----
+  // ---- KYC DETAILS BOX ----
   doc.setFillColor(255, 251, 235);
   doc.setDrawColor(220, 180, 80);
   doc.setLineWidth(0.3);
@@ -231,7 +266,26 @@ function generatePDF(cust, logs) {
   doc.text(`Address: ${cust.address || 'Not Provided'}`, margin + 8, kycY + 8);
   y += 34;
 
-  // ---- EMI LOGS TABLE (✅ अब "COLLECTION HISTORY") ----
+  // ---- 📁 DOCUMENTS STATUS ----
+  doc.setTextColor(26, 35, 53);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('📁 KYC DOCUMENTS STATUS', margin, y);
+  y += 6;
+  doc.setDrawColor(200, 200, 210);
+  doc.setLineWidth(0.2);
+  doc.line(margin, y, pageW - margin, y);
+  y += 5;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`🆔 Aadhar Card: ${cust.aadharPhoto ? '✅ Uploaded' : '❌ Not Uploaded'}`, margin + 4, y);
+  y += 7;
+  doc.text(`📇 PAN Card: ${cust.panPhoto ? '✅ Uploaded' : '❌ Not Uploaded'}`, margin + 4, y);
+  y += 7;
+  doc.text(`🗳️ Voter ID: ${cust.voterPhoto ? '✅ Uploaded' : '❌ Not Uploaded'}`, margin + 4, y);
+  y += 12;
+
+  // ---- EMI LOGS TABLE ----
   doc.setTextColor(26, 35, 53);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
