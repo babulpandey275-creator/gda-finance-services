@@ -3,142 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Customers - GDA Finance</title>
+<title>Due Customers - GDA Finance</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#F8FAFF;padding-bottom:85px;}
-.topbar{position:sticky;top:0;z-index:10;background:rgba(248,250,255,0.85);backdrop-filter:blur(20px);padding:14px 14px 10px;border-bottom:1px solid #F1F5F9;}
-.tabs{display:flex;gap:8px;margin-bottom:12px;}
-.tab{padding:10px 18px;border-radius:30px;font-size:13px;font-weight:700;border:1px solid #E2E8F0;background:#fff;color:#475569;transition:0.2s;}
-.tab.active{background:#0F172A;color:#fff;border-color:#0F172A;box-shadow:0 6px 20px rgba(15,23,42,0.2);}
-.searchWrap{position:relative;}
-.searchWrap input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:13px 14px 13px 42px;font-size:14px;outline:none;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
-.searchWrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;font-style:normal;}
+.header{position:sticky;top:0;z-index:10;background:rgba(248,250,255,0.9);backdrop-filter:blur(20px);padding:16px 14px 12px;border-bottom:1px solid #F1F5F9;}
+.header h1{font-size:18px;font-weight:800;color:#0F172A;}
+.header p{font-size:11px;color:#64748B;margin-top:2px;}
+.statsRow{display:flex;gap:10px;margin-top:12px;}
+.stat{background:#fff;border:1px solid #F1F5F9;border-radius:14px;padding:10px 12px;flex:1;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
+.stat label{font-size:8px;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
+.stat b{font-size:16px;color:#0F172A;display:block;margin-top:4px;}
+.stat b.red{color:#DC2626;}
+.searchWrap{position:relative;margin-top:12px;}
+.searchWrap input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 14px 12px 40px;font-size:14px;outline:none;}
+.searchWrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
 
-.list{padding:12px;display:flex;flex-direction:column;gap:12px;}
-.cust-card{background:#fff;border-radius:20px;padding:14px;border:1px solid #F1F5F9;box-shadow:0 6px 20px rgba(0,0,0,0.04);display:flex;gap:12px;align-items:center;transition:0.15s;}
-.cust-card:active{transform:scale(0.98);}
-.avatar{width:54px;height:54px;border-radius:16px;object-fit:cover;background:#EFF6FF;flex-shrink:0;border:1px solid #F1F5F9;}
+.list{padding:12px;display:flex;flex-direction:column;gap:10px;}
+.due-card{background:#fff;border-radius:18px;padding:12px;border:1px solid #FEE2E2;box-shadow:0 6px 18px rgba(220,38,38,0.06);display:flex;gap:12px;align-items:center;}
+.avatar{width:50px;height:50px;border-radius:14px;object-fit:cover;background:#FFF1F2;flex-shrink:0;}
 .info{flex:1;min-width:0;}
-.name{font-size:15px;font-weight:800;color:#0F172A;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.meta{font-size:11.5px;color:#64748B;margin-top:3px;display:flex;gap:8px;align-items:center;}
-.meta b{color:#0F172A;font-weight:700;}
-.badge{font-size:9px;font-weight:700;letter-spacing:0.6px;background:#F1F5F9;color:#475569;padding:4px 8px;border-radius:20px;border:1px solid #E2E8F0;}
-.actions{display:flex;gap:6px;flex-shrink:0;}
-.btn{border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;}
-.btn-collect{background:#0F172A;color:#fff;}
-.btn-del{background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3;}
-.btn-edit{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A;}
+.name{font-size:14px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.meta{font-size:11px;color:#64748B;margin-top:2px;}
+.meta b{color:#0F172A;}
+.badge-due{background:#FEF2F2;color:#DC2626;border:1px solid #FECDD3;font-size:9px;font-weight:800;padding:4px 8px;border-radius:20px;}
+.btn-collect{background:#0F172A;color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:12px;font-weight:700;flex-shrink:0;}
 
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:99;}
 .bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:3px;}
-.bnav-item.active{color:#E11D48;}
+.bnav-item.active{color:#DC2626;}
+.empty{padding:50px 20px;text-align:center;color:#94A3B8;font-size:13px;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="tabs">
-    <button class="tab active" id="btnActive" onclick="setFilter('active')">Active Accounts</button>
-    <button class="tab" id="btnClosed" onclick="setFilter('closed')">Closed Accounts</button>
+<div class="header">
+  <h1>Pending Due Customers</h1>
+  <p id="dateText">Today's dues • Garhwa Branch</p>
+  <div class="statsRow">
+    <div class="stat"><label>Total Due Amount</label><b class="red" id="totalDueAmt">₹0</b></div>
+    <div class="stat"><label>Total Due Members</label><b id="totalDueCount">0</b></div>
   </div>
-  <div class="searchWrap">
-    <i>⌕</i>
-    <input id="searchInput" placeholder="Search name, mobile, code..." oninput="onSearch(this.value)">
-  </div>
+  <div class="searchWrap"><i>⌕</i><input id="searchInput" placeholder="Search name, mobile..." oninput="onSearch(this.value)"></div>
 </div>
 
-<div class="list" id="customerList">
-  <!-- JS will fill -->
-  <div style="text-align:center;color:#94A3B8;padding:30px;font-size:13px;">Loading customers...</div>
+<div class="list" id="dueList">
+  <div class="empty">Loading due list...</div>
 </div>
 
 <div class="bottom-nav">
   <a class="bnav-item" href="index.html"><span>⌂</span><span>Home</span></a>
-  <a class="bnav-item active"><span>◫</span><span>Customers</span></a>
+  <a class="bnav-item" href="customer-list.html"><span>◫</span><span>Customers</span></a>
   <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
-  <a class="bnav-item" href="reports.html"><span>◱</span><span>Reports</span></a>
+  <a class="bnav-item active"><span>!</span><span>Due</span></a>
   <a class="bnav-item" href="#" id="logoutBtn"><span>↪</span><span>Logout</span></a>
 </div>
 
 <script type="module">
 import { db, auth } from "./firebase.js";
-import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 let allCustomers = [];
-let currentFilter = 'active';
+let paidTodaySet = new Set();
 let searchQ = '';
 
-const listEl = document.getElementById("customerList");
-const btnActive = document.getElementById("btnActive");
-const btnClosed = document.getElementById("btnClosed");
+const dueList = document.getElementById("dueList");
+const totalDueAmtEl = document.getElementById("totalDueAmt");
+const totalDueCountEl = document.getElementById("totalDueCount");
+const dateText = document.getElementById("dateText");
 
 onAuthStateChanged(auth, u=>{
   if(!u) location.href="login.html";
-  else loadCustomers();
+  else loadDue();
 });
 
-async function loadCustomers(){
-  const snap = await getDocs(collection(db,"customers"));
+async function loadDue(){
+  const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  dateText.innerText = `Today's dues • ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} • Garhwa`;
+
+  const [custSnap, colSnap] = await Promise.all([
+    getDocs(collection(db,"customers")),
+    getDocs(collection(db,"collections"))
+  ]);
+
+  paidTodaySet = new Set();
+  colSnap.forEach(d=>{
+    const data = d.data();
+    const cDate = (data.date || data.collectionDate || "").split('T')[0];
+    if(cDate === todayIST && data.customerId){
+      paidTodaySet.add(data.customerId);
+    }
+  });
+
   allCustomers = [];
-  snap.forEach(d=>{ allCustomers.push({id:d.id, ...d.data()}); });
+  custSnap.forEach(d=>{
+    allCustomers.push({id:d.id,...d.data()});
+  });
+
   render();
 }
 
 function render(){
   let filtered = allCustomers.filter(c=>{
-    const status = (c.status || 'Active');
-    const matchStatus = currentFilter==='active' ? status!=='Closed' : status==='Closed';
-    if(!matchStatus) return false;
+    if((c.status||'Active') === 'Closed') return false;
+    if(paidTodaySet.has(c.id)) return false; // Aaj pay kar diya to due nahi
     if(!searchQ) return true;
     const q = searchQ.toLowerCase();
     return (c.name||'').toLowerCase().includes(q) || (c.mobile||'').includes(q) || (c.customerCode||'').toLowerCase().includes(q);
   });
 
+  let totalAmt = 0;
+  filtered.forEach(c=>{ totalAmt += Number(c.dailyEmi||c.emi||0); });
+
+  totalDueAmtEl.innerText = `₹${totalAmt.toLocaleString('en-IN')}`;
+  totalDueCountEl.innerText = filtered.length;
+
   if(filtered.length===0){
-    listEl.innerHTML = `<div style="text-align:center;color:#94A3B8;padding:40px;">No customers found</div>`;
+    dueList.innerHTML = `<div class="empty">✅ Aaj ka sab collection ho gaya! Koi due nahi hai.</div>`;
     return;
   }
 
-  listEl.innerHTML = filtered.map(c=>{
-    const photo = c.photoUrl || c.photo || c.customerPhoto || c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff&bold=true`;
+  dueList.innerHTML = filtered.map(c=>{
+    const photo = c.photoUrl || c.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff&bold=true`;
+    const emi = Number(c.dailyEmi||c.emi||0);
+    const mobile = c.mobile || c.phone || '';
     const code = c.customerCode || c.id.substring(0,6).toUpperCase();
-    const mobile = c.mobile || c.phone || '-';
-    const loan = c.loanAmount || 0;
     return `
-    <div class="cust-card">
+    <div class="due-card">
       <img class="avatar" src="${photo}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff'">
       <div class="info">
-        <div class="name">${c.name||'No Name'}</div>
-        <div class="meta"><span>${mobile}</span> <span class="badge">${code}</span></div>
-        <div class="meta">Loan: <b>₹${Number(loan).toLocaleString('en-IN')}</b></div>
+        <div class="name">${c.name}</div>
+        <div class="meta">${mobile} • <b>${code}</b></div>
+        <div class="meta">Daily Due: <b>₹${emi}</b> <span class="badge-due" style="margin-left:6px;">DUE TODAY</span></div>
       </div>
-      <div class="actions">
-        <button class="btn btn-collect" onclick="collectCustomer('${c.id}')">Collect</button>
-        <button class="btn btn-del" onclick="deleteCustomer('${c.id}')">Del</button>
-        <button class="btn btn-edit" onclick="editCustomer('${c.id}')">Edit</button>
-      </div>
+      <button class="btn-collect" onclick="collectNow('${c.id}')">Collect</button>
     </div>`;
   }).join('');
 }
 
-window.setFilter = (f)=>{
-  currentFilter=f;
-  btnActive.classList.toggle('active', f==='active');
-  btnClosed.classList.toggle('active', f==='closed');
-  render();
-}
 window.onSearch = (v)=>{ searchQ=v; render(); }
-window.collectCustomer = (id)=>{ location.href=`collection.html?id=${id}`; }
-window.editCustomer = (id)=>{ location.href=`register.html?id=${id}`; }
-window.deleteCustomer = async (id)=>{
-  if(!confirm("Delete this customer?")) return;
-  await deleteDoc(doc(db,"customers",id));
-  allCustomers = allCustomers.filter(c=>c.id!==id);
-  render();
-}
+window.collectNow = (id)=>{ location.href = `collection.html?id=${id}`; }
 
 document.getElementById("logoutBtn").onclick = async()=>{
   await signOut(auth);
