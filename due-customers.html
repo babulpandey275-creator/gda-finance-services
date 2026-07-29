@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Edit Customer - GDA Finance</title>
+  <title>Due Customers - GDA Finance</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
-    body { background:#F8FAFF; min-height:100vh; padding-bottom:20px; }
-    
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+    body { background:#F8FAFF; min-height:100vh; padding-bottom:85px; }
+
+    /* ===== HEADER ===== */
     .app-header {
       background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
       padding: 18px 16px 20px;
@@ -19,6 +20,7 @@
       position: sticky;
       top: 0;
       z-index: 20;
+      box-shadow: 0 12px 32px rgba(58,28,98,0.28);
     }
     .gda-logo-container { display:flex; align-items:center; gap:13px; }
     .gda-logo-icon {
@@ -32,285 +34,404 @@
     .gda-logo-text p { margin-top:3px; font-size:10.5px; font-weight:700; letter-spacing:3.2px; color:#FFC107; text-transform:uppercase; }
     .back-btn { background:rgba(255,255,255,0.14); color:#fff; padding:9px 14px; border-radius:12px; text-decoration:none; font-size:12px; border:1px solid rgba(255,255,255,0.18); }
 
-    .container { padding:16px; max-width:600px; margin:0 auto; }
-    .form-card {
-      background:#fff; border-radius:24px; padding:20px;
-      box-shadow:0 8px 30px rgba(0,0,0,0.05); border:1px solid #F1F5F9;
-    }
-    .form-card h2 { font-size:18px; font-weight:800; color:#0F172A; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
-    
-    .form-group { margin-bottom:16px; }
-    .form-group label { display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #E2E8F0;
-      font-size:14px; font-weight:500; background:#fff; color:#0F172A; outline:none; transition:0.2s;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color:#3A1C62; box-shadow:0 0 0 4px rgba(58,28,98,0.08);
-    }
-    .form-group textarea { resize:vertical; min-height:60px; }
+    /* ===== CONTAINER ===== */
+    .container { padding:14px; max-width:600px; margin:0 auto; }
 
-    .photo-preview {
-      display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; background:#F8FAFF; border-radius:12px;
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: center;
     }
-    .photo-preview img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #E9D5FF; background:#fff; }
-    .photo-preview .info { font-size:12px; color:#64748B; }
-
-    .btn-save {
-      width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98);
-      color:#fff; border:none; border-radius:14px; font-size:16px; font-weight:800;
-      cursor:pointer; box-shadow:0 8px 20px rgba(58,28,98,0.25); transition:0.15s;
+    .filter-bar input[type="date"] {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #E9D5FF;
+      font-weight: 700;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
     }
-    .btn-save:active { transform:scale(0.98); }
-    .btn-save:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
+    .filter-bar input[type="date"]:focus {
+      border-color: #3A1C62;
+      box-shadow: 0 0 0 4px rgba(58,28,98,0.08);
+    }
+    .btn-today {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      background: #0F172A;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .btn-today:active { transform:scale(0.96); }
 
-    .loading-text { text-align:center; padding:40px; color:#94A3B8; }
+    /* ===== SUMMARY CARDS ===== */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .sum-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid #F1F5F9;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .sum-card .number {
+      font-size: 22px;
+      font-weight: 800;
+      color: #DC2626;
+      display: block;
+    }
+    .sum-card .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 4px;
+    }
+    .sum-card.green .number { color: #059669; }
+
+    /* ===== DUE LIST ===== */
+    #dueList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .due-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 14px;
+      border: 1px solid #FFE4E6;
+      box-shadow: 0 4px 16px rgba(220,38,38,0.06);
+      transition: 0.1s;
+    }
+    .due-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .due-top .info h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .due-top .info small {
+      font-size: 11px;
+      color: #64748B;
+    }
+    .due-top .amount-box {
+      text-align: right;
+      min-width: 70px;
+    }
+    .due-top .amount-box .due-amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: #DC2626;
+    }
+    .due-top .amount-box .label-small {
+      font-size: 9px;
+      color: #94A3B8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0 8px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .badge-red { background:#FFF1F2; color:#DC2626; border:1px solid #FFE4E6; }
+    .badge-black { background:#0F172A; color:#fff; }
+    .badge-blue { background:#EFF6FF; color:#1D4ED8; border:1px solid #DBEAFE; }
+
+    .due-bottom {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-sm {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .btn-sm:active { transform:scale(0.96); }
+    .btn-collect { background:#0F172A; color:#fff; }
+    .btn-call { background:#ECFDF5; color:#059669; border:1px solid #D1FAE5; }
+    .btn-view { background:#F1F5F9; color:#0F172A; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #E2E8F0;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+    .empty-state h3 { color:#059669; font-weight:800; }
+
+    .loading-text { text-align:center; padding:30px; color:#94A3B8; font-weight:600; }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      align-items: center;
+      border-top: 1px solid #F3E8FF;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #A8A0B5;
+      font-size: 10px;
+      font-weight: 600;
+      gap: 3px;
+    }
+    .nav-item.active { color: #E91E63; font-weight:700; }
+    .nav-item .material-symbols-outlined { font-size:24px; }
   </style>
 </head>
 <body>
 
+<!-- ===== HEADER ===== -->
 <header class="app-header">
   <div class="gda-logo-container">
     <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
     <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
   </div>
-  <a href="customer-list.html" class="back-btn">← Back</a>
+  <a href="index.html" class="back-btn">← Home</a>
 </header>
 
+<!-- ===== CONTAINER ===== -->
 <div class="container">
-  <div class="form-card">
-    <h2>✏️ Edit Customer</h2>
-    
-    <div id="loadingIndicator" class="loading-text">⏳ Loading customer data...</div>
-    
-    <form id="editForm" style="display:none;">
-      <!-- Hidden ID -->
-      <input type="hidden" id="customerId">
-      
-      <!-- Name -->
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="editName" placeholder="Enter full name" required>
-      </div>
 
-      <!-- Mobile -->
-      <div class="form-group">
-        <label>Mobile Number</label>
-        <input type="text" id="editMobile" placeholder="Enter mobile number" required>
-      </div>
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input type="date" id="dueDatePicker">
+    <button class="btn-today" id="btnToday">📅 Today</button>
+  </div>
 
-      <!-- Customer Code -->
-      <div class="form-group">
-        <label>Customer Code (ID)</label>
-        <input type="text" id="editCode" placeholder="e.g. GDA0012">
-      </div>
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+    <div class="sum-card">
+      <span class="number" id="totalDueCustomers">0</span>
+      <span class="label">Due Customers</span>
+    </div>
+    <div class="sum-card green">
+      <span class="number" id="totalDueAmount">₹0</span>
+      <span class="label">Total Due Amount</span>
+    </div>
+  </div>
 
-      <!-- Loan Date -->
-      <div class="form-group">
-        <label>Loan Date</label>
-        <input type="date" id="editLoanDate">
-      </div>
-
-      <!-- Loan Amount & Duration & EMI -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div class="form-group">
-          <label>Loan Amount (₹)</label>
-          <input type="number" id="editLoanAmount" placeholder="e.g. 15000">
-        </div>
-        <div class="form-group">
-          <label>Plan Duration (Days)</label>
-          <input type="number" id="editDuration" placeholder="e.g. 60">
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label>Daily EMI (₹)</label>
-        <input type="number" id="editDailyEmi" placeholder="e.g. 300">
-      </div>
-
-      <!-- KYC Fields -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div class="form-group">
-          <label>Aadhar Number</label>
-          <input type="text" id="editAadhar" placeholder="Enter Aadhar number">
-        </div>
-        <div class="form-group">
-          <label>PAN Card Number</label>
-          <input type="text" id="editPan" placeholder="Enter PAN number">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Residential Address</label>
-        <textarea id="editAddress" placeholder="Enter full address"></textarea>
-      </div>
-
-      <!-- Photo URL -->
-      <div class="form-group">
-        <label>Photo URL (Image Link)</label>
-        <input type="text" id="editPhotoUrl" placeholder="https://example.com/photo.jpg">
-      </div>
-
-      <!-- Photo Preview -->
-      <div class="photo-preview">
-        <img id="previewImage" src="https://via.placeholder.com/70" alt="Preview">
-        <div class="info">Photo Preview<br><small>(Enter URL above to change)</small></div>
-      </div>
-
-      <!-- Status -->
-      <div class="form-group">
-        <label>Account Status</label>
-        <select id="editStatus">
-          <option value="Active">Active</option>
-          <option value="Settled">Settled</option>
-          <option value="Closed">Closed</option>
-        </select>
-      </div>
-
-      <!-- Save Button -->
-      <button type="submit" class="btn-save" id="saveBtn">💾 Save Changes</button>
-    </form>
+  <!-- DUE LIST -->
+  <div id="dueList">
+    <div class="loading-text">⏳ Loading due list...</div>
   </div>
 </div>
 
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="due-customers.html" class="nav-item active"><span class="material-symbols-outlined">warning</span>Due</a>
+  <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+  <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+</nav>
+
+<!-- ===== JAVASCRIPT (Module) ===== -->
 <script type="module">
   import { db, auth } from "./firebase.js";
-  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const ADMIN_PASSWORD = "GDA@2026";
+  // DOM Elements
+  const dueList = document.getElementById("dueList");
+  const datePicker = document.getElementById("dueDatePicker");
+  const btnToday = document.getElementById("btnToday");
+  const totalDueLabel = document.getElementById("totalDueAmount");
+  const totalDueCustomers = document.getElementById("totalDueCustomers");
 
-  // DOM elements
-  const loadingIndicator = document.getElementById('loadingIndicator');
-  const form = document.getElementById('editForm');
-  const customerIdInput = document.getElementById('customerId');
-  const editName = document.getElementById('editName');
-  const editMobile = document.getElementById('editMobile');
-  const editCode = document.getElementById('editCode');
-  const editLoanDate = document.getElementById('editLoanDate');
-  const editLoanAmount = document.getElementById('editLoanAmount');
-  const editDuration = document.getElementById('editDuration');
-  const editDailyEmi = document.getElementById('editDailyEmi');
-  const editAadhar = document.getElementById('editAadhar');
-  const editPan = document.getElementById('editPan');
-  const editAddress = document.getElementById('editAddress');
-  const editPhotoUrl = document.getElementById('editPhotoUrl');
-  const editStatus = document.getElementById('editStatus');
-  const previewImage = document.getElementById('previewImage');
-  const saveBtn = document.getElementById('saveBtn');
+  // Today's Date (IST)
+  const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  if (datePicker) datePicker.value = todayIST;
 
-  // Get ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const customerId = urlParams.get('id');
-
-  if (!customerId) {
-    loadingIndicator.innerHTML = '❌ No Customer ID found. Please go back and try again.';
-    throw new Error('Missing ID');
-  }
-
-  // Load customer data
-  async function loadCustomer() {
-    try {
-      const docSnap = await getDoc(doc(db, "customers", customerId));
-      if (!docSnap.exists()) {
-        loadingIndicator.innerHTML = '❌ Customer not found in database.';
-        return;
-      }
-      const data = docSnap.data();
-
-      // Fill form
-      customerIdInput.value = customerId;
-      editName.value = data.name || '';
-      editMobile.value = data.mobile || '';
-      editCode.value = data.customerCode || '';
-      editLoanDate.value = data.loanDate || '';
-      editLoanAmount.value = data.loanAmount || '';
-      editDuration.value = data.planDuration || data.duration || '';
-      editDailyEmi.value = data.dailyEmi || data.emi || '';
-      editAadhar.value = data.aadhar || data.aadhaar || '';
-      editPan.value = data.pan || '';
-      editAddress.value = data.address || '';
-      editPhotoUrl.value = data.photoUrl || data.photo || '';
-      editStatus.value = data.status || 'Active';
-
-      // Update preview
-      const photoUrl = data.photoUrl || data.photo || '';
-      if (photoUrl && photoUrl.startsWith('http')) {
-        previewImage.src = photoUrl;
-      } else {
-        previewImage.src = 'https://via.placeholder.com/70';
-      }
-
-      loadingIndicator.style.display = 'none';
-      form.style.display = 'block';
-
-    } catch (err) {
-      loadingIndicator.innerHTML = `❌ Error loading data: ${err.message}`;
-      console.error(err);
-    }
-  }
-
-  // Real-time photo preview
-  editPhotoUrl.addEventListener('input', (e) => {
-    const url = e.target.value.trim();
-    if (url && url.startsWith('http')) {
-      previewImage.src = url;
-    } else {
-      previewImage.src = 'https://via.placeholder.com/70';
-    }
-  });
-
-  // Handle Save
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Admin Password Check
-    const pass = prompt("🔑 Enter Admin Password to save changes:");
-    if (pass !== ADMIN_PASSWORD) {
-      if (pass !== null) alert("❌ Wrong Password! Changes not saved.");
+  // =========================================================
+  // 🚀 MAIN FUNCTION: Load Due Customers for Selected Date
+  // =========================================================
+  async function loadDueCustomers(targetDateStr) {
+    if (!targetDateStr) {
+      dueList.innerHTML = `<div class="empty-state"><div class="icon">📅</div><h3>Please select a date</h3></div>`;
+      totalDueAmount.innerText = '₹0';
+      totalDueCustomers.innerText = '0';
       return;
     }
 
-    if (!confirm("Are you sure you want to update this customer?")) return;
-
-    saveBtn.disabled = true;
-    saveBtn.innerText = '⏳ Saving...';
+    // Show loading
+    dueList.innerHTML = `<div class="loading-text">⏳ Loading data for ${targetDateStr}...</div>`;
+    totalDueAmount.innerText = '₹0';
+    totalDueCustomers.innerText = '0';
 
     try {
-      const updatedData = {
-        name: editName.value.trim(),
-        mobile: editMobile.value.trim(),
-        customerCode: editCode.value.trim(),
-        loanDate: editLoanDate.value,
-        loanAmount: Number(editLoanAmount.value) || 0,
-        planDuration: Number(editDuration.value) || 60,
-        dailyEmi: Number(editDailyEmi.value) || 0,
-        aadhar: editAadhar.value.trim(),
-        pan: editPan.value.trim(),
-        address: editAddress.value.trim(),
-        photoUrl: editPhotoUrl.value.trim(),
-        status: editStatus.value,
-        updatedAt: new Date().toISOString()
-      };
+      const targetDate = new Date(targetDateStr);
+      const querySnapshot = await getDocs(collection(db, "customers"));
+      
+      let html = "";
+      let totalCount = 0;
+      let totalSum = 0;
 
-      const custRef = doc(db, "customers", customerId);
-      await updateDoc(custRef, updatedData);
+      querySnapshot.forEach((doc) => {
+        const cust = doc.data();
+        
+        // Skip closed accounts
+        if (cust.status === "Closed") return;
 
-      alert("✅ Customer updated successfully!");
-      window.location.href = `statement.html?id=${customerId}`;
+        const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+        if (dailyEmi <= 0) return;
+
+        // Calculate days elapsed from loan date to target date
+        const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
+        let diffDays = Math.floor((targetDate - loanDate) / (1000 * 60 * 60 * 24));
+        let daysElapsed = Math.max(0, diffDays) + 1; // +1 to include today
+
+        // Cap at plan duration
+        const planDur = Number(cust.planDuration || cust.duration || 60);
+        if (daysElapsed > planDur) daysElapsed = planDur;
+
+        // Expected amount vs paid
+        const expectedAmt = daysElapsed * dailyEmi;
+        const totalPaid = Number(cust.totalCollected || 0);
+        const currentDue = Math.max(0, expectedAmt - totalPaid);
+
+        // Show only if due > 0
+        if (currentDue > 0) {
+          totalCount++;
+          totalSum += currentDue;
+
+          const missedDays = Math.floor(currentDue / dailyEmi);
+          const name = cust.name || "N/A";
+          const code = cust.customerCode || "GDA";
+          const mobile = cust.mobile || "";
+
+          html += `
+            <div class="due-card">
+              <div class="due-top">
+                <div class="info">
+                  <h3>${name} <small style="color:#64748B;">(${code})</small></h3>
+                  <small>📱 ${mobile} | EMI: ₹${dailyEmi}</small>
+                  <div class="badge-group">
+                    <span class="badge badge-red">${missedDays} Din Baki</span>
+                    <span class="badge badge-black">${daysElapsed} Days Total</span>
+                    <span class="badge badge-blue">Paid: ₹${totalPaid}</span>
+                  </div>
+                </div>
+                <div class="amount-box">
+                  <div class="due-amount">₹${currentDue.toLocaleString('en-IN')}</div>
+                  <div class="label-small">Due</div>
+                </div>
+              </div>
+              <div class="due-bottom">
+                <a href="collection.html?id=${doc.id}" class="btn-sm btn-collect">💰 Collect ₹${dailyEmi}</a>
+                <a href="tel:${mobile}" class="btn-sm btn-call">📞 Call</a>
+                <a href="statement.html?id=${doc.id}" class="btn-sm btn-view">👁️ View</a>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      // Update Summary
+      totalDueCustomers.innerText = totalCount;
+      totalDueAmount.innerText = `₹${totalSum.toLocaleString('en-IN')}`;
+
+      // Render List or Empty State
+      if (html === "") {
+        dueList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <h3>No dues found for ${targetDateStr}</h3>
+            <p style="color:#64748B; font-size:13px; margin-top:4px;">All customers are up to date!</p>
+          </div>
+        `;
+      } else {
+        dueList.innerHTML = html;
+      }
+
     } catch (err) {
-      alert("❌ Error updating: " + err.message);
-      saveBtn.disabled = false;
-      saveBtn.innerText = '💾 Save Changes';
+      console.error("Error loading due list:", err);
+      dueList.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">❌</div>
+          <h3 style="color:#DC2626;">Error loading data</h3>
+          <p style="color:#64748B; font-size:13px;">${err.message}</p>
+        </div>
+      `;
     }
-  });
+  }
 
-  // Auth Check
+  // =========================================================
+  // 🔄 EVENT LISTENERS
+  // =========================================================
+  if (datePicker) {
+    datePicker.addEventListener("change", (e) => {
+      loadDueCustomers(e.target.value);
+    });
+  }
+
+  if (btnToday) {
+    btnToday.addEventListener("click", () => {
+      if (datePicker) {
+        datePicker.value = todayIST;
+        loadDueCustomers(todayIST);
+      }
+    });
+  }
+
+  // =========================================================
+  // 🔐 AUTH CHECK
+  // =========================================================
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      location.href = "login.html";
+      window.location.href = "login.html";
     } else {
-      loadCustomer();
+      // Load today's due by default
+      loadDueCustomers(todayIST);
     }
   });
 </script>
