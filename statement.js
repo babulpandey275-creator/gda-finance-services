@@ -12,9 +12,7 @@ let currentCustomerId = null;
 const loadingMsg = document.getElementById("loadingMsg");
 const profileContent = document.getElementById("profileContent");
 
-// ============================================================
-// 🔥 नया Helper Function – कई Keys चेक करने के लिए
-// ============================================================
+// Multi-Key Helper
 function getCustomerValue(cust, keys, defaultValue = 'Not Provided') {
   if (!cust) return defaultValue;
   for (let key of keys) {
@@ -40,7 +38,6 @@ function renderProfile(cust, logs) {
   const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
   const isSettled = (cust.status === 'Settled' || cust.status === 'Closed');
 
-  // ✅ Aadhar और PAN के लिए Multi-Key Search
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
@@ -123,7 +120,7 @@ function shareWhatsApp(cust) {
 }
 
 // ============================================================
-// 🚀 नई PDF – PROFESSIONAL & DECENT (अब Aadhar/PAN सही से दिखेगा)
+// 🚀 PDF – पूरी तरह से ठीक की गई (Overlapping खत्म)
 // ============================================================
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
@@ -132,7 +129,6 @@ function generatePDF(cust, logs) {
   const margin = 16;
   let y = margin;
 
-  // ✅ Aadhar और PAN Multi-Key Search
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
@@ -160,7 +156,7 @@ function generatePDF(cust, logs) {
   doc.line(margin + 20, y, pageW - margin - 20, y);
   y += 10;
 
-  // ---- CUSTOMER DETAILS BOX ----
+  // ---- CUSTOMER DETAILS BOX (अब Overlapping नहीं होगा) ----
   doc.setFillColor(248, 250, 255);
   doc.setDrawColor(200, 200, 210);
   doc.setLineWidth(0.3);
@@ -169,47 +165,49 @@ function generatePDF(cust, logs) {
   doc.setTextColor(80, 80, 80);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  const leftX = margin + 8;
-  const rightX = pageW / 2 + 4;
-  const rowH = 8;
-  let ry = y + 6;
   
-  const fields = [
+  const leftX = margin + 8;
+  const rightX = pageW / 2 + 6;
+  const rowH = 10; // ✅ हर पंक्ति के लिए सही ऊँचाई
+  let ry = y + 6;
+
+  // ✅ बाईं तरफ (Name, Mobile, EMI, Total Paid)
+  const leftFields = [
     { label: 'Name', value: cust.name || 'N/A' },
     { label: 'Mobile', value: cust.mobile || 'N/A' },
     { label: 'EMI', value: `₹${cust.dailyEmi || cust.emi || 0}` },
-    { label: 'Total Paid', value: `₹${cust.totalCollected || 0}` },
+    { label: 'Total Paid', value: `₹${cust.totalCollected || 0}` }
   ];
-  fields.forEach((f, i) => {
-    const x = i < 2 ? leftX : rightX;
-    const yy = ry + (i % 2) * rowH;
+  leftFields.forEach((f, idx) => {
+    const yy = ry + (idx * rowH);
     doc.setTextColor(120, 120, 130);
     doc.setFont('helvetica', 'normal');
-    doc.text(f.label + ':', x, yy);
+    doc.text(f.label + ':', leftX, yy);
     doc.setTextColor(26, 35, 53);
     doc.setFont('helvetica', 'bold');
-    doc.text(f.value, x + 28, yy);
+    doc.text(f.value, leftX + 28, yy);
   });
 
-  const fields2 = [
+  // ✅ दाईं तरफ (Code, Loan Date, Duration, Paid Days)
+  const rightFields = [
     { label: 'Code', value: cust.customerCode || 'GDA' },
     { label: 'Loan Date', value: cust.loanDate || cust.startDate || 'N/A' },
     { label: 'Duration', value: `${cust.planDuration || cust.duration || 60} Days` },
-    { label: 'Paid Days', value: `${cust.paidDays || 0} Days` },
+    { label: 'Paid Days', value: `${cust.paidDays || 0} Days` }
   ];
-  fields2.forEach((f, i) => {
-    const x = pageW / 2 + 6;
-    const yy = ry + (i % 2) * rowH + (i >= 2 ? rowH : 0);
+  rightFields.forEach((f, idx) => {
+    const yy = ry + (idx * rowH);
     doc.setTextColor(120, 120, 130);
     doc.setFont('helvetica', 'normal');
-    doc.text(f.label + ':', x, yy);
+    doc.text(f.label + ':', rightX, yy);
     doc.setTextColor(26, 35, 53);
     doc.setFont('helvetica', 'bold');
-    doc.text(f.value, x + 28, yy);
+    doc.text(f.value, rightX + 28, yy);
   });
-  y += 56;
 
-  // ---- KYC DETAILS BOX (अब Aadhar/PAN सही से दिखेगा) ----
+  y += 56; // बॉक्स के नीचे
+
+  // ---- KYC DETAILS BOX ----
   doc.setFillColor(255, 251, 235);
   doc.setDrawColor(220, 180, 80);
   doc.setLineWidth(0.3);
@@ -307,7 +305,7 @@ function generatePDF(cust, logs) {
 }
 
 // ============================================================
-// बाकी फंक्शन (Settle, Delete, Auth)
+// बाकी फंक्शन (Settle, Delete, Auth) – पहले जैसे ही
 // ============================================================
 
 async function handleSettle(cust) {
