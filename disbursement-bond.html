@@ -13,7 +13,13 @@
         .company-name { font-size: 28px; font-weight: 700; color: #0d47a1; margin: 0; letter-spacing: 1px; }
         .company-sub { font-size: 12px; color: #475569; margin: 5px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; }
         .bond-title { text-align: center; font-size: 18px; font-weight: 700; text-transform: uppercase; margin-bottom: 30px; color: #1e293b; letter-spacing: 0.5px; background: #f1f5f9; padding: 8px; border-radius: 4px; }
-        .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        
+        /* PHOTO BOX - NAYA ADDED */
+        .photo-container { position: absolute; top: 115px; right: 40px; width: 105px; height: 125px; border: 2.5px solid #0d47a1; border-radius: 8px; overflow: hidden; background: #f8fafc; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .photo-container img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-placeholder { font-size: 48px; font-weight: 800; color: #0d47a1; background: #dbeafe; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+        .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; margin-top: 15px; }
         .details-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
         .details-table td:nth-child(1) { font-weight: 600; color: #475569; width: 30%; }
         .details-table td:nth-child(2) { color: #0f172a; font-weight: 500; }
@@ -22,15 +28,12 @@
         .terms-box { margin-bottom: 40px; }
         .terms-box h4 { margin: 0 0 10px 0; font-size: 15px; color: #0d47a1; font-weight: 600; }
         .terms-box p { font-size: 13px; color: #334155; line-height: 1.6; margin: 5px 0; text-align: justify; }
-        
-        /* सिग्नेचर सेक्शन सेंटर में सेट किया गया */
         .signature-area { margin-top: 60px; text-align: center; display: flex; justify-content: center; }
         .sig-box-center { width: 50%; text-align: center; }
-        
         .btn-container { text-align: center; margin-top: 25px; }
-        .btn-print { background: #0d47a1; color: white; border: none; padding: 12px 30px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(13, 71, 161, 0.2); }
+        .btn-print { background: #0d47a1; color: white; border: none; padding: 12px 30px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; }
         .btn-back { background: #475569; color: white; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-right: 10px; }
-        @media print { body { background: white; padding: 0; color: black; } .bond-card { border: none; box-shadow: none; padding: 0; max-width: 100%; } .btn-container { display: none; } }
+        @media print { body { background: white; padding: 0; } .bond-card { border: 2px solid #000; box-shadow: none; } .btn-container { display: none; } .photo-container { border: 2px solid #000 !important; } }
     </style>
 </head>
 <body>
@@ -42,6 +45,12 @@
         <p class="company-sub">Digital Loan Distribution & Micro Finance System</p>
     </div>
     
+    <!-- PHOTO AUTOMATIC YAHAN AAYEGI -->
+    <div class="photo-container" id="photoContainer">
+        <img id="bondPhoto" src="" alt="Customer Photo" style="display:none;">
+        <div id="photoPlaceholder" class="photo-placeholder" style="display:none;">-</div>
+    </div>
+
     <div class="bond-title">Loan Disbursement Agreement Bond</div>
 
     <table class="details-table">
@@ -61,11 +70,9 @@
         <p>4. The company holds full commercial rights to take necessary lawful actions in case of total default or non-compliance with the repayment schedules.</p>
     </div>
 
-    <!-- अपडेटेड सिग्नेचर सेक्शन - अब सिर्फ ब्रांच मैनेजर और सेंटर में -->
     <div class="signature-area">
         <div class="sig-box-center">
             <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">For GDA Finance Services</p>
-            <!-- सुनिश्चित करें कि आपके फोल्डर में 'stamp_signature.png' फाइल मौजूद है -->
             <img src="stamp_signature.png" alt="Authorized Signatory" style="width: 150px; height: auto; display: block; margin: 0 auto;">
             <div style="border-top: 1px solid #000; width: 200px; margin: 10px auto 5px auto;"></div>
             <p style="font-weight: bold; margin: 0; font-size: 13px;">Branch Manager (Authorized)</p>
