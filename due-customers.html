@@ -1,125 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Due Customers - GDA Finance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-<style>
-:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--muted:#64748B;--line:#F1F5F9;--danger:#DC2626}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);min-height:100vh;padding-bottom:85px}
-.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
-.gda-logo-container{display:flex;align-items:center;gap:13px}
-.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center;border:2px solid rgba(255,255,255,0.3)}
-.gda-logo-icon.material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1}
-.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}
-.gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}
-.container{padding:14px;max-width:600px;margin:0 auto}
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.sumCard{background:#fff;border-radius:16px;padding:14px;border:1px solid var(--line);text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
-.sumCard b{font-size:20px;font-weight:800;display:block;color:var(--danger)}
-.sumCard span{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase}
-.filterBar{display:flex;gap:8px;margin-bottom:12px}
-.filterBar input[type="date"]{flex:1;padding:10px;border-radius:10px;border:1.5px solid #E9D5FF;font-weight:700}
-.btnToday{padding:10px 14px;border-radius:10px;border:none;background:#0F172A;color:#fff;font-weight:700;cursor:pointer}
-.dueCard{background:#fff;border-radius:20px;padding:14px;border:1px solid #FFE4E6;box-shadow:0 4px 16px rgba(220,38,38,0.06);margin-bottom:10px}
-.dueTop{display:flex;justify-content:space-between;align-items:flex-start}
-.dueTop h3{font-size:14px;font-weight:800;color:#0F172A}
-.dueTop small{font-size:11px;color:var(--muted)}
-.badge{display:inline-block;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;margin-top:6px}
-.badgeRed{background:#FFF1F2;color:var(--danger);border:1px solid #FFE4E6}
-.badgeBlack{background:#0F172A;color:#fff}
-.dueBottom{display:flex;gap:8px;margin-top:10px}
-.btn{flex:1;padding:10px;border-radius:10px;font-size:12px;font-weight:800;text-decoration:none;text-align:center;border:none;cursor:pointer}
-.btnCollect{background:#0F172A;color:#fff}
-.btnCall{background:#ECFDF5;color:#059669;border:1px solid #D1FAE5}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}
-.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}
-.nav-item.active{color:var(--pink)}.nav-item.material-symbols-outlined{font-size:24px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Edit Customer - GDA Finance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+    body { background:#F8FAFF; min-height:100vh; padding-bottom:20px; }
+    
+    .app-header {
+      background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
+      padding: 18px 16px 20px;
+      border-radius: 0 0 26px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .gda-logo-container { display:flex; align-items:center; gap:13px; }
+    .gda-logo-icon {
+      width:52px; height:52px; border-radius:16px;
+      background:linear-gradient(135deg,#E91E63,#FF5A8A);
+      display:flex; justify-content:center; align-items:center;
+      border:2px solid rgba(255,255,255,0.3);
+    }
+    .gda-logo-icon .material-symbols-outlined { font-size:28px; color:#fff; font-variation-settings:'FILL'1; }
+    .gda-logo-text h1 { margin:0; font-size:27px; font-weight:800; color:#fff; }
+    .gda-logo-text p { margin-top:3px; font-size:10.5px; font-weight:700; letter-spacing:3.2px; color:#FFC107; text-transform:uppercase; }
+    .back-btn { background:rgba(255,255,255,0.14); color:#fff; padding:9px 14px; border-radius:12px; text-decoration:none; font-size:12px; border:1px solid rgba(255,255,255,0.18); }
+
+    .container { padding:16px; max-width:600px; margin:0 auto; }
+    .form-card {
+      background:#fff; border-radius:24px; padding:20px;
+      box-shadow:0 8px 30px rgba(0,0,0,0.05); border:1px solid #F1F5F9;
+    }
+    .form-card h2 { font-size:18px; font-weight:800; color:#0F172A; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #E2E8F0;
+      font-size:14px; font-weight:500; background:#fff; color:#0F172A; outline:none; transition:0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color:#3A1C62; box-shadow:0 0 0 4px rgba(58,28,98,0.08);
+    }
+    .form-group textarea { resize:vertical; min-height:60px; }
+
+    .photo-preview {
+      display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; background:#F8FAFF; border-radius:12px;
+    }
+    .photo-preview img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #E9D5FF; background:#fff; }
+    .photo-preview .info { font-size:12px; color:#64748B; }
+
+    .btn-save {
+      width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98);
+      color:#fff; border:none; border-radius:14px; font-size:16px; font-weight:800;
+      cursor:pointer; box-shadow:0 8px 20px rgba(58,28,98,0.25); transition:0.15s;
+    }
+    .btn-save:active { transform:scale(0.98); }
+    .btn-save:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
+
+    .loading-text { text-align:center; padding:40px; color:#94A3B8; }
+  </style>
 </head>
 <body>
-<header class="app-header"><div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div><a href="index.html" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:12px;">← Home</a></header>
+
+<header class="app-header">
+  <div class="gda-logo-container">
+    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+  </div>
+  <a href="customer-list.html" class="back-btn">← Back</a>
+</header>
 
 <div class="container">
-<div class="filterBar">
-<input type="date" id="dueDatePicker">
-<button class="btnToday" id="btnToday">Today</button>
-</div>
+  <div class="form-card">
+    <h2>✏️ Edit Customer</h2>
+    
+    <div id="loadingIndicator" class="loading-text">⏳ Loading customer data...</div>
+    
+    <form id="editForm" style="display:none;">
+      <!-- Hidden ID -->
+      <input type="hidden" id="customerId">
+      
+      <!-- Name -->
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="editName" placeholder="Enter full name" required>
+      </div>
 
-<div class="summary">
-<div class="sumCard"><b id="totalDueCustomers">0</b><span id="dueCounter">Due Customers</span></div>
-<div class="sumCard"><b id="totalDueAmount">₹0</b><span>Total Due Amount</span></div>
-</div>
+      <!-- Mobile -->
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <input type="text" id="editMobile" placeholder="Enter mobile number" required>
+      </div>
 
-<div id="dueList"><p style="text-align:center;padding:30px;color:#94A3B8;">⏳ Loading due list...</p></div>
-</div>
+      <!-- Customer Code -->
+      <div class="form-group">
+        <label>Customer Code (ID)</label>
+        <input type="text" id="editCode" placeholder="e.g. GDA0012">
+      </div>
 
-<nav class="bottom-nav"><a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a><a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a><a href="due-customers.html" class="nav-item active"><span class="material-symbols-outlined">warning</span>Due</a><a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a><a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a></nav>
+      <!-- Loan Date -->
+      <div class="form-group">
+        <label>Loan Date</label>
+        <input type="date" id="editLoanDate">
+      </div>
+
+      <!-- Loan Amount & Duration & EMI -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Loan Amount (₹)</label>
+          <input type="number" id="editLoanAmount" placeholder="e.g. 15000">
+        </div>
+        <div class="form-group">
+          <label>Plan Duration (Days)</label>
+          <input type="number" id="editDuration" placeholder="e.g. 60">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Daily EMI (₹)</label>
+        <input type="number" id="editDailyEmi" placeholder="e.g. 300">
+      </div>
+
+      <!-- KYC Fields -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Aadhar Number</label>
+          <input type="text" id="editAadhar" placeholder="Enter Aadhar number">
+        </div>
+        <div class="form-group">
+          <label>PAN Card Number</label>
+          <input type="text" id="editPan" placeholder="Enter PAN number">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Residential Address</label>
+        <textarea id="editAddress" placeholder="Enter full address"></textarea>
+      </div>
+
+      <!-- Photo URL -->
+      <div class="form-group">
+        <label>Photo URL (Image Link)</label>
+        <input type="text" id="editPhotoUrl" placeholder="https://example.com/photo.jpg">
+      </div>
+
+      <!-- Photo Preview -->
+      <div class="photo-preview">
+        <img id="previewImage" src="https://via.placeholder.com/70" alt="Preview">
+        <div class="info">Photo Preview<br><small>(Enter URL above to change)</small></div>
+      </div>
+
+      <!-- Status -->
+      <div class="form-group">
+        <label>Account Status</label>
+        <select id="editStatus">
+          <option value="Active">Active</option>
+          <option value="Settled">Settled</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+
+      <!-- Save Button -->
+      <button type="submit" class="btn-save" id="saveBtn">💾 Save Changes</button>
+    </form>
+  </div>
+</div>
 
 <script type="module">
-import { db, auth } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { db, auth } from "./firebase.js";
+  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-const dueList=document.getElementById("dueList"),dueCounter=document.getElementById("dueCounter"),totalDueLabel=document.getElementById("totalDueAmount"),totalDueCustomers=document.getElementById("totalDueCustomers"),datePicker=document.getElementById("dueDatePicker"),btnToday=document.getElementById("btnToday");
-const todayIST=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
-if(datePicker)datePicker.value=todayIST;
+  const ADMIN_PASSWORD = "GDA@2026";
 
-async function loadDueCustomers(targetDateStr){
- if(!targetDateStr)return;
- dueList.innerHTML=`<p style="text-align:center;padding:20px;">⏳ ${targetDateStr} ka data load ho raha hai...</p>`;
- try{
-  const snap=await getDocs(collection(db,"customers"));
-  let html="",count=0,totalSum=0;
-  const targetDate=new Date(targetDateStr);
-  
-  snap.forEach(docSnap=>{
-   const cust=docSnap.data();
-   if(cust.status==="Closed")return;
-   const loanDate=new Date(cust.loanDate||cust.startDate||targetDateStr);
-   let diffDays=Math.floor((targetDate - loanDate)/(1000*60*60*24));
-   let daysElapsed=Math.max(0,diffDays)+1;
-   if(daysElapsed>Number(cust.planDuration||cust.duration||60))daysElapsed=Number(cust.planDuration||cust.duration||60);
-   
-   const dailyEmi=Number(cust.dailyEmi||cust.emi||0);
-   if(dailyEmi<=0)return;
-   const expectedAmt=daysElapsed*dailyEmi;
-   const totalPaid=Number(cust.totalCollected||0);
-   const currentDue=Math.max(0,expectedAmt-totalPaid);
-   const missedDays=Math.floor(currentDue/dailyEmi);
+  // DOM elements
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const form = document.getElementById('editForm');
+  const customerIdInput = document.getElementById('customerId');
+  const editName = document.getElementById('editName');
+  const editMobile = document.getElementById('editMobile');
+  const editCode = document.getElementById('editCode');
+  const editLoanDate = document.getElementById('editLoanDate');
+  const editLoanAmount = document.getElementById('editLoanAmount');
+  const editDuration = document.getElementById('editDuration');
+  const editDailyEmi = document.getElementById('editDailyEmi');
+  const editAadhar = document.getElementById('editAadhar');
+  const editPan = document.getElementById('editPan');
+  const editAddress = document.getElementById('editAddress');
+  const editPhotoUrl = document.getElementById('editPhotoUrl');
+  const editStatus = document.getElementById('editStatus');
+  const previewImage = document.getElementById('previewImage');
+  const saveBtn = document.getElementById('saveBtn');
 
-   // 🔥 Sirf wahi customer jiska 2 din ya 1 din ka baki hai
-   if(currentDue>0){
-    count++; totalSum+=currentDue;
-    html+=`
-    <div class="dueCard">
-     <div class="dueTop">
-      <div><h3>${cust.name} <small style="color:#64748B;">(${cust.customerCode||'GDA'})</small></h3><small>📱 ${cust.mobile||'N/A'} | EMI: ₹${dailyEmi} | Paid: ₹${totalPaid}</small><br><span class="badge badgeRed">${missedDays} Din Baki - ${daysElapsed} Days Total</span> <span class="badge badgeBlack">Expected: ₹${expectedAmt} - Paid: ₹${totalPaid}</span></div>
-      <div style="text-align:right;"><b style="color:var(--danger);font-size:18px;">₹${currentDue.toLocaleString('en-IN')}</b><br><small style="color:var(--muted);">Baki</small></div>
-     </div>
-     <div class="dueBottom">
-      <a href="collection.html?id=${docSnap.id}" class="btn btnCollect">💰 Collect ₹${dailyEmi}</a>
-      <a href="tel:${cust.mobile}" class="btn btnCall">📞 Call</a>
-      <a href="statement.html?id=${docSnap.id}" class="btn" style="background:#F1F5F9;">👁️ View</a>
-     </div>
-    </div>`;
-   }
+  // Get ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const customerId = urlParams.get('id');
+
+  if (!customerId) {
+    loadingIndicator.innerHTML = '❌ No Customer ID found. Please go back and try again.';
+    throw new Error('Missing ID');
+  }
+
+  // Load customer data
+  async function loadCustomer() {
+    try {
+      const docSnap = await getDoc(doc(db, "customers", customerId));
+      if (!docSnap.exists()) {
+        loadingIndicator.innerHTML = '❌ Customer not found in database.';
+        return;
+      }
+      const data = docSnap.data();
+
+      // Fill form
+      customerIdInput.value = customerId;
+      editName.value = data.name || '';
+      editMobile.value = data.mobile || '';
+      editCode.value = data.customerCode || '';
+      editLoanDate.value = data.loanDate || '';
+      editLoanAmount.value = data.loanAmount || '';
+      editDuration.value = data.planDuration || data.duration || '';
+      editDailyEmi.value = data.dailyEmi || data.emi || '';
+      editAadhar.value = data.aadhar || data.aadhaar || '';
+      editPan.value = data.pan || '';
+      editAddress.value = data.address || '';
+      editPhotoUrl.value = data.photoUrl || data.photo || '';
+      editStatus.value = data.status || 'Active';
+
+      // Update preview
+      const photoUrl = data.photoUrl || data.photo || '';
+      if (photoUrl && photoUrl.startsWith('http')) {
+        previewImage.src = photoUrl;
+      } else {
+        previewImage.src = 'https://via.placeholder.com/70';
+      }
+
+      loadingIndicator.style.display = 'none';
+      form.style.display = 'block';
+
+    } catch (err) {
+      loadingIndicator.innerHTML = `❌ Error loading data: ${err.message}`;
+      console.error(err);
+    }
+  }
+
+  // Real-time photo preview
+  editPhotoUrl.addEventListener('input', (e) => {
+    const url = e.target.value.trim();
+    if (url && url.startsWith('http')) {
+      previewImage.src = url;
+    } else {
+      previewImage.src = 'https://via.placeholder.com/70';
+    }
   });
 
-  totalDueCustomers.innerText=count;
-  totalDueLabel.innerText=`₹${totalSum.toLocaleString('en-IN')}`;
-  dueCounter.innerText=`Due Customers (${count})`;
+  // Handle Save
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  if(html==="")dueList.innerHTML=`<div style="text-align:center;padding:30px;background:#fff;border-radius:20px;"><p style="font-size:40px;">✅</p><p style="font-weight:800;color:#059669;">${targetDateStr} tak koi bakaya nahi!</p></div>`;
-  else dueList.innerHTML=html;
+    // Admin Password Check
+    const pass = prompt("🔑 Enter Admin Password to save changes:");
+    if (pass !== ADMIN_PASSWORD) {
+      if (pass !== null) alert("❌ Wrong Password! Changes not saved.");
+      return;
+    }
 
- }catch(err){dueList.innerHTML=`<p style="text-align:center;padding:20px;color:#DC2626;">Error: ${err.message}</p>`;}
-}
+    if (!confirm("Are you sure you want to update this customer?")) return;
 
-datePicker.addEventListener("change",e=>loadDueCustomers(e.target.value));
-btnToday.addEventListener("click",()=>{datePicker.value=todayIST;loadDueCustomers(todayIST);});
-auth.onAuthStateChanged(user=>{if(!user)location.href="login.html";else loadDueCustomers(todayIST);});
+    saveBtn.disabled = true;
+    saveBtn.innerText = '⏳ Saving...';
+
+    try {
+      const updatedData = {
+        name: editName.value.trim(),
+        mobile: editMobile.value.trim(),
+        customerCode: editCode.value.trim(),
+        loanDate: editLoanDate.value,
+        loanAmount: Number(editLoanAmount.value) || 0,
+        planDuration: Number(editDuration.value) || 60,
+        dailyEmi: Number(editDailyEmi.value) || 0,
+        aadhar: editAadhar.value.trim(),
+        pan: editPan.value.trim(),
+        address: editAddress.value.trim(),
+        photoUrl: editPhotoUrl.value.trim(),
+        status: editStatus.value,
+        updatedAt: new Date().toISOString()
+      };
+
+      const custRef = doc(db, "customers", customerId);
+      await updateDoc(custRef, updatedData);
+
+      alert("✅ Customer updated successfully!");
+      window.location.href = `statement.html?id=${customerId}`;
+    } catch (err) {
+      alert("❌ Error updating: " + err.message);
+      saveBtn.disabled = false;
+      saveBtn.innerText = '💾 Save Changes';
+    }
+  });
+
+  // Auth Check
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      location.href = "login.html";
+    } else {
+      loadCustomer();
+    }
+  });
 </script>
 </body>
 </html>
