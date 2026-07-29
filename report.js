@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 GDA FINANCE - REPORT ENGINE (STRICT BUSINESS SYSTEM FIXED)
+// 🚀 GDA FINANCE - REPORT ENGINE (FIXED OVERDUE)
 // ==========================================
 
 import { db, auth } from "./firebase.js";
@@ -26,7 +26,7 @@ export async function loadReport() {
         const btnQuarterly = document.getElementById("btnQuarterly");
         const btnYearly = document.getElementById("btnYearly");
 
-        let currentMode = "Monthly"; // Default mode set to Monthly
+        let currentMode = "Monthly";
         const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         if (reportDatePicker && !reportDatePicker.value) {
@@ -38,6 +38,29 @@ export async function loadReport() {
                 if (btn) btn.classList.remove("active");
             });
             if (activeBtn) activeBtn.classList.add("active");
+        }
+
+        // 🔥 नया फंक्शन – Overdue Calculation (बिल्कुल Dashboard जैसा)
+        function calculateTotalOverdue(customers, targetDateStr) {
+            const targetDate = new Date(targetDateStr);
+            let totalDue = 0;
+            customers.forEach(cust => {
+                if (cust.status === "Closed") return;
+                const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+                if (dailyEmi <= 0) return;
+
+                const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
+                let diffDays = Math.floor((targetDate - loanDate) / (1000 * 60 * 60 * 24));
+                let daysElapsed = Math.max(0, diffDays) + 1;
+                const planDur = Number(cust.planDuration || cust.duration || 60);
+                if (daysElapsed > planDur) daysElapsed = planDur;
+
+                const expectedAmt = daysElapsed * dailyEmi;
+                const totalPaid = Number(cust.totalCollected || 0);
+                const currentDue = Math.max(0, expectedAmt - totalPaid);
+                totalDue += currentDue;
+            });
+            return totalDue;
         }
 
         async function renderReportPipeline() {
@@ -65,7 +88,7 @@ export async function loadReport() {
             }
 
             try {
-                // 1. Filtered Expenses
+                // 1. Expenses
                 let expensesSum = 0;
                 const expSnapshot = await getDocs(collection(db, "expenses"));
                 expSnapshot.forEach(doc => {
@@ -75,10 +98,9 @@ export async function loadReport() {
                     }
                 });
 
-                // 2. Collections Data Stream
+                // 2. Collections
                 let lifetimeCollectionUptoTarget = 0;
                 let rangeCollectionSum = 0;
-                let todayCollectedForOverdue = 0;
 
                 const collectSnapshot = await getDocs(collection(db, "collections"));
                 collectSnapshot.forEach(doc => {
@@ -88,15 +110,12 @@ export async function loadReport() {
                     if (d.date && d.date <= targetDate) {
                         lifetimeCollectionUptoTarget += amt;
                     }
-                    if (d.date && d.date === targetDate) {
-                        todayCollectedForOverdue += amt;
-                    }
                     if (d.date && d.date >= startDateStr && d.date <= endDateStr) {
                         rangeCollectionSum += amt;
                     }
                 });
 
-                // 3. Customers Data Processing
+                // 3. Customers
                 const custSnapshot = await getDocs(collection(db, "customers"));
                 
                 let lifetimeDisbursementUptoTarget = 0;
@@ -105,12 +124,16 @@ export async function loadReport() {
                 let rangeDisbursementSum = 0;
                 let rangeInterestSum = 0;
                 let rangeAccountsCount = 0;
-                let totalTodayDemandCalculated = 0;
+
+                const allCustomers = [];
 
                 custSnapshot.forEach(doc => {
                     const cust = doc.data();
                     const loanAmt = Number(cust.loanAmount || 0);
                     const emi = Number(cust.dailyEmi || cust.emi || 0);
+
+                    // Store for overdue calculation
+                    allCustomers.push({ ...cust, id: doc.id });
 
                     if (cust.loanDate && cust.loanDate <= targetDate) {
                         lifetimeDisbursementUptoTarget += loanAmt;
@@ -122,42 +145,30 @@ export async function loadReport() {
                         rangeInterestSum += (loanAmt * 0.20);
                         if (cust.status !== "Closed") rangeAccountsCount++;
                     }
-
-                    if (cust.status !== "Closed") {
-                        totalTodayDemandCalculated += emi;
-                    }
                 });
 
-                // 🧮 STRICT TARGET OVERDUE LOGIC BASED ON SELECTED MODE:
-                let dynamicTotalOverdue = 0;
-                if (currentMode === "Daily") {
-                    // Daily me subah target ₹2200 dikhega, collection aane par minus hoga
-                    dynamicTotalOverdue = Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue);
-                } else if (currentMode === "Monthly") {
-                    // Monthly me agar aaj ka live collection target ke barabar ya jyada ho gaya hai to 0 dikhayega
-                    dynamicTotalOverdue = todayCollectedForOverdue >= totalTodayDemandCalculated ? 0 : Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue);
-                } else {
-                    dynamicTotalOverdue = Math.max(0, totalTodayDemandCalculated);
-                }
+                // 🔥 Overdue Calculation – Dashboard Style
+                const totalOverdue = calculateTotalOverdue(allCustomers, targetDate);
 
-                // Portfolio formulas (Kal tak ka collection perfectly minus hoga market cap se)
+                // Portfolio & Profit
                 const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
                 const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
                 const netProfitSum = rangeInterestSum - expensesSum;
 
-                // Render metrics to UI elements
-                if (totalPortfolio) totalPortfolio.innerText = `₹${portfolioRemaining}`;
-                if (disbursement) disbursement.innerText = `₹${rangeDisbursementSum}`;
-                if (collectionEl) collectionEl.innerText = `₹${rangeCollectionSum}`;
-                if (interestIncome) interestIncome.innerText = `₹${rangeInterestSum}`;
-                if (totalExpensesEl) totalExpensesEl.innerText = `₹${expensesSum}`;
-                if (netProfit) netProfit.innerText = `₹${netProfitSum}`;
-                if (totalDue) totalDue.innerText = `₹${dynamicTotalOverdue}`;
+                // Render UI
+                if (totalPortfolio) totalPortfolio.innerText = `₹${Math.round(portfolioRemaining).toLocaleString('en-IN')}`;
+                if (disbursement) disbursement.innerText = `₹${Math.round(rangeDisbursementSum).toLocaleString('en-IN')}`;
+                if (collectionEl) collectionEl.innerText = `₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')}`;
+                if (interestIncome) interestIncome.innerText = `₹${Math.round(rangeInterestSum).toLocaleString('en-IN')}`;
+                if (totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(expensesSum).toLocaleString('en-IN')}`;
+                if (netProfit) netProfit.innerText = `₹${Math.round(netProfitSum).toLocaleString('en-IN')}`;
+                if (totalDue) totalDue.innerText = `₹${Math.round(totalOverdue).toLocaleString('en-IN')}`;  // ✅ अब Dashboard जैसा
                 if (newAccounts) newAccounts.innerText = rangeAccountsCount;
 
             } catch (err) { console.error("Report System Reload Failure:", err); }
         }
 
+        // Event Listeners
         if (btnDaily) btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReportPipeline(); };
         if (btnMonthly) btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReportPipeline(); };
         if (btnQuarterly) btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReportPipeline(); };
