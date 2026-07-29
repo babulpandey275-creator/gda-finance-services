@@ -3,22 +3,30 @@
 // ==========================================================
 
 import { auth } from "./firebase.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 1. लॉगआउट हैंडलर (जो आपके इंडेक्स पेज के 'Logout' बटन के लिए है)
+    // 1. Auth Guard - Login nahi hai to login page pe bhejo (Report page fix)
+    onAuthStateChanged(auth, (user) => {
+        if (!user && !window.location.pathname.includes("login.html")) {
+            // console.log("Not logged in");
+            // window.location.href = "login.html"; // Isko chaho to on kar sakte ho
+        }
+    });
+
+    // 2. लॉगआउट हैंडलर
     const logoutBtn = document.getElementById("logoutBtn");
     
     if (logoutBtn) {
         logoutBtn.addEventListener("click", async (e) => {
-            e.preventDefault(); // लिंक को तुरंत रिलोड होने से रोकता है
+            e.preventDefault();
             
             const confirmLogout = confirm("क्या आप सच में लॉगआउट करना चाहते हैं?");
             if (confirmLogout) {
                 try {
                     await signOut(auth);
-                    window.location.href = "login.html"; // वापस लॉगिन पेज पर भेज देगा
+                    window.location.href = "login.html";
                 } catch (err) {
                     console.error("Logout Error:", err);
                     alert("लॉगआउट करने में समस्या आई।");
@@ -26,6 +34,4 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-    // आप भविष्य में यहाँ कोई भी अन्य कॉमन फंक्शन (जैसे साइडबार टॉगल) जोड़ सकते हैं।
 });
