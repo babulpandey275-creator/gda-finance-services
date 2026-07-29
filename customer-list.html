@@ -4,165 +4,153 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Customers - GDA Finance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 <style>
-:root{--text-main:#0F172A;--muted:#64748B;--line:#F1F5F9;}
+:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--card:#fff;--muted:#64748B;--line:#F1F5F9;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#F8FAFF;padding-bottom:85px;}
-.topbar{position:sticky;top:0;z-index:20;background:rgba(248,250,255,0.9);backdrop-filter:blur(20px);padding:14px;border-bottom:1px solid var(--line);}
-.filter-row{display:flex;gap:8px;margin-bottom:12px;}
-.filter-tab{padding:10px 18px;border-radius:30px;font-size:13px;font-weight:700;border:1px solid #E2E8F0;background:#fff;color:#475569;cursor:pointer;}
-.filter-tab.active{background:#0F172A;color:#fff;border-color:#0F172A;box-shadow:0 6px 18px rgba(15,23,42,0.2);}
-.search-box{position:relative;}
-.search-box input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:13px 14px 13px 42px;font-size:14px;outline:none;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
-.search-box span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
+body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
 
-#listContainer{padding:12px;display:flex;flex-direction:column;gap:12px;}
-.cust-card{background:#fff;border-radius:20px;padding:14px;border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,0.04);transition:0.15s;}
-.cust-card:active{transform:scale(0.98);}
-.card-top{display:flex;gap:12px;align-items:center;}
-.card-top img{width:54px;height:54px;border-radius:16px;object-fit:cover;flex-shrink:0;border:1px solid #F1F5F9;background:#EFF6FF;}
-.card-top h4{font-size:15px;color:var(--text-main);font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.card-top p{font-size:11.5px;color:var(--muted);margin-top:2px;}
-.badge{display:inline-block;background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;margin-left:6px;}
-.btn-row{display:flex;gap:8px;margin-top:12px;}
-.btn-row a, .btn-row button{flex:1;padding:10px;border-radius:12px;font-size:12px;font-weight:700;text-align:center;text-decoration:none;border:none;cursor:pointer;}
-.btn-collect{background:#0F172A;color:#fff;}
-.btn-del{background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3 !important;}
-.btn-edit{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A !important;}
+/* === SAME GDA HEADER AS COLLECTION PAGE === */
+.app-header{
+  background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
+  padding:18px 16px 20px;border-radius:0 0 26px 26px;
+  display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 12px 32px rgba(58,28,98,0.28);position:sticky;top:0;z-index:20;
+}
+.gda-logo-container{display:flex;align-items:center;gap:13px;}
+.gda-logo-icon{
+  width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);
+  display:flex;justify-content:center;align-items:center;
+  border:2px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(233,30,99,0.35);
+}
+.gda-logo-icon .material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1;}
+.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;line-height:1;color:#fff;letter-spacing:0.5px;}
+.gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:3.2px;color:var(--gold);}
+.back-btn{background:rgba(255,255,255,0.14);backdrop-filter:blur(12px);color:#fff;border:1px solid rgba(255,255,255,0.18);padding:9px 14px;border-radius:12px;font-size:12px;font-weight:600;text-decoration:none;}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);z-index:30;}
-.bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:3px;}
-.bnav-item.active{color:#E11D48;}
+.container{padding:14px;max-width:600px;margin:0 auto;}
+
+/* Tabs */
+.filterTabs{display:flex;gap:8px;margin-bottom:12px;}
+.tabBtn{padding:11px 18px;border-radius:30px;border:1.5px solid #E2E8F0;background:#fff;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:0.2s;}
+.tabBtn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(58,28,98,0.2);}
+
+/* Search */
+.searchWrap{position:relative;margin-bottom:14px;}
+.searchWrap input{width:100%;padding:14px 14px 42px;border-radius:14px;border:1.5px solid #E9D5FF;background:#fff;font-size:13px;font-weight:600;outline:none;}
+.searchWrap .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.searchWrap input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(58,28,98,0.06);}
+
+/* Customer Card - Same as your screenshot */
+.custCard{background:#fff;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:1px solid #F1F5F9;margin-bottom:10px;}
+.custCard img{width:56px;height:56px;border-radius:16px;object-fit:cover;background:#F1F5F9;flex-shrink:0;}
+.custInfo{flex:1;min-width:0;}
+.custInfo h3{font-size:15px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.custInfo p{font-size:12px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.custInfo p b{color:#0F172A;}
+.actions{display:flex;gap:6px;flex-shrink:0;}
+.btn{padding:9px 14px;border-radius:12px;font-size:12px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
+.btnCollect{background:#0F172A;color:#fff;}
+.btnDel{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6;}
+.btnEdit{background:#FFFBEB;color:#92400E;border:1px solid #FEF3C7;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
+.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
+.nav-item.active{color:var(--pink);font-weight:700;}
+.nav-item .material-symbols-outlined{font-size:24px;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="filter-row">
-    <button class="filter-tab active" onclick="filterCustomers('active')">Active Accounts</button>
-    <button class="filter-tab" onclick="filterCustomers('closed')">Closed Accounts</button>
+<!-- GDA HEADER - SAME AS COLLECTION -->
+<header class="app-header">
+  <div class="gda-logo-container">
+    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
   </div>
-  <div class="search-box">
-    <span>⌕</span>
-    <input id="searchInp" placeholder="Search name, mobile, code...">
+  <a href="index.html" class="back-btn">← Back</a>
+</header>
+
+<div class="container">
+  <div class="filterTabs">
+    <button class="tabBtn active" id="btnActive">Active Accounts</button>
+    <button class="tabBtn" id="btnClosed">Closed Accounts</button>
+  </div>
+
+  <div class="searchWrap">
+    <span class="material-symbols-outlined icon" style="font-size:18px;">search</span>
+    <input type="text" id="searchInput" placeholder="Search name, mobile, code...">
+  </div>
+
+  <div id="customerList">
+    <div style="text-align:center;padding:30px;color:#94A3B8;">⏳ Loading customers...</div>
   </div>
 </div>
 
-<div id="listContainer"><p style='text-align:center; padding:20px;color:#94A3B8;'>⏳ लोड हो रहा है...</p></div>
-
-<div class="bottom-nav">
-  <a class="bnav-item" href="index.html"><span>⌂</span><span>Home</span></a>
-  <a class="bnav-item active"><span>◫</span><span>Customers</span></a>
-  <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
-  <a class="bnav-item" href="reports.html"><span>◱</span><span>Reports</span></a>
-  <a class="bnav-item" href="login.html"><span>↪</span><span>Logout</span></a>
-</div>
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+  <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+</nav>
 
 <script type="module">
-import { db } from "./firebase.js";
-import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { db, auth } from "./firebase.js";
+import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-const listContainer = document.getElementById("listContainer");
-const searchInp = document.getElementById("searchInp");
-const ADMIN_PASSWORD = "GDA@2026";
+const customerList = document.getElementById("customerList");
+const searchInput = document.getElementById("searchInput");
+const btnActive = document.getElementById("btnActive");
+const btnClosed = document.getElementById("btnClosed");
 
 let allCustomers = [];
+let currentMode = "Active";
 
-async function loadCustomers() {
-    listContainer.innerHTML = "<p style='text-align:center; padding:20px;color:#94A3B8;'>⏳ लोड हो रहा है...</p>";
-    try {
-        const querySnapshot = await getDocs(collection(db, "customers"));
-        allCustomers = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderList(allCustomers.filter(c => c.status !== 'Closed' && c.status !== 'Settled'));
-    } catch (err) {
-        listContainer.innerHTML = "❌ डेटा लोड नहीं हुआ।";
-        console.error(err);
-    }
+function renderList(filterText=""){
+  let filtered = allCustomers.filter(c => currentMode==="Active" ? c.status!=="Closed" : c.status==="Closed");
+  if(filterText){
+    const q = filterText.toLowerCase();
+    filtered = filtered.filter(c => (c.name||"").toLowerCase().includes(q) || (c.mobile||"").includes(q) || (c.customerCode||"").toLowerCase().includes(q));
+  }
+  if(filtered.length===0){ customerList.innerHTML=`<div style="text-align:center;padding:40px;color:#94A3B8;">No ${currentMode} accounts found</div>`; return; }
+  customerList.innerHTML = filtered.map(c=>`
+    <div class="custCard">
+      <img src="${c.photoUrl||c.photo||'https://via.placeholder.com/100?text=GDA'}" onerror="this.src='https://via.placeholder.com/100?text=GDA'">
+      <div class="custInfo">
+        <h3>${c.name||'No Name'}</h3>
+        <p>📱 ${c.mobile||'N/A'}</p>
+        <p>💰 Loan: <b>₹${Number(c.loanAmount||0).toLocaleString('en-IN')}</b> | ID: ${c.customerCode||'GDA'}</p>
+      </div>
+      <div class="actions">
+        <a href="collection.html?id=${c.id}" class="btn btnCollect">Collect</a>
+        <button class="btn btnDel" onclick="deleteCust('${c.id}')">Del</button>
+        <a href="edit-customer.html?id=${c.id}" class="btn btnEdit">Edit</a>
+      </div>
+    </div>
+  `).join('');
 }
 
-function renderList(data) {
-    listContainer.innerHTML = "";
-    if (data.length === 0) {
-        listContainer.innerHTML = "<p style='text-align:center; padding:30px;color:#94A3B8;'>कोई कस्टमर नहीं मिला।</p>";
-        return;
-    }
-
-    data.forEach(cust => {
-        const card = document.createElement("div");
-        card.className = "cust-card";
-        
-        const imageUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) 
-            ? cust.photoUrl 
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(cust.name||'C')}&background=0F172A&color=fff&bold=true`;
-
-        const code = cust.customerCode || cust.customerId || cust.id.substring(0,7).toUpperCase();
-
-        card.innerHTML = `
-        <div class="card-top" onclick="window.location.href='statement.html?id=${cust.id}'" style="cursor:pointer;">
-            <img src="${imageUrl}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(cust.name||'C')}&background=0F172A&color=fff'">
-            <div style="flex:1;min-width:0;">
-                <h4>${cust.name || "N/A"} <span class="badge">${code}</span></h4>
-                <p>📱 ${cust.mobile || "N/A"}</p>
-                <p>💰 Loan: <b style="color:#0F172A;">₹${Number(cust.loanAmount||0).toLocaleString('en-IN')}</b> | ID: ${code}</p>
-            </div>
-        <div class="btn-row">
-            <a href="collection.html?id=${cust.id}" class="btn-collect">Collect</a>
-            <button onclick="secureDelete('${cust.id}')" class="btn-del">Del</button>
-            <button onclick="secureEdit('${cust.id}')" class="btn-edit">Edit</button>
-        </div>`;
-        listContainer.appendChild(card);
-    });
-}
-
-if (searchInp) {
-    searchInp.addEventListener("input", (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = allCustomers.filter(c => 
-            (c.name && c.name.toLowerCase().includes(term)) || 
-            (c.mobile && c.mobile.includes(term)) ||
-            (c.customerCode && c.customerCode.toLowerCase().includes(term))
-        );
-        renderList(filtered);
-    });
-}
-
-window.secureEdit = (docId) => {
-    const pass = prompt("🔑 Edit करने के लिए Admin Password डालें:");
-    if (pass === ADMIN_PASSWORD) {
-        window.location.href = `./edit.html?id=${docId}`;
-    } else if (pass !== null) {
-        alert("❌ गलत पासवर्ड!");
-    }
+window.deleteCust = async(id)=>{
+  if(!confirm("Delete karna hai?")) return;
+  await deleteDoc(doc(db,"customers",id));
+  allCustomers = allCustomers.filter(x=>x.id!==id);
+  renderList(searchInput.value);
 };
 
-window.secureDelete = async (docId) => {
-    const pass = prompt("⚠️ DELETE करने के लिए Admin Password डालें:");
-    if (pass === ADMIN_PASSWORD) {
-        if (!confirm("क्या आप वाकई इस कस्टमर को हटाना चाहते हैं?")) return;
-        try {
-            await deleteDoc(doc(db, "customers", docId));
-            alert("✅ डिलीट सफल!");
-            loadCustomers();
-        } catch (err) {
-            alert("❌ एरर: " + err.message);
-        }
-    } else if (pass !== null) {
-        alert("❌ गलत पासवर्ड!");
-    }
-};
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="login.html"; return; }
+  const snap = await getDocs(collection(db,"customers"));
+  allCustomers = []; snap.forEach(d=>{ allCustomers.push({id:d.id,...d.data()}); });
+  renderList();
+});
 
-window.filterCustomers = (type) => {
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    if (type === 'closed') {
-        renderList(allCustomers.filter(c => c.status === 'Closed' || c.status === 'Settled'));
-    } else {
-        renderList(allCustomers.filter(c => c.status !== 'Closed' && c.status !== 'Settled'));
-    }
-};
+btnActive.onclick=()=>{ currentMode="Active"; btnActive.classList.add("active"); btnClosed.classList.remove("active"); renderList(searchInput.value); };
+btnClosed.onclick=()=>{ currentMode="Closed"; btnClosed.classList.add("active"); btnActive.classList.remove("active"); renderList(searchInput.value); };
+searchInput.oninput=(e)=>renderList(e.target.value);
 
-loadCustomers();
+document.getElementById("logoutBtn").onclick=async(e)=>{ e.preventDefault(); await signOut(auth); location.href="login.html"; };
 </script>
 </body>
 </html>
