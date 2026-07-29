@@ -1,13 +1,11 @@
 // ==========================================================
-// 🚀 GDA FINANCE - REGISTER CUSTOMER (FINAL: IMGBB + SERIAL ID + GUARDIAN + AADHAAR)
+// 🚀 GDA FINANCE - REGISTER CUSTOMER (FINAL FIXED)
 // ==========================================================
 
 import { db } from "./firebase.js";
 import { collection, addDoc, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-// =========================================================
-// 🔥 1. SERIAL ID GENERATOR (GDA001, GDA002, GDA003...)
-// =========================================================
+// 1. SERIAL ID GENERATOR
 async function generateCustomerCode() {
     const counterRef = doc(db, "metadata", "customerCounter");
     try {
@@ -28,14 +26,10 @@ async function generateCustomerCode() {
     }
 }
 
-// =========================================================
-// 2. IMGBB SETUP (भविष्य में Firebase Storage से बदल सकते हैं)
-// =========================================================
+// 2. IMGBB SETUP
 const IMGBB_API_KEY = "5230b9fc28c784e9c389bcf09cb56dd2";
 
-// =========================================================
 // 3. DOM ELEMENTS
-// =========================================================
 const form = document.getElementById("regForm");
 const loanAmountInput = document.getElementById("loanAmount");
 const loanPlanSelect = document.getElementById("loanPlan");
@@ -45,9 +39,6 @@ const photoInput = document.getElementById("customerPhoto");
 const photoPreview = document.getElementById("photoPreview");
 const submitBtn = document.getElementById("regBtn");
 
-// =========================================================
-// 4. LOAN CALCULATION (20% Interest)
-// =========================================================
 function calculate() {
     const amt = parseFloat(loanAmountInput.value) || 0;
     const days = parseInt(loanPlanSelect.value) || 60;
@@ -55,22 +46,15 @@ function calculate() {
     totalPayableInput.value = Math.round(total);
     dailyCollectionInput.value = Math.round(total / days);
 }
-
 loanAmountInput.addEventListener("input", calculate);
 loanPlanSelect.addEventListener("change", calculate);
 
-// =========================================================
-// 5. PHOTO PREVIEW
-// =========================================================
 photoInput.addEventListener("change", function () {
     if (this.files && this.files[0]) {
         photoPreview.src = URL.createObjectURL(this.files[0]);
     }
 });
 
-// =========================================================
-// 6. IMGBB UPLOAD FUNCTION
-// =========================================================
 async function uploadToImgBB(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -83,53 +67,50 @@ async function uploadToImgBB(file) {
     return result.data.url;
 }
 
-// =========================================================
-// 7. ✅ MAIN FORM SUBMISSION (FINAL: GUARDIAN + REAL AADHAAR)
-// =========================================================
+// 7. MAIN FORM SUBMISSION (FIXED)
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
     submitBtn.disabled = true;
     submitBtn.innerText = "⏳ Saving Data...";
-
     try {
-        // Serial ID जनरेट करें
         const uniqueCode = await generateCustomerCode();
-
-        // फोटो अपलोड (अगर चुनी है)
         let photoUrl = "";
         if (photoInput.files.length > 0) {
             photoUrl = await uploadToImgBB(photoInput.files[0]);
         }
 
-        // 🔥🔥🔥 Data Object – अब Guardian Name और Real Aadhaar शामिल हैं
+        // 🔥 FIX: Saare field ek sath save taaki kahin bhi 0 na dikhe
+        const totalPayableVal = Number(totalPayableInput.value);
+        const dailyVal = Number(dailyCollectionInput.value);
+
         const customerData = {
             name: document.getElementById("customerName").value.trim(),
             mobile: document.getElementById("mobile").value.trim(),
-            guardianName: document.getElementById("guardianName").value.trim(), // 🔥 नया (New) फील्ड (Field)
-            aadhaar: document.getElementById("aadhaar").value.trim(), // 🔥 अब रीयल (Real) नंबर (Number) सेव (Save) होगा
+            guardianName: document.getElementById("guardianName").value.trim(),
+            aadhaar: document.getElementById("aadhaar").value.trim(),
             panCard: document.getElementById("panNumber").value.toUpperCase().trim(),
             loanAmount: Number(loanAmountInput.value),
             planDuration: Number(loanPlanSelect.value),
-            totalPayable: Number(totalPayableInput.value),
-            dailyCollection: Number(dailyCollectionInput.value),
+            totalPayable: totalPayableVal,
+            totalCollection: totalPayableVal, // FIX
+            dailyCollection: dailyVal, // FIX
+            dailyEmi: dailyVal, // FIX - Isi se collection sahi hoga
+            totalCollected: 0, // FIX
+            paidDays: 0, // FIX
             photoUrl: photoUrl || "",
             status: "Active",
-            loanDate: new Date().toISOString().split("T")[0],
+            loanDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
             createdAt: new Date().toISOString(),
-            customerCode: uniqueCode // GDA001, GDA002...
+            customerCode: uniqueCode
         };
 
-        // Firestore में सेव करें
         await addDoc(collection(db, "customers"), customerData);
-
         alert(`✅ कस्टमर ${uniqueCode} सफलतापूर्वक रजिस्टर हो गया!`);
         window.location.href = "customer-list.html";
-
     } catch (err) {
         console.error("Submission Error:", err);
         alert("❌ Error: " + err.message);
         submitBtn.disabled = false;
-        submitBtn.innerText = "📥 Save Registration";
+        submitBtn.innerText = "💾 Save Registration";
     }
 });
