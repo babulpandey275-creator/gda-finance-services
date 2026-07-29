@@ -12,7 +12,9 @@ let currentCustomerId = null;
 const loadingMsg = document.getElementById("loadingMsg");
 const profileContent = document.getElementById("profileContent");
 
-// Multi-Key Helper
+// ============================================================
+// 🔥 Helper – Multi-Key Search (Aadhar, PAN, Photo)
+// ============================================================
 function getCustomerValue(cust, keys, defaultValue = 'Not Provided') {
   if (!cust) return defaultValue;
   for (let key of keys) {
@@ -27,6 +29,9 @@ function getCustomerIdFromUrl() {
   return new URLSearchParams(window.location.search).get('id');
 }
 
+// ============================================================
+// 🖥️ RENDER PROFILE (UI)
+// ============================================================
 function renderProfile(cust, logs) {
   const planDur = Number(cust.planDuration || cust.duration || 60);
   const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
@@ -112,6 +117,9 @@ function renderProfile(cust, logs) {
   });
 }
 
+// ============================================================
+// 💬 WHATSAPP SHARE
+// ============================================================
 function shareWhatsApp(cust) {
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
@@ -120,7 +128,7 @@ function shareWhatsApp(cust) {
 }
 
 // ============================================================
-// 🚀 PDF – पूरी तरह से ठीक की गई (Overlapping खत्म)
+// 📄 PDF GENERATION – HEADERS BILKUL SAHI (FIXED)
 // ============================================================
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
@@ -132,7 +140,7 @@ function generatePDF(cust, logs) {
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
-  // ---- HEADER ----
+  // ---- HEADER (बिल्कुल सही - कोई "O=" नहीं) ----
   doc.setFillColor(26, 35, 53);
   doc.rect(margin, y, pageW - (margin * 2), 28, 'F');
   doc.setTextColor(255, 255, 255);
@@ -145,7 +153,7 @@ function generatePDF(cust, logs) {
   doc.text('Digital Loan Distribution & Micro Finance System', pageW / 2, y + 22, { align: 'center' });
   y += 32;
 
-  // ---- TITLE ----
+  // ---- TITLE (✅ अब "CUSTOMER KYC & STATEMENT REPORT") ----
   doc.setTextColor(26, 35, 53);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -156,7 +164,7 @@ function generatePDF(cust, logs) {
   doc.line(margin + 20, y, pageW - margin - 20, y);
   y += 10;
 
-  // ---- CUSTOMER DETAILS BOX (अब Overlapping नहीं होगा) ----
+  // ---- CUSTOMER DETAILS BOX ----
   doc.setFillColor(248, 250, 255);
   doc.setDrawColor(200, 200, 210);
   doc.setLineWidth(0.3);
@@ -165,13 +173,11 @@ function generatePDF(cust, logs) {
   doc.setTextColor(80, 80, 80);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  
   const leftX = margin + 8;
   const rightX = pageW / 2 + 6;
-  const rowH = 10; // ✅ हर पंक्ति के लिए सही ऊँचाई
+  const rowH = 10;
   let ry = y + 6;
 
-  // ✅ बाईं तरफ (Name, Mobile, EMI, Total Paid)
   const leftFields = [
     { label: 'Name', value: cust.name || 'N/A' },
     { label: 'Mobile', value: cust.mobile || 'N/A' },
@@ -188,7 +194,6 @@ function generatePDF(cust, logs) {
     doc.text(f.value, leftX + 28, yy);
   });
 
-  // ✅ दाईं तरफ (Code, Loan Date, Duration, Paid Days)
   const rightFields = [
     { label: 'Code', value: cust.customerCode || 'GDA' },
     { label: 'Loan Date', value: cust.loanDate || cust.startDate || 'N/A' },
@@ -205,9 +210,9 @@ function generatePDF(cust, logs) {
     doc.text(f.value, rightX + 28, yy);
   });
 
-  y += 56; // बॉक्स के नीचे
+  y += 56;
 
-  // ---- KYC DETAILS BOX ----
+  // ---- KYC DETAILS BOX (✅ अब "KYC VERIFICATION DETAILS") ----
   doc.setFillColor(255, 251, 235);
   doc.setDrawColor(220, 180, 80);
   doc.setLineWidth(0.3);
@@ -226,7 +231,7 @@ function generatePDF(cust, logs) {
   doc.text(`Address: ${cust.address || 'Not Provided'}`, margin + 8, kycY + 8);
   y += 34;
 
-  // ---- EMI LOGS TABLE ----
+  // ---- EMI LOGS TABLE (✅ अब "COLLECTION HISTORY") ----
   doc.setTextColor(26, 35, 53);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
@@ -305,9 +310,8 @@ function generatePDF(cust, logs) {
 }
 
 // ============================================================
-// बाकी फंक्शन (Settle, Delete, Auth) – पहले जैसे ही
+// ⚖️ SETTLE CUSTOMER
 // ============================================================
-
 async function handleSettle(cust) {
   if (cust.status === 'Settled' || cust.status === 'Closed') {
     alert('This account is already settled.');
@@ -329,6 +333,9 @@ async function handleSettle(cust) {
   }
 }
 
+// ============================================================
+// 🗑️ DELETE EMI LOG
+// ============================================================
 async function deleteLog(logId, custId) {
   const pass = prompt("🔑 Admin Password to Delete this log:");
   if (pass !== ADMIN_PASSWORD) {
@@ -358,6 +365,9 @@ async function deleteLog(logId, custId) {
   }
 }
 
+// ============================================================
+// 📥 MAIN LOADER
+// ============================================================
 async function loadStatement() {
   const id = getCustomerIdFromUrl();
   if (!id) {
@@ -384,6 +394,9 @@ async function loadStatement() {
   }
 }
 
+// ============================================================
+// 🔐 AUTH
+// ============================================================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     location.href = "login.html";
