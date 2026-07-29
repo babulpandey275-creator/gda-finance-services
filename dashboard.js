@@ -52,9 +52,7 @@ export async function loadDashboard() {
         // ---- 2. Process Customers ----
         let active = 0;
         let totalDemand = 0;
-        let totalOverdue = 0;
-        let overdueCount = 0;
-        const dueCustomers = []; // list of customers not paid today (for daily collection list)
+        const dueCustomers = []; // जिन्होंने आज नहीं दिया
 
         custSnap.forEach(doc => {
             const cust = doc.data();
@@ -66,48 +64,34 @@ export async function loadDashboard() {
             active++;
             totalDemand += dailyEmi;
 
-            // ---- Overdue calculation (same as due-customers) ----
-            const loanDate = new Date(cust.loanDate || cust.startDate || todayIST);
-            const today = new Date(todayIST);
-            let diffDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
-            let daysElapsed = Math.max(0, diffDays) + 1; // +1 to include today
-            const planDur = Number(cust.planDuration || cust.duration || 60);
-            if (daysElapsed > planDur) daysElapsed = planDur;
-
-            const expectedAmt = daysElapsed * dailyEmi;
-            const totalPaid = Number(cust.totalCollected || 0);
-            const currentDue = Math.max(0, expectedAmt - totalPaid);
-
-            if (currentDue > 0) {
-                totalOverdue += currentDue;
-                overdueCount++;
-            }
-
-            // ---- Build daily collection list (customers who haven't paid today) ----
+            // अगर आज EMI नहीं दी, तो Due List में डालें
             if (!paidTodayIds.has(doc.id)) {
                 dueCustomers.push({
                     id: doc.id,
                     name: cust.name || "N/A",
                     code: cust.customerCode || "GDA",
                     mobile: cust.mobile || "",
-                    emi: dailyEmi,
-                    due: currentDue // we can show due amount if needed
+                    emi: dailyEmi
                 });
             }
         });
 
-        // ---- Update UI ----
+        // ---- 3. Calculate Today's Overdue ----
+        const overdueToday = Math.max(0, totalDemand - todayCollected);
+        const pendingCount = dueCustomers.length;
+
+        // ---- 4. Update UI ----
         const percent = totalDemand > 0 ? Math.round((todayCollected / totalDemand) * 100) : 0;
         if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected.toLocaleString('en-IN')} / ₹${totalDemand.toLocaleString('en-IN')}`;
         if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand.toLocaleString('en-IN')}`;
-        if (txtTodayMissed) txtTodayMissed.innerText = `₹${totalOverdue.toLocaleString('en-IN')}`;
+        if (txtTodayMissed) txtTodayMissed.innerText = `₹${overdueToday.toLocaleString('en-IN')}`; // ✅ ₹3,400
         if (txtActiveAccounts) txtActiveAccounts.innerText = active;
-        if (lblDueCount) lblDueCount.innerText = `Pending: ${overdueCount}`;
+        if (lblDueCount) lblDueCount.innerText = `Pending: ${pendingCount}`; // ✅ 8
         if (txtCollectedSub) txtCollectedSub.innerText = `${percent}% Completed`;
         if (progressBar) progressBar.style.width = `${percent}%`;
-        if (dueTotalBadge) dueTotalBadge.innerText = `₹${totalOverdue.toLocaleString('en-IN')}`;
+        if (dueTotalBadge) dueTotalBadge.innerText = `₹${overdueToday.toLocaleString('en-IN')}`;
 
-        // ---- Render Daily Collection List ----
+        // ---- 5. Render Daily Collection List ----
         if (pendingDueList) {
             if (dueCustomers.length === 0) {
                 pendingDueList.innerHTML = `<div style="text-align:center; padding:20px; color:#10B981; font-weight:800;">✅ Aaj koi bakaya nahi!</div>`;
@@ -139,7 +123,6 @@ onAuthStateChanged(auth, user => {
         location.href = "login.html";
     } else {
         loadDashboard();
-        // Auto-refresh every 60 seconds
         setInterval(loadDashboard, 60000);
     }
 });
