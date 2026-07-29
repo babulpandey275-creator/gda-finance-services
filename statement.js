@@ -54,7 +54,6 @@ function renderProfile(cust, logs) {
       <div class="action-bar">
         <button class="action-btn whatsapp" id="whatsappBtn">💬 WhatsApp</button>
         <button class="action-btn pdf" id="pdfBtn">📄 PDF</button>
-        <!-- ✅ अब लिंक bond.html है – बिल्कुल सही नाम -->
         <a href="bond.html?id=${currentCustomerId}" class="action-btn bond" target="_blank">📜 Bond</a>
         <button class="action-btn settle ${isSettled ? 'settled' : ''}" id="settleBtn" ${isSettled ? 'disabled' : ''}>
           ${isSettled ? '✅ Settled' : '⚖️ Settle'}
@@ -104,50 +103,194 @@ function shareWhatsApp(cust) {
   window.open(`https://wa.me/91${cust.mobile}?text=${msg}`, '_blank');
 }
 
+// ============================================================
+// 🚀 नई PDF – PROFESSIONAL & DECENT
+// ============================================================
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  let y = 20;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210;
+  const margin = 16;
+  let y = margin;
+
+  // ---- HEADER ----
+  doc.setFillColor(26, 35, 53); // dark blue
+  doc.rect(margin, y, pageW - (margin * 2), 28, 'F');
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
-  doc.text("GDA FINANCE SERVICES", 20, y);
-  y += 10;
-  doc.setFontSize(12);
-  doc.text("Customer KYC & Bond Paper", 20, y);
-  y += 8;
-  doc.setFontSize(11);
-  const fields = [
-    `Name: ${cust.name || 'N/A'}`,
-    `Code: ${cust.customerCode || 'GDA'}`,
-    `Mobile: ${cust.mobile || 'N/A'}`,
-    `Loan Date: ${cust.loanDate || cust.startDate || 'N/A'}`,
-    `EMI: ₹${cust.dailyEmi || cust.emi || 0}`,
-    `Duration: ${cust.planDuration || cust.duration || 60} Days`,
-    `Total Paid: ₹${cust.totalCollected || 0}`,
-    `Paid Days: ${cust.paidDays || 0} Days`,
-    `Aadhar: ${cust.aadhar || 'N/A'}`,
-    `PAN: ${cust.pan || 'N/A'}`,
-    `Address: ${cust.address || 'N/A'}`,
-    `Status: ${cust.status || 'Active'}`
-  ];
-  fields.forEach(f => {
-    doc.text(f, 20, y);
-    y += 10;
-    if (y > 270) { doc.addPage(); y = 20; }
-  });
+  doc.setFont('helvetica', 'bold');
+  doc.text('🏦 GDA FINANCE SERVICES', pageW / 2, y + 12, { align: 'center' });
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(200, 200, 200);
+  doc.text('Digital Loan Distribution & Micro Finance System', pageW / 2, y + 22, { align: 'center' });
+  y += 32;
+
+  // ---- TITLE ----
+  doc.setTextColor(26, 35, 53);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('📄 CUSTOMER KYC & STATEMENT REPORT', pageW / 2, y, { align: 'center' });
   y += 6;
-  doc.text("----- Collection History -----", 20, y);
+  doc.setDrawColor(26, 35, 53);
+  doc.setLineWidth(0.5);
+  doc.line(margin + 20, y, pageW - margin - 20, y);
   y += 10;
+
+  // ---- CUSTOMER DETAILS BOX ----
+  doc.setFillColor(248, 250, 255);
+  doc.setDrawColor(200, 200, 210);
+  doc.setLineWidth(0.3);
+  doc.rect(margin, y, pageW - (margin * 2), 52, 'FD');
+  
+  // Left column
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  const leftX = margin + 8;
+  const rightX = pageW / 2 + 4;
+  const rowH = 8;
+  let ry = y + 6;
+  
+  const fields = [
+    { label: 'Name', value: cust.name || 'N/A' },
+    { label: 'Mobile', value: cust.mobile || 'N/A' },
+    { label: 'EMI', value: `₹${cust.dailyEmi || cust.emi || 0}` },
+    { label: 'Total Paid', value: `₹${cust.totalCollected || 0}` },
+  ];
+  fields.forEach((f, i) => {
+    const x = i < 2 ? leftX : rightX;
+    const yy = ry + (i % 2) * rowH;
+    doc.setTextColor(120, 120, 130);
+    doc.setFont('helvetica', 'normal');
+    doc.text(f.label + ':', x, yy);
+    doc.setTextColor(26, 35, 53);
+    doc.setFont('helvetica', 'bold');
+    doc.text(f.value, x + 28, yy);
+  });
+
+  // Right column
+  const fields2 = [
+    { label: 'Code', value: cust.customerCode || 'GDA' },
+    { label: 'Loan Date', value: cust.loanDate || cust.startDate || 'N/A' },
+    { label: 'Duration', value: `${cust.planDuration || cust.duration || 60} Days` },
+    { label: 'Paid Days', value: `${cust.paidDays || 0} Days` },
+  ];
+  fields2.forEach((f, i) => {
+    const x = pageW / 2 + 6;
+    const yy = ry + (i % 2) * rowH + (i >= 2 ? rowH : 0);
+    doc.setTextColor(120, 120, 130);
+    doc.setFont('helvetica', 'normal');
+    doc.text(f.label + ':', x, yy);
+    doc.setTextColor(26, 35, 53);
+    doc.setFont('helvetica', 'bold');
+    doc.text(f.value, x + 28, yy);
+  });
+  y += 56;
+
+  // ---- KYC DETAILS BOX ----
+  doc.setFillColor(255, 251, 235);
+  doc.setDrawColor(220, 180, 80);
+  doc.setLineWidth(0.3);
+  doc.rect(margin, y, pageW - (margin * 2), 30, 'FD');
+  doc.setTextColor(120, 80, 10);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('🔐 KYC VERIFICATION DETAILS', margin + 8, y + 6);
+  doc.setTextColor(60, 60, 70);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  const kycY = y + 14;
+  doc.text(`Aadhar: ${cust.aadhar || 'Not Provided'}`, margin + 8, kycY);
+  doc.text(`PAN: ${cust.pan || 'Not Provided'}`, margin + 70, kycY);
+  doc.text(`Status: ${cust.status || 'Active'}`, margin + 130, kycY);
+  doc.text(`Address: ${cust.address || 'Not Provided'}`, margin + 8, kycY + 8);
+  y += 34;
+
+  // ---- EMI LOGS TABLE ----
+  doc.setTextColor(26, 35, 53);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('📊 COLLECTION HISTORY (EMI LOGS)', margin, y);
+  y += 6;
+  doc.setDrawColor(200, 200, 210);
+  doc.setLineWidth(0.2);
+  doc.line(margin, y, pageW - margin, y);
+  y += 4;
+
+  // Table headers
+  const col1 = margin + 4;
+  const col2 = margin + 50;
+  const col3 = margin + 110;
+  const col4 = margin + 160;
+  doc.setFillColor(240, 245, 255);
+  doc.rect(margin, y, pageW - (margin * 2), 8, 'F');
+  doc.setTextColor(60, 60, 80);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Date', col1, y + 5.5);
+  doc.text('Note', col2, y + 5.5);
+  doc.text('Amount', col3, y + 5.5);
+  doc.text('Action', col4, y + 5.5);
+  y += 8;
+
+  // Table rows
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 50);
+  doc.setFontSize(8);
+  let rowCount = 0;
+  const maxRows = 18;
+
   if (logs.length === 0) {
-    doc.text("No logs found.", 20, y);
+    doc.text('No collection records found.', margin + 8, y + 5);
+    y += 10;
   } else {
-    logs.slice(0, 15).forEach(log => {
-      doc.text(`${log.date || log.collectionDate || 'N/A'} - ₹${log.amount || log.collectionAmount || 0}`, 20, y);
-      y += 10;
-      if (y > 270) { doc.addPage(); y = 20; }
+    const sortedLogs = logs.slice(0, maxRows);
+    sortedLogs.forEach((log, idx) => {
+      const date = log.date || log.collectionDate || 'N/A';
+      const note = log.note || 'EMI Received';
+      const amt = `₹${log.amount || log.collectionAmount || 0}`;
+      const action = 'Paid';
+
+      if (idx % 2 === 0) {
+        doc.setFillColor(248, 250, 255);
+        doc.rect(margin, y, pageW - (margin * 2), 7, 'F');
+      }
+      doc.text(date, col1, y + 4.5);
+      doc.text(note, col2, y + 4.5);
+      doc.text(amt, col3, y + 4.5);
+      doc.text(action, col4, y + 4.5);
+      y += 7;
+      rowCount++;
+      if (y > 260) {
+        doc.addPage();
+        y = margin;
+      }
     });
+    if (logs.length > maxRows) {
+      doc.setTextColor(100, 100, 120);
+      doc.text(`... and ${logs.length - maxRows} more records`, margin + 8, y + 4);
+      y += 8;
+    }
   }
+
+  // ---- FOOTER ----
+  const now = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  doc.setDrawColor(200, 200, 210);
+  doc.setLineWidth(0.2);
+  doc.line(margin, y + 6, pageW - margin, y + 6);
+  doc.setTextColor(150, 150, 160);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated on: ${now} | GDA Finance Services`, pageW / 2, y + 13, { align: 'center' });
+
+  // ---- SAVE ----
   doc.save(`${cust.name || 'Customer'}_GDA_Statement.pdf`);
 }
+
+// ============================================================
+// बाकी फंक्शन (Settle, Delete, Auth) – पहले जैसे ही
+// ============================================================
 
 async function handleSettle(cust) {
   if (cust.status === 'Settled' || cust.status === 'Closed') {
