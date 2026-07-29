@@ -6,51 +6,32 @@
 <title>Customers - GDA Finance</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
+:root{--text-main:#0F172A;--muted:#64748B;--line:#F1F5F9;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#F8FAFF;padding-bottom:85px;}
-.topbar{position:sticky;top:0;z-index:10;background:rgba(248,250,255,0.9);backdrop-filter:blur(20px);padding:14px;border-bottom:1px solid #F1F5F9;}
-.tabs{display:flex;gap:8px;margin-bottom:10px;}
-.tab{padding:10px 18px;border-radius:30px;font-size:13px;font-weight:700;border:1px solid #E2E8F0;background:#fff;color:#475569;}
-.tab.active{background:#0F172A;color:#fff;border-color:#0F172A;}
-.searchWrap{position:relative;}
-.searchWrap input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 14px 12px 40px;font-size:14px;outline:none;}
-.searchWrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(248,250,255,0.9);backdrop-filter:blur(20px);padding:14px;border-bottom:1px solid var(--line);}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;}
+.filter-tab{padding:10px 18px;border-radius:30px;font-size:13px;font-weight:700;border:1px solid #E2E8F0;background:#fff;color:#475569;cursor:pointer;}
+.filter-tab.active{background:#0F172A;color:#fff;border-color:#0F172A;box-shadow:0 6px 18px rgba(15,23,42,0.2);}
+.search-box{position:relative;}
+.search-box input{width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:13px 14px 13px 42px;font-size:14px;outline:none;box-shadow:0 2px 10px rgba(0,0,0,0.03);}
+.search-box span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
 
-.list{padding:12px;display:flex;flex-direction:column;gap:10px;}
-.cust-card{background:#fff;border-radius:18px;padding:12px;border:1px solid #F1F5F9;box-shadow:0 4px 16px rgba(0,0,0,0.04);display:flex;gap:12px;align-items:center;cursor:pointer;}
+#listContainer{padding:12px;display:flex;flex-direction:column;gap:12px;}
+.cust-card{background:#fff;border-radius:20px;padding:14px;border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,0.04);transition:0.15s;}
 .cust-card:active{transform:scale(0.98);}
-.avatar{width:52px;height:52px;border-radius:14px;object-fit:cover;flex-shrink:0;background:#EFF6FF;}
-.info{flex:1;min-width:0;}
-.name{font-size:14px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.meta{font-size:11px;color:#64748B;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.badge{background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;}
-.actions{display:flex;gap:6px;flex-shrink:0;}
-.btn{border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.card-top{display:flex;gap:12px;align-items:center;}
+.card-top img{width:54px;height:54px;border-radius:16px;object-fit:cover;flex-shrink:0;border:1px solid #F1F5F9;background:#EFF6FF;}
+.card-top h4{font-size:15px;color:var(--text-main);font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-top p{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.badge{display:inline-block;background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;margin-left:6px;}
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+.btn-row a, .btn-row button{flex:1;padding:10px;border-radius:12px;font-size:12px;font-weight:700;text-align:center;text-decoration:none;border:none;cursor:pointer;}
 .btn-collect{background:#0F172A;color:#fff;}
-.btn-del{background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3;}
-.btn-edit{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A;}
+.btn-del{background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3 !important;}
+.btn-edit{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A !important;}
 
-/* DETAIL MODAL - Purana wala wapas */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:100;align-items:end;justify-content:center;}
-.modal.active{display:flex;}
-.sheet{background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;max-height:85vh;overflow:auto;padding:18px;animation:slideUp 0.3s;}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sheetHeader{display:flex;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid #F1F5F9;}
-.sheetAvatar{width:64px;height:64px;border-radius:18px;object-fit:cover;}
-.sheetName{font-size:18px;font-weight:800;color:#0F172A;}
-.sheetCode{font-size:11px;color:#64748B;margin-top:2px;}
-.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
-.detailItem{background:#F8FAFF;border:1px solid #F1F5F9;border-radius:12px;padding:10px;}
-.detailItem label{font-size:9px;color:#94A3B8;font-weight:700;text-transform:uppercase;display:block;}
-.detailItem b{font-size:13px;color:#0F172A;margin-top:3px;display:block;}
-.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
-.actionBtn{padding:12px;border-radius:14px;border:none;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
-.btn-wa{background:#25D366;color:#fff;}
-.btn-call{background:#EFF6FF;color:#1E3A8A;border:1px solid #DBEAFE;}
-.btn-bond{background:#0F172A;color:#fff;}
-.btn-close{background:#F1F5F9;color:#475569;}
-
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:50;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);z-index:30;}
 .bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:3px;}
 .bnav-item.active{color:#E11D48;}
 </style>
@@ -58,150 +39,130 @@ body{background:#F8FAFF;padding-bottom:85px;}
 <body>
 
 <div class="topbar">
-  <div class="tabs">
-    <button class="tab active" id="btnActive" onclick="setFilter('active')">Active Accounts</button>
-    <button class="tab" id="btnClosed" onclick="setFilter('closed')">Closed Accounts</button>
+  <div class="filter-row">
+    <button class="filter-tab active" onclick="filterCustomers('active')">Active Accounts</button>
+    <button class="filter-tab" onclick="filterCustomers('closed')">Closed Accounts</button>
   </div>
-  <div class="searchWrap"><i>⌕</i><input id="searchInput" placeholder="Search name, mobile, code..." oninput="onSearch(this.value)"></div>
-</div>
-
-<div class="list" id="customerList"><div style="text-align:center;padding:30px;color:#94A3B8;">Loading...</div></div>
-
-<!-- DETAIL SHEET - Pehle jaisa sab kuch -->
-<div class="modal" id="detailModal" onclick="if(event.target==this)closeModal()">
-  <div class="sheet">
-    <div class="sheetHeader">
-      <img id="mAvatar" class="sheetAvatar" src="">
-      <div>
-        <div class="sheetName" id="mName"></div>
-        <div class="sheetCode" id="mCode"></div>
-        <div class="sheetCode" id="mMobile"></div>
-      </div>
-    </div>
-    <div class="detailGrid">
-      <div class="detailItem"><label>Loan Amount</label><b id="mLoan"></b></div>
-      <div class="detailItem"><label>Daily EMI</label><b id="mEmi"></b></div>
-      <div class="detailItem"><label>Loan Date</label><b id="mDate"></b></div>
-      <div class="detailItem"><label>Status</label><b id="mStatus"></b></div>
-      <div class="detailItem" style="grid-column:1/3"><label>Address</label><b id="mAddress"></b></div>
-      <div class="detailItem" style="grid-column:1/3"><label>Aadhar / Guarantor</label><b id="mAadhar"></b></div>
-    </div>
-    <div class="actionRow">
-      <button class="actionBtn btn-wa" id="btnWhatsApp">WhatsApp</button>
-      <button class="actionBtn btn-call" id="btnCall">Call</button>
-      <button class="actionBtn btn-bond" id="btnBond">View Bond</button>
-      <button class="actionBtn btn-close" onclick="closeModal()">Close</button>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:8px;">
-      <button class="actionBtn btn-close" style="flex:1" id="btnEditModal">Edit</button>
-      <button class="actionBtn btn-del" style="flex:1;background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3;" id="btnDelModal">Delete</button>
-    </div>
+  <div class="search-box">
+    <span>⌕</span>
+    <input id="searchInp" placeholder="Search name, mobile, code...">
   </div>
 </div>
+
+<div id="listContainer"><p style='text-align:center; padding:20px;color:#94A3B8;'>⏳ लोड हो रहा है...</p></div>
 
 <div class="bottom-nav">
   <a class="bnav-item" href="index.html"><span>⌂</span><span>Home</span></a>
   <a class="bnav-item active"><span>◫</span><span>Customers</span></a>
   <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
   <a class="bnav-item" href="reports.html"><span>◱</span><span>Reports</span></a>
-  <a class="bnav-item" href="#" id="logoutBtn"><span>↪</span><span>Logout</span></a>
+  <a class="bnav-item" href="login.html"><span>↪</span><span>Logout</span></a>
 </div>
 
 <script type="module">
-import { db, auth } from "./firebase.js";
-import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { db } from "./firebase.js";
+import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const listContainer = document.getElementById("listContainer");
+const searchInp = document.getElementById("searchInp");
+const ADMIN_PASSWORD = "GDA@2026";
 
 let allCustomers = [];
-let currentFilter = 'active';
-let searchQ = '';
-let selectedId = null;
 
-const listEl = document.getElementById("customerList");
-const modal = document.getElementById("detailModal");
-
-onAuthStateChanged(auth, u=>{ if(!u) location.href="login.html"; else loadCustomers(); });
-
-async function loadCustomers(){
-  const snap = await getDocs(collection(db,"customers"));
-  allCustomers=[]; snap.forEach(d=>allCustomers.push({id:d.id,...d.data()}));
-  render();
+async function loadCustomers() {
+    listContainer.innerHTML = "<p style='text-align:center; padding:20px;color:#94A3B8;'>⏳ लोड हो रहा है...</p>";
+    try {
+        const querySnapshot = await getDocs(collection(db, "customers"));
+        allCustomers = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderList(allCustomers.filter(c => c.status !== 'Closed' && c.status !== 'Settled'));
+    } catch (err) {
+        listContainer.innerHTML = "❌ डेटा लोड नहीं हुआ।";
+        console.error(err);
+    }
 }
 
-function render(){
-  let filtered = allCustomers.filter(c=>{
-    const status = (c.status||'Active');
-    const match = currentFilter==='active' ? status!=='Closed' : status==='Closed';
-    if(!match) return false;
-    if(!searchQ) return true;
-    const q=searchQ.toLowerCase();
-    return (c.name||'').toLowerCase().includes(q) || (c.mobile||'').includes(q) || (c.customerCode||'').toLowerCase().includes(q);
-  });
+function renderList(data) {
+    listContainer.innerHTML = "";
+    if (data.length === 0) {
+        listContainer.innerHTML = "<p style='text-align:center; padding:30px;color:#94A3B8;'>कोई कस्टमर नहीं मिला।</p>";
+        return;
+    }
 
-  if(filtered.length===0){ listEl.innerHTML=`<div style="text-align:center;padding:40px;color:#94A3B8;">No customers</div>`; return; }
+    data.forEach(cust => {
+        const card = document.createElement("div");
+        card.className = "cust-card";
+        
+        const imageUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) 
+            ? cust.photoUrl 
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(cust.name||'C')}&background=0F172A&color=fff&bold=true`;
 
-  listEl.innerHTML = filtered.map(c=>{
-    const photo = c.photoUrl || c.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff&bold=true`;
-    const code = c.customerCode || c.customerId || c.id.substring(0,6).toUpperCase();
-    const mobile = c.mobile || c.phone || '';
-    const loan = c.loanAmount || 0;
-    return `
-    <div class="cust-card" onclick="openDetail('${c.id}')">
-      <img class="avatar" src="${photo}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff'">
-      <div class="info">
-        <div class="name">${c.name||'No Name'}</div>
-        <div class="meta"><span>${mobile}</span> <span class="badge">${code}</span></div>
-        <div class="meta">Loan: <b>₹${Number(loan).toLocaleString('en-IN')}</b></div>
-      </div>
-      <div class="actions" onclick="event.stopPropagation()">
-        <button class="btn btn-collect" onclick="collectCustomer('${c.id}')">Collect</button>
-        <button class="btn btn-del" onclick="deleteCustomer('${c.id}')">Del</button>
-        <button class="btn btn-edit" onclick="editCustomer('${c.id}')">Edit</button>
-      </div>
-    </div>`;
-  }).join('');
+        const code = cust.customerCode || cust.customerId || cust.id.substring(0,7).toUpperCase();
+
+        card.innerHTML = `
+        <div class="card-top" onclick="window.location.href='statement.html?id=${cust.id}'" style="cursor:pointer;">
+            <img src="${imageUrl}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(cust.name||'C')}&background=0F172A&color=fff'">
+            <div style="flex:1;min-width:0;">
+                <h4>${cust.name || "N/A"} <span class="badge">${code}</span></h4>
+                <p>📱 ${cust.mobile || "N/A"}</p>
+                <p>💰 Loan: <b style="color:#0F172A;">₹${Number(cust.loanAmount||0).toLocaleString('en-IN')}</b> | ID: ${code}</p>
+            </div>
+        <div class="btn-row">
+            <a href="collection.html?id=${cust.id}" class="btn-collect">Collect</a>
+            <button onclick="secureDelete('${cust.id}')" class="btn-del">Del</button>
+            <button onclick="secureEdit('${cust.id}')" class="btn-edit">Edit</button>
+        </div>`;
+        listContainer.appendChild(card);
+    });
 }
 
-window.openDetail = (id)=>{
-  const c = allCustomers.find(x=>x.id===id);
-  if(!c) return;
-  selectedId = id;
-  document.getElementById("mAvatar").src = c.photoUrl || c.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'C')}&background=0F172A&color=fff&bold=true`;
-  document.getElementById("mName").innerText = c.name||'';
-  document.getElementById("mCode").innerText = `ID: ${c.customerCode || c.customerId || c.id}`;
-  document.getElementById("mMobile").innerText = `📱 ${c.mobile || c.phone || ''}`;
-  document.getElementById("mLoan").innerText = `₹${Number(c.loanAmount||0).toLocaleString('en-IN')}`;
-  document.getElementById("mEmi").innerText = `₹${c.dailyEmi || c.emi || 0}`;
-  document.getElementById("mDate").innerText = c.loanDate || c.createdAt || '-';
-  document.getElementById("mStatus").innerText = c.status || 'Active';
-  document.getElementById("mAddress").innerText = c.address || c.village || '-';
-  document.getElementById("mAadhar").innerText = `Aadhar: ${c.aadhar||'-'} | Guarantor: ${c.guarantorName||'-'}`;
-
-  // Buttons
-  document.getElementById("btnWhatsApp").onclick = ()=>{
-    const msg = `Namaste ${c.name}, Aapka GDA Finance ka EMI ₹${c.dailyEmi||0} pending hai. ID: ${c.customerCode||''}`;
-    window.open(`https://wa.me/91${c.mobile}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-  document.getElementById("btnCall").onclick = ()=>{ window.open(`tel:${c.mobile}`); };
-  document.getElementById("btnBond").onclick = ()=>{ location.href=`bond.html?id=${c.id}`; };
-  document.getElementById("btnEditModal").onclick = ()=>{ location.href=`register.html?id=${c.id}`; };
-  document.getElementById("btnDelModal").onclick = ()=>{ deleteCustomer(c.id); closeModal(); };
-
-  modal.classList.add("active");
+if (searchInp) {
+    searchInp.addEventListener("input", (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allCustomers.filter(c => 
+            (c.name && c.name.toLowerCase().includes(term)) || 
+            (c.mobile && c.mobile.includes(term)) ||
+            (c.customerCode && c.customerCode.toLowerCase().includes(term))
+        );
+        renderList(filtered);
+    });
 }
-window.closeModal = ()=>{ modal.classList.remove("active"); }
 
-window.setFilter = (f)=>{ currentFilter=f; document.getElementById("btnActive").classList.toggle('active',f==='active'); document.getElementById("btnClosed").classList.toggle('active',f==='closed'); render(); }
-window.onSearch = (v)=>{ searchQ=v; render(); }
-window.collectCustomer = (id)=>{ location.href=`collection.html?id=${id}`; }
-window.editCustomer = (id)=>{ location.href=`register.html?id=${id}`; }
-window.deleteCustomer = async (id)=>{
-  if(!confirm("Delete this customer?")) return;
-  await deleteDoc(doc(db,"customers",id));
-  allCustomers = allCustomers.filter(c=>c.id!==id);
-  render();
-}
-document.getElementById("logoutBtn").onclick = async()=>{ await signOut(auth); location.href="login.html"; }
+window.secureEdit = (docId) => {
+    const pass = prompt("🔑 Edit करने के लिए Admin Password डालें:");
+    if (pass === ADMIN_PASSWORD) {
+        window.location.href = `./edit.html?id=${docId}`;
+    } else if (pass !== null) {
+        alert("❌ गलत पासवर्ड!");
+    }
+};
+
+window.secureDelete = async (docId) => {
+    const pass = prompt("⚠️ DELETE करने के लिए Admin Password डालें:");
+    if (pass === ADMIN_PASSWORD) {
+        if (!confirm("क्या आप वाकई इस कस्टमर को हटाना चाहते हैं?")) return;
+        try {
+            await deleteDoc(doc(db, "customers", docId));
+            alert("✅ डिलीट सफल!");
+            loadCustomers();
+        } catch (err) {
+            alert("❌ एरर: " + err.message);
+        }
+    } else if (pass !== null) {
+        alert("❌ गलत पासवर्ड!");
+    }
+};
+
+window.filterCustomers = (type) => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    if (type === 'closed') {
+        renderList(allCustomers.filter(c => c.status === 'Closed' || c.status === 'Settled'));
+    } else {
+        renderList(allCustomers.filter(c => c.status !== 'Closed' && c.status !== 'Settled'));
+    }
+};
+
+loadCustomers();
 </script>
 </body>
 </html>
