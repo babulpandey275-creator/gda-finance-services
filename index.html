@@ -7,33 +7,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#F8FAFF;min-height:100vh;padding-bottom:90px;}
-.header{background:linear-gradient(135deg,#0F172A,#1E3A8A);color:white;padding:16px;border-radius:0 0 24px 24px;display:flex;justify-content:space-between;align-items:center;}
-.logo{display:flex;gap:12px;align-items:center;}
-.logo-icon{width:44px;height:44px;background:white;color:#1E3A8A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;}
-.header h1{font-size:18px;font-weight:800;line-height:1.1;}
-.header p{font-size:8px;color:#93C5FD;letter-spacing:1.5px;font-weight:700;margin-top:2px;}
-.greet{font-size:10px;color:#CBD5E1;margin-top:2px;}
-.refresh{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:600;}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
-.card{background:white;border-radius:18px;padding:14px;border:1px solid #F1F5F9;box-shadow:0 4px 15px rgba(0,0,0,0.04);}
-.card label{font-size:9px;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
-.card.value{font-size:18px;font-weight:800;color:#0F172A;margin-top:6px;}
-.card.value.red{color:#DC2626;}
-.card.sub{font-size:11px;color:#94A3B8;margin-top:4px;}
-.progress{margin-top:8px;background:#F1F5F9;height:5px;border-radius:10px;overflow:hidden;}
-.progress-bar{height:100%;border-radius:10px;}
-.defaulter-card{background:white;margin:0 16px 16px;border-radius:16px;padding:14px;border:1px solid #FEE2E2;}
-.quick{padding:0 16px;}
-.quick h2{font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:1.2px;margin-bottom:10px;text-transform:uppercase;}
-.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.nav-item{background:white;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;border:1px solid #F1F5F9;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
-.nav-icon{width:38px;height:38px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;flex-shrink:0;}
-.nav-item b{font-size:13px;color:#0F172A;font-weight:700;display:block;}
-.nav-item span{font-size:11px;color:#64748B;}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.98);backdrop-filter:blur(15px);display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:100;}
-.bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:4px;}
-.bnav-item.active{color:#1E3A8A;}
+body{background:#F8FAFF;padding-bottom:85px;}
+.header{background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 100%);color:#fff;padding:18px 16px;border-radius:0 0 22px 22px;display:flex;justify-content:space-between;align-items:center;}
+.logo{display:flex;gap:10px;align-items:center}
+.logo-icon{width:42px;height:42px;background:#fff;color:#1E3A8A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;}
+.header h1{font-size:17px;font-weight:800;line-height:1}
+.header p{font-size:8px;color:#93C5FD;letter-spacing:1px;font-weight:700;margin-top:2px}
+.greet{font-size:10px;color:#CBD5E1;margin-top:2px}
+.refresh{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+.card{background:#fff;border-radius:16px;padding:14px;border:1px solid #F1F5F9;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
+.card label{font-size:8px;color:#64748B;font-weight:700;letter-spacing:0.8px;text-transform:uppercase}
+.card .val{font-size:18px;font-weight:800;color:#0F172A;margin-top:5px}
+.card .val.red{color:#DC2626}
+.card .sub{font-size:11px;color:#94A3B8;margin-top:3px}
+.quick{padding:0 14px}
+.quick h2{font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:1px;margin:6px 0 10px;text-transform:uppercase}
+.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nav-item{background:#fff;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;border:1px solid #F1F5F9}
+.nav-icon{width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800}
+.nav-item b{font-size:13px;color:#0F172A;display:block;font-weight:700}
+.nav-item span{font-size:11px;color:#64748B}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #F1F5F9;z-index:99}
+.bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none}
+.bnav-item.active{color:#1E3A8A}
 </style>
 </head>
 <body>
@@ -41,75 +38,37 @@ body{background:#F8FAFF;min-height:100vh;padding-bottom:90px;}
 <div class="header">
   <div class="logo">
     <div class="logo-icon">G</div>
-    <div>
-      <h1>GDA FINANCE</h1>
-      <p>TRUST • GROWTH • SECURITY</p>
-      <div class="greet" id="greetText">Good Morning, Babul</div>
-    </div>
+    <div><h1>GDA FINANCE</h1><p>TRUST • GROWTH • SECURITY</p><div class="greet" id="greetText">Good Morning, Babul • Garhwa</div></div>
   </div>
-  <button class="refresh" onclick="location.reload()">↻ Refresh</button>
+  <button class="refresh" onclick="window.refreshApp()">↻ Refresh</button>
 </div>
 
 <div class="stats">
-  <div class="card"><label>Today's Overdue</label><div class="value red" id="overdueAmt">₹0</div><div class="sub">Pending: <b id="pendingCount">0</b></div><div class="progress"><div id="overdueBar" class="progress-bar" style="background:#EF4444;width:0%"></div></div></div>
-  <div class="card"><label>Today Collected</label><div class="value" id="collectedAmt">₹0 / ₹0</div><div class="sub" id="collectedSub">0% Completed</div><div class="progress"><div id="collectedBar" class="progress-bar" style="background:#10B981;width:0%"></div></div></div>
-  <div class="card"><label>Today's Target</label><div class="value" id="targetAmt">₹0</div><div class="sub">Daily Target</div></div>
-  <div class="card"><label>Active Accounts</label><div class="value" id="activeCount">0</div><div class="sub">Live Loans</div></div>
-</div>
-
-<div class="defaulter-card" id="defaulterCard" style="display:none;">
-  <div style="font-size:12px;font-weight:700;color:#0F172A;">🔴 Priority Collections</div>
-  <div id="defaulterList" style="margin-top:8px;"></div>
+  <div class="card"><label>Today's Overdue</label><div class="val red" id="txtTodayMissed">₹0</div><div class="sub">Pending: <b id="lblDueCount">0</b> accounts</div></div>
+  <div class="card"><label>Today Collected</label><div class="val" id="txtTodayCollected">₹0 / ₹0</div><div class="sub" id="txtCollectedSub">0% Completed</div></div>
+  <div class="card"><label>Today's Target</label><div class="val" id="txtTodayDemand">₹0</div><div class="sub">Daily Demand</div></div>
+  <div class="card"><label>Active Accounts</label><div class="val" id="txtActiveAccounts">0</div><div class="sub">Live Loans</div></div>
 </div>
 
 <div class="quick">
   <h2>Quick Navigation</h2>
   <div class="nav-grid">
-    <div class="nav-item" onclick="location.href='register.html'"><div class="nav-icon">+</div><div><b>New Registration</b><span>Create Account</span></div></div>
-    <div class="nav-item" onclick="location.href='collection.html'"><div class="nav-icon">$</div><div><b>Daily Collection</b><span>Collect EMI</span></div></div>
-    <div class="nav-item" onclick="location.href='due-customers.html'"><div class="nav-icon">!</div><div><b>Pending Due</b><span>Overdue List</span></div></div>
-    <div class="nav-item" onclick="location.href='missed-dates.html'"><div class="nav-icon">◷</div><div><b>Missed Dates</b><span>Date-wise Due</span></div></div>
+    <a class="nav-item" href="register.html" style="text-decoration:none;"><div class="nav-icon">+</div><div><b>New Registration</b><span>Create Account</span></div></a>
+    <a class="nav-item" href="collection.html" style="text-decoration:none;"><div class="nav-icon">$</div><div><b>Daily Collection</b><span>Collect EMI</span></div></a>
+    <a class="nav-item" href="due-customers.html" style="text-decoration:none;"><div class="nav-icon">!</div><div><b>Pending Due</b><span>Overdue List</span></div></a>
+    <a class="nav-item" href="missed-dates.html" style="text-decoration:none;"><div class="nav-icon">◷</div><div><b>Missed Dates</b><span>Date-wise Due</span></div></a>
   </div>
 </div>
 
 <div class="bottom-nav">
-  <a class="bnav-item active"><span>⌂</span><span>Home</span></a>
+  <a class="bnav-item active" href="index.html"><span>⌂</span><span>Home</span></a>
   <a class="bnav-item" href="customer-list.html"><span>◫</span><span>Customers</span></a>
   <a class="bnav-item" href="collection.html"><span>$</span><span>Collect</span></a>
   <a class="bnav-item" href="reports.html"><span>◱</span><span>Reports</span></a>
-  <a class="bnav-item" id="logoutBtn"><span>↪</span><span>Logout</span></a>
+  <a class="bnav-item" href="#" id="logoutBtn"><span>↪</span><span>Logout</span></a>
 </div>
 
-<script type="module">
-import { db, auth } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-onAuthStateChanged(auth,u=>{if(!u)location.href='login.html';else load();});
-async function load(){
-  const [custSnap,colSnap]=await Promise.all([getDocs(collection(db,"customers")),getDocs(collection(db,"collections"))]);
-  let active=0,target=0;let customers=[];
-  custSnap.forEach(doc=>{const c=doc.data();if(c.status!=='Closed'){active++;target+=Number(c.dailyEmi||0);customers.push({id:doc.id,...c});}});
-  const todayIST=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
-  let todayCollected=0;
-  colSnap.forEach(doc=>{const data=doc.data();const dStr=(data.date||data.collectionDate||"").split('T')[0];if(dStr===todayIST){todayCollected+=Number(data.amount||0);}});
-  const overdue=Math.max(0,target-todayCollected);
-  const percent=target>0?Math.round((todayCollected/target)*100):0;
-  document.getElementById("activeCount").innerText=active;
-  document.getElementById("targetAmt").innerText=`₹${target}`;
-  document.getElementById("collectedAmt").innerText=`₹${todayCollected} / ₹${target}`;
-  document.getElementById("collectedSub").innerText=`${percent}% Completed`;
-  document.getElementById("collectedBar").style.width=percent+"%";
-  document.getElementById("overdueAmt").innerText=`₹${overdue}`;
-  document.getElementById("pendingCount").innerText=active;
-  document.getElementById("overdueBar").style.width=(100-percent)+"%";
-  document.getElementById("greetText").innerText=`Good Morning, Babul • ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}`;
-  const top3=customers.slice(0,3);
-  if(top3.length>0){
-    document.getElementById("defaulterCard").style.display='block';
-    document.getElementById("defaulterList").innerHTML=top3.map((c,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px dashed #eee;"><span>${i+1}. ${c.name}</span><b>₹${c.dailyEmi||0}</b></div>`).join('');
-  }
-}
-document.getElementById("logoutBtn").onclick=async()=>{await signOut(auth);location.href='login.html';};
-</script>
+<!-- AAPKA DASHBOARD.JS YAHAN LOAD HOGA -->
+<script type="module" src="dashboard.js"></script>
 </body>
 </html>
