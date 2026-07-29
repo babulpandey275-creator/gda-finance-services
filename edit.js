@@ -33,7 +33,7 @@ loanAmount.addEventListener("input", calculateValues);
 loanPlan.addEventListener("change", calculateValues);
 
 // =========================================================
-// 1️⃣ फोटो (Photo) – प्रीव्यू (Preview) – (बिल्कुल (Exactly) – वैसा (Same) – ही (Itself))
+// 1️⃣ फोटो (Photo) – प्रीव्यू (Preview)
 // =========================================================
 photoInput.addEventListener("change", function () {
     if (this.files && this.files[0]) {
@@ -46,7 +46,7 @@ photoInput.addEventListener("change", function () {
 });
 
 // =========================================================
-// 2️⃣ ImgBB – अपलोड (Upload) – फंक्शन (Function) – (एरर (Error) – हैंडलिंग (Handling) – के (With) – साथ (With))
+// 2️⃣ ImgBB – अपलोड (Upload) – फंक्शन (Function)
 // =========================================================
 async function uploadToImgBB(file) {
     try {
@@ -60,7 +60,6 @@ async function uploadToImgBB(file) {
 
         const result = await response.json();
 
-        // 🔥 अगर (If) – ImgBB – से (From) – एरर (Error) – आया (Came) – तो (Then) – Alert – दिखाएँ (Show)!
         if (!result.success) {
             throw new Error("ImgBB Error: " + (result.status_txt || "Unknown error"));
         }
@@ -68,13 +67,12 @@ async function uploadToImgBB(file) {
         return result.data.url;
     } catch (err) {
         console.error("Upload Error:", err);
-        // 🔥 एरर (Error) – को (To) – ऊपर (Up) – भेजें (Throw) – ताकि (So that) – मुख्य (Main) – फंक्शन (Function) – में (In) – पकड़ (Catch) – सके (Can)!
         throw new Error("फोटो (Photo) अपलोड (Upload) – नहीं (Not) – हो (Be) – पाया (Able) – " + err.message);
     }
 }
 
 // =========================================================
-// 3️⃣ लोड (Load) – और (And) – अपडेट (Update) – (नया (New) – सेटअप (Setup))
+// 3️⃣ लोड (Load) – और (And) – अपडेट (Update)
 // =========================================================
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
@@ -117,7 +115,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     // =========================================================
-    // 4️⃣ फॉर्म (Form) – सबमिट (Submit) – (फोटो (Photo) – अपलोड (Upload) – **सही (Correct)** – तरीके (Way) – से (From))
+    // 4️⃣ फॉर्म (Form) – सबमिट (Submit)
     // =========================================================
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -133,16 +131,14 @@ auth.onAuthStateChanged(async (user) => {
         updateBtn.innerText = "⏳ Updating...";
 
         try {
-            let photoUrl = photoPreview.src; // पुरानी (Old) – फोटो (Photo) – का (Of) – यूआरएल (URL)
+            let photoUrl = photoPreview.src;
 
-            // 🔥🔥🔥 **अगर (If) – नई (New)** – फोटो (Photo) – **चुनी (Selected)** – है (Is) – तो (Then) – **ImgBB** – पर (On) – **अपलोड (Upload)** – करें (Do)!
+            // 🔥 अगर (If) – नई (New) – फोटो (Photo) – चुनी (Selected) – है (Is)
             if (photoInput.files && photoInput.files.length > 0) {
                 const file = photoInput.files[0];
-                // ✅ चेतावनी (Warning) – फोटो (Photo) – का (Of) – साइज़ (Size) – चेक (Check) – करें (Do) – (ImgBB – 20MB – तक (Till) – अपलोड (Upload) – कर सकता (Can) – है (Is))
                 if (file.size > 20 * 1024 * 1024) {
                     throw new Error("फोटो (Photo) – 20MB – से (From) – बड़ी (Larger) – है (Is)! – कृपया (Please) – छोटी (Smaller) – फोटो (Photo) – चुनें (Select) – करें (Do)!");
                 }
-                // फोटो (Photo) – अपलोड (Upload) – करें (Do)
                 photoUrl = await uploadToImgBB(file);
             }
 
@@ -162,12 +158,10 @@ auth.onAuthStateChanged(async (user) => {
                 updatedAt: new Date().toISOString()
             };
 
-            // ✅ अगर (If) – नई (New) – फोटो (Photo) – अपलोड (Upload) – हुई (Was) – है (Is) – तो (Then) – डेटा (Data) – में (In) – जोड़ें (Add)!
             if (photoUrl) {
                 updateData.photoUrl = photoUrl;
             }
 
-            // 🔥 Firestore – में (In) – सेव (Save) – करें (Do)
             await updateDoc(doc(db, "customers", custId), updateData);
 
             alert("✅ कस्टमर (Customer) – डेटा (Data) – सफलतापूर्वक (Successfully) – अपडेट (Updated) – हो (Be) – गया (Has been) – है (Is)!");
@@ -175,7 +169,6 @@ auth.onAuthStateChanged(async (user) => {
 
         } catch (err) {
             console.error("Update Error:", err);
-            // 🔥🔥🔥 **यहाँ (Here)** – **एरर (Error)** – **Alert** – **में (In)** – **दिखेगा (Will show)!** – **ताकि (So that)** – **आपको (You)** – **पता (Know)** – **चले (Will)** – **कि (That)** – **फोटो (Photo)** – **क्यों (Why)** – **नहीं (Not)** – **आ (Come)** – **रही (Is)** – **है (Is)!**
             alert("❌ एरर (Error): " + err.message);
             updateBtn.disabled = false;
             updateBtn.innerText = "🔄 Update Profile";
