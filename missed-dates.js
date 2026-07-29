@@ -7,7 +7,9 @@ function getTodayIST() {
 function parseDateIST(dateStr) {
     if (!dateStr) return null;
     const parts = String(dateStr).split('-');
-    if (parts.length === 3) return new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+    if (parts.length === 3) {
+        return new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+    }
     return new Date(dateStr);
 }
 
@@ -22,19 +24,13 @@ async function loadMissedDates() {
             getDocs(collection(db, "collections"))
         ]);
 
-        // Customer wise har date ko kitna paisa diya - SUM karo
-        const paidAmountMap = new Map(); // customerId -> { '2026-07-29': 500 }
-        const totalPaidMap = new Map(); // customerId -> total paid
+        // Har customer ne total kitna diya
+        const totalPaidMap = new Map();
         colSnap.forEach(doc => {
             const d = doc.data();
             const cId = d.customerId;
-            const dateStr = (d.collectionDate || d.date || "").split('T')[0];
             const amt = Number(d.amount || 0);
-            if (!cId ||!dateStr) return;
-            if (!paidAmountMap.has(cId)) paidAmountMap.set(cId, {});
-            if (!paidAmountMap.get(cId)[dateStr]) paidAmountMap.get(cId)[dateStr] = 0;
-            paidAmountMap.get(cId)[dateStr] += amt;
-
+            if (!cId) return;
             if (!totalPaidMap.has(cId)) totalPaidMap.set(cId, 0);
             totalPaidMap.set(cId, totalPaidMap.get(cId) + amt);
         });
@@ -51,62 +47,55 @@ async function loadMissedDates() {
 
             const loanDateObj = parseDateIST(cust.loanDate);
             if (!loanDateObj) return;
+
             const dailyEmi = Number(cust.dailyEmi || 0);
             if (dailyEmi <= 0) return;
 
             let diffDays = Math.floor((todayDate - loanDateObj) / (1000*60*60*24));
             if (diffDays < 0) diffDays = 0;
+            const totalExpectedDays = diffDays + 1;
 
-            const dailyPaidObj = paidAmountMap.get(id) || {};
-            const missedDates = [];
-            let credit = 0; // Extra paisa jo agle din ke liye bachega
+            const totalPaid = totalPaidMap.get(id) || 0;
+            const paidDays = Math.floor(totalPaid / dailyEmi);
+            const missedDaysCount = totalExpectedDays - paidDays;
 
-            for (let i = 0; i <= diffDays; i++) {
-                const d = new Date(loanDateObj);
-                d.setDate(d.getDate() + i);
-                const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-                const paidToday = dailyPaidObj[dateStr] || 0;
-                credit += paidToday;
-
-                if (credit >= dailyEmi) {
-                    credit -= dailyEmi; // Din ka hisab clear, bacha hua credit agle din ke liye
-                } else {
-                    // Paisa kam hai to ye date missed
-                    missedDates.push({ date: dateStr, due: dailyEmi - credit });
-                    credit = 0;
-                }
-            }
-
-            if (missedDates.length > 0) {
+            if (missedDaysCount > 0) {
                 totalMissedCustomers++;
-                // Total bacha hua amount = missedDates ka sum
-                const totalDue = missedDates.reduce((s, x) => s + x.due, 0);
-                const missedDatesOnly = missedDates.map(m => m.date).join(', ');
+                const dueAmount = missedDaysCount * dailyEmi;
+
+                // Number wise date banao - jaise 29, 30, 31 July
+                const missedDates = [];
+                for (let k = 0; k < missedDaysCount; k++) {
+                    const d = new Date(todayDate);
+                    d.setDate(d.getDate() - k);
+                    const dateStr = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                    missedDates.push(dateStr);
+                }
+                const missedStr = missedDates.join(', ');
 
                 html += `
-                    <div class="missed-item" onclick="showMissedDetails('${cust.name}', ${totalDue}, '${missedDatesOnly}')">
-                        <div style="line-height:1.4;">
-                            <div style="font-weight:700;">${cust.name} <span style="font-weight:400;font-size:11px;color:#666;">(${cust.customerCode || ''})</span></div>
-                            <div style="font-size:12px;color:#dc2626;">📅 Missed: ${missedDates.length} din | Pending: ₹${totalDue}</div>
-                            <div style="font-size:11px;color:#888;">${missedDatesOnly}</div>
+                    <div class="missed-item" onclick="showMissedDetails('${cust.name}', ${dueAmount}, '${missedStr}')">
+                        <div>
+                            <span class="name">${cust.name}</span>
+                            <span style="font-size:12px;color:#666;margin-left:8px;">- ₹${dueAmount} pending</span>
+                            <div style="font-size:11px;color:#dc2626;margin-top:2px;">Missed: ${missedDaysCount} din (${missedStr})</div>
                         </div>
-                        <span class="badge" style="background:#fee2e2;color:#dc2626;padding:4px 8px;border-radius:12px;font-size:11px;">₹${totalDue}</span>
+                        <span class="badge">₹${dueAmount}</span>
                     </div>
                 `;
             }
         });
 
         if (totalMissedCustomers === 0) {
-            loadingEl.innerText = "✅ Sabhi ne time pe payment kiya hai!";
+            loadingEl.innerText = "✅ Sabhi ka payment clear hai!";
             listEl.innerHTML = "";
         } else {
-            loadingEl.innerText = `📌 ${totalMissedCustomers} customer ke pending din:`;
+            loadingEl.innerText = `📌 ${totalMissedCustomers} customers pending:`;
             listEl.innerHTML = html;
         }
 
         window.showMissedDetails = (name, amount, dates) => {
-            alert(`📋 ${name}\nPending: ₹${amount}\nMissed Dates:\n • ${dates.split(', ').join('\n • ')}`);
+            alert(`📋 ${name}\nPending Amount: ₹${amount}\nMissed Dates (Number wise): ${dates}`);
         };
 
     } catch (err) {
@@ -114,4 +103,5 @@ async function loadMissedDates() {
         loadingEl.innerText = "❌ Error: " + err.message;
     }
 }
+
 document.addEventListener('DOMContentLoaded', loadMissedDates);
