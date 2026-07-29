@@ -1,81 +1,102 @@
 // ==========================================================
-// 🚀 GDA FINANCE - DASHBOARD (ONLY STATS - CLEAN & FAST)
+// 🚀 GDA FINANCE - DASHBOARD (FINAL - MOBILE PERFECT)
+// ID Match: txtTodayCollected, txtTodayMissed, txtActiveAccounts, txtTodayDemand, lblDueCount
 // ==========================================================
 
 import { db, auth } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 export async function loadDashboard() {
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) { 
-            window.location.href = "login.html"; 
-            return; 
-        }
+    
+    const txtTodayCollected = document.getElementById("txtTodayCollected");
+    const txtTodayMissed = document.getElementById("txtTodayMissed");
+    const txtActiveAccounts = document.getElementById("txtActiveAccounts");
+    const txtTodayDemand = document.getElementById("txtTodayDemand");
+    const lblDueCount = document.getElementById("lblDueCount");
+    const txtCollectedSub = document.getElementById("txtCollectedSub");
+    const greetText = document.getElementById("greetText");
 
-        // 💡 ये सारे IDs (txtTodayCollected आदि) आपके index.html में मौजूद हैं
-        const txtTodayCollected = document.getElementById("txtTodayCollected");
-        const txtTodayMissed = document.getElementById("txtTodayMissed");
-        const txtActiveAccounts = document.getElementById("txtActiveAccounts");
-        const txtTodayDemand = document.getElementById("txtTodayDemand");
-        const lblDueCount = document.getElementById("lblDueCount");
+    // Greeting Date
+    if(greetText){
+        const d = new Date();
+        greetText.innerText = `Good Morning, Babul • ${d.toLocaleDateString('en-GB',{day:'2-digit', month:'short'})} • Garhwa`;
+    }
 
-        // आज की तारीख (IST फॉर्मेट में)
-        const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    // Aaj ki date IST me
+    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-        try {
-            // 1. कलेक्शन (Collections) डेटा लोड करें
-            const collectSnapshot = await getDocs(collection(db, "collections"));
-            let todayCollected = 0;
-            const paidTodayIds = []; 
+    try {
+        // Data parallel me load karo - FAST
+        const [collectSnapshot, custSnapshot] = await Promise.all([
+            getDocs(collection(db, "collections")),
+            getDocs(collection(db, "customers"))
+        ]);
 
-            collectSnapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.date === todayIST) {
-                    todayCollected += Number(data.amount || 0);
-                    paidTodayIds.push(data.customerId); 
+        let todayCollected = 0;
+        const paidTodayIds = new Set(); 
+
+        collectSnapshot.forEach(doc => {
+            const data = doc.data();
+            // Aapke DB me date ka naam kabhi 'date' hai kabhi 'collectionDate' hai - dono check
+            const cDate = (data.date || data.collectionDate || "").split('T')[0];
+            if (cDate === todayIST) {
+                todayCollected += Number(data.amount || data.collectionAmount || 0);
+                if(data.customerId) paidTodayIds.add(data.customerId);
+            }
+        });
+
+        let active = 0;
+        let totalDemand = 0;
+        let missedCount = 0;
+
+        custSnapshot.forEach(doc => {
+            const cust = doc.data();
+            const emi = Number(cust.dailyEmi || cust.emi || 0);
+            if (cust.status !== "Closed" && emi > 0) {
+                active++;
+                totalDemand += emi;
+                if (!paidTodayIds.has(doc.id)) {
+                    missedCount++;
                 }
-            });
+            }
+        });
 
-            // 2. कस्टमर (Customers) डेटा लोड करें
-            const custSnapshot = await getDocs(collection(db, "customers"));
-            let active = 0;
-            let totalDemand = 0;
-            let missedCount = 0;
+        const currentTodayOverdue = Math.max(0, totalDemand - todayCollected);
+        const percent = totalDemand > 0 ? Math.round((todayCollected/totalDemand)*100) : 0;
 
-            custSnapshot.forEach(doc => {
-                const cust = doc.data();
-                const emi = Number(cust.dailyEmi || cust.emi || 0);
+        // UI Update
+        if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected.toLocaleString('en-IN')} / ₹${totalDemand.toLocaleString('en-IN')}`;
+        if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand.toLocaleString('en-IN')}`;
+        if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue.toLocaleString('en-IN')}`;
+        if (txtActiveAccounts) txtActiveAccounts.innerText = active;
+        if (lblDueCount) lblDueCount.innerText = missedCount;
+        if (txtCollectedSub) txtCollectedSub.innerText = `${percent}% Completed`;
 
-                // 'Closed' (बंद) अकाउंट को छोड़ें
-                if (cust.status !== "Closed") {
-                    active++; // एक्टिव अकाउंट गिनें
-                    totalDemand += emi; // आज की कुल डिमांड (Target)
-                    
-                    // अगर आज पेमेंट नहीं किया है, तो मिस्ड काउंट बढ़ाएं
-                    if (!paidTodayIds.includes(doc.id)) {
-                        missedCount++; 
-                    }
-                }
-            });
-
-            // 3. आज का कुल बकाया (Overdue) निकालें (डिमांड - कलेक्शन)
-            const currentTodayOverdue = Math.max(0, totalDemand - todayCollected);
-
-            // 4. UI (यूजर इंटरफेस) अपडेट करें
-            if (txtTodayCollected) txtTodayCollected.innerText = `₹${todayCollected} / ₹${totalDemand}`;
-            if (txtTodayDemand) txtTodayDemand.innerText = `₹${totalDemand}`;
-            if (txtTodayMissed) txtTodayMissed.innerText = `₹${currentTodayOverdue}`;
-            if (txtActiveAccounts) txtActiveAccounts.innerText = active;
-            if (lblDueCount) lblDueCount.innerText = missedCount; 
-
-        } catch (err) { 
-            console.error("Dashboard Render Error:", err); 
-        }
-    });
+    } catch (err) { 
+        console.error("Dashboard Error:", err); 
+        if(txtTodayMissed) txtTodayMissed.innerText = "Error";
+    }
 }
 
-// 🔄 रिफ्रेश (Refresh) बटन के लिए ग्लोबल फंक्शन
+// Auth Check + Load
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "login.html";
+    } else {
+        loadDashboard();
+    }
+});
+
+// Refresh & Logout Global
 window.refreshApp = () => window.location.reload();
 
-// 🚀 जैसे ही पेज (Page) लोड हो, डैशबोर्ड (Dashboard) लोड करें
-window.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.getElementById("logoutBtn");
+    if(logoutBtn){
+        logoutBtn.onclick = async () => {
+            await signOut(auth);
+            window.location.href = "login.html";
+        };
+    }
+});
