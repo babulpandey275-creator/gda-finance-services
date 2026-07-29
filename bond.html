@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GDA Finance - Disbursement Bond</title>
+  <title>GDA Finance - Loan Bond</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
     body { background:#f5f5f5; padding:16px; }
     .bond-sheet { max-width:800px; margin:0 auto; background:#ffffff; padding:28px 24px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); }
     .header { text-align:center; border-bottom:3px solid #1E3A8A; padding-bottom:14px; margin-bottom:18px; }
-    .header h1 { font-size:26px; font-weight:800; color:#1E3A8A; letter-spacing:0.5px; }
+    .header h1 { font-size:26px; font-weight:800; color:#1E3A8A; }
     .header p { font-size:11px; font-weight:700; color:#64748B; letter-spacing:2.5px; text-transform:uppercase; margin-top:4px; }
-    .bond-title { text-align:center; font-size:15px; font-weight:800; color:#0F172A; margin:12px 0 18px 0; background:#F8FAFF; padding:8px; border-radius:8px; }
+    .bond-title { text-align:center; font-size:15px; font-weight:800; color:#0F172A; margin:12px 0 18px; background:#F8FAFF; padding:8px; border-radius:8px; }
     
-    /* ✅ यह PHOTO BOX है – नया जोड़ा गया */
+    /* Photo Box */
     .photo-box { 
       float:right; width:100px; height:120px; border:2px solid #E2E8F0; border-radius:10px; 
       overflow:hidden; margin-left:16px; margin-bottom:10px; 
@@ -25,40 +25,66 @@
 
     .row { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; padding:10px 0; border-bottom:1px solid #F1F5F9; font-size:13px; }
     .row.full { grid-template-columns:140px 1fr; }
-    .row .label { color:#64748B; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; }
+    .row .label { color:#64748B; font-weight:600; font-size:11px; text-transform:uppercase; }
     .row .value { color:#0F172A; font-weight:600; }
     .row .blue { color:#1E3A8A; font-weight:800; }
     .row .red { color:#DC2626; font-weight:800; }
+    
     .terms { margin-top:22px; background:#F8FAFF; padding:16px 18px; border-radius:12px; border:1px solid #E9D5FF; }
     .terms h3 { font-size:13px; font-weight:800; color:#1E3A8A; margin-bottom:10px; }
     .terms ol { font-size:11px; color:#334155; line-height:1.7; padding-left:18px; }
     .terms ol li { margin-bottom:6px; }
+    
+    /* ✅ STAMP AREA - अब आपकी असली इमेज दिखेगी */
     .stamp-area { text-align:center; margin-top:30px; }
     .stamp-area p { font-size:12px; font-weight:700; color:#1E3A8A; margin-bottom:8px; }
-    .stamp { width:130px; height:130px; border:2.5px solid #5B21B6; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; }
-    .stamp-inner { font-size:10px; font-weight:800; color:#5B21B6; text-align:center; border:1.5px dashed #5B21B6; border-radius:50%; width:92%; height:92%; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.4; }
+    .stamp { 
+      width:130px; height:130px; border:2.5px solid #5B21B6; border-radius:50%; 
+      margin:0 auto; display:flex; align-items:center; justify-content:center; 
+      background:#fff; overflow:hidden; /* 🔥 नई लाइन: ताकि इमेज बाहर न जाए */ 
+    }
+    .stamp img {
+      width:100%; 
+      height:100%; 
+      object-fit:contain; /* पूरी इमेज दिखेगी, कटेगी नहीं */
+      padding:8px; /* थोड़ा बॉर्डर का गैप */
+      background:#fff;
+    }
+    /* Backup text, अगर इमेज न लोड हो तो */
+    .stamp .fallback-text {
+      display: none;
+      font-size:10px; font-weight:800; color:#5B21B6; text-align:center; line-height:1.4;
+    }
+    .stamp img:not([src]), .stamp img[src=""] {
+      display: none;
+    }
+    .stamp img:not([src]) + .fallback-text,
+    .stamp img[src=""] + .fallback-text {
+      display: block;
+    }
+
     .signature-line { margin-top:18px; padding-top:10px; border-top:2px solid #0F172A; display:inline-block; font-weight:700; font-size:13px; color:#0F172A; }
-    .actions { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; max-width:800px; margin-left:auto; margin-right:auto; }
-    .btn { flex:1; min-width:120px; padding:12px; border-radius:10px; border:none; font-weight:800; font-size:13px; cursor:pointer; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:0.15s; }
+    
+    .actions { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+    .btn { flex:1; min-width:120px; padding:12px; border-radius:10px; border:none; font-weight:800; font-size:13px; cursor:pointer; text-align:center; text-decoration:none; }
     .btn-print { background:#0F172A; color:#fff; }
     .btn-whatsapp { background:#25D366; color:#fff; }
     .btn-back { background:#E2E8F0; color:#0F172A; }
-    .btn:active { transform:scale(0.96); }
-    @media print { body{background:#fff;padding:0;} .bond-sheet{box-shadow:none;border-radius:0;padding:20px;} .actions{display:none;} .photo-box{border-color:#ccc;} }
-    @media (max-width:480px) { .row{grid-template-columns:1fr;gap:4px;} .row.full{grid-template-columns:1fr;} .photo-box{float:none;margin:0 auto 12px;} }
+    
+    @media print { body{background:#fff;padding:0;} .bond-sheet{box-shadow:none;padding:20px;} .actions{display:none;} }
+    @media (max-width:480px) { .row{grid-template-columns:1fr;} .photo-box{float:none;margin:0 auto 12px;} }
   </style>
 </head>
 <body>
 
-<div class="bond-sheet" id="bondSheet">
+<div class="bond-sheet">
   <div class="header">
     <h1>🏦 GDA FINANCE SERVICES</h1>
     <p>Digital Loan Distribution &amp; Micro Finance System</p>
   </div>
   <div class="bond-title">📜 LOAN DISBURSEMENT AGREEMENT BOND</div>
 
-  <!-- ✅ यह PHOTO BOX है – जहाँ फोटो दिखेगी -->
-  <div class="photo-box" id="photoBox">
+  <div class="photo-box">
     <img id="bondPhoto" src="" alt="Customer Photo">
     <span class="placeholder" id="photoPlaceholder">📷</span>
   </div>
@@ -80,9 +106,14 @@
     </ol>
   </div>
 
+  <!-- ✅ STAMP AREA - अब आपकी असली इमेज दिखेगी -->
   <div class="stamp-area">
     <p>For GDA Finance Services</p>
-    <div class="stamp"><div class="stamp-inner">GDA FINANCE<br>FROM THE TRUSTED FAMILY<br><br><span style="font-size:8px; border-top:1px solid #5B21B6; padding-top:4px; width:60%;">Signature</span></div></div>
+    <div class="stamp">
+      <!-- आपकी असली स्टैम्प इमेज (stamp_signature.png) -->
+      <img src="stamp_signature.png" alt="Company Stamp" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <span class="fallback-text">GDA FINANCE<br>FROM THE TRUSTED FAMILY<br><br>Signature</span>
+    </div>
     <div class="signature-line">Branch Manager (Authorized)</div>
   </div>
 </div>
@@ -90,9 +121,77 @@
 <div class="actions">
   <button class="btn btn-print" onclick="window.print()">🖨️ Print / PDF</button>
   <button class="btn btn-whatsapp" id="btnWhatsApp">📱 WhatsApp</button>
-  <a href="statement.html" class="btn btn-back">← Back to Statement</a>
+  <a href="statement.html" class="btn btn-back">← Back</a>
 </div>
 
-<script type="module" src="disbursement-bond.js"></script>
+<script type="module">
+  // ---------- FIREBASE IMPORT ----------
+  import { db } from "./firebase.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const customerId = urlParams.get('id');
+
+  if (!customerId) {
+    document.getElementById("bName").innerText = "❌ ID Missing!";
+    throw new Error("Missing ID");
+  }
+
+  async function loadBond() {
+    try {
+      const docSnap = await getDoc(doc(db, "customers", customerId));
+      if (!docSnap.exists()) {
+        alert("Customer not found!");
+        return;
+      }
+      const c = docSnap.data();
+
+      // --- FILL DATA ---
+      document.getElementById("bName").innerText = c.name || '-';
+      document.getElementById("bCode").innerText = c.customerCode || customerId.substring(0,6).toUpperCase();
+      document.getElementById("bMobile").innerText = c.mobile || '-';
+      document.getElementById("bDate").innerText = c.loanDate || c.startDate || new Date().toISOString().split('T')[0];
+      document.getElementById("bAadhaar").innerText = c.aadhar || c.aadhaar || '-';
+      document.getElementById("bPan").innerText = c.pan || '-';
+      document.getElementById("bAddress").innerText = c.address || '-';
+      
+      const amt = Number(c.loanAmount || 0);
+      document.getElementById("bPrincipal").innerText = `₹${amt.toLocaleString('en-IN')}`;
+      document.getElementById("bDuration").innerText = `${c.planDuration || c.duration || 60} Days`;
+      document.getElementById("bEmi").innerText = `₹${Number(c.dailyEmi || c.emi || 0)}`;
+      document.getElementById("bTotal").innerText = `₹${Math.round(amt * 1.2).toLocaleString('en-IN')}`;
+
+      // --- PHOTO HANDLER (10+ Keys support) ---
+      const photoEl = document.getElementById("bondPhoto");
+      const placeholder = document.getElementById("photoPlaceholder");
+      const keys = ['photoUrl','photo','customerPhoto','imageUrl','profilePic','custPhoto','customerImage','image','photoURL','imgUrl'];
+      let found = null;
+      for (let k of keys) {
+        if (c[k] && typeof c[k] === 'string' && c[k].startsWith('http')) {
+          found = c[k]; break;
+        }
+      }
+      if (found) {
+        photoEl.src = found;
+        photoEl.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        photoEl.style.display = 'none';
+        placeholder.style.display = 'flex';
+        placeholder.innerText = (c.name || 'C').charAt(0).toUpperCase();
+      }
+
+      // --- WHATSAPP ---
+      document.getElementById("btnWhatsApp").addEventListener('click', () => {
+        const msg = `*GDA FINANCE - LOAN BOND*%0A%0A👤 Name: ${c.name}%0A🆔 Code: ${c.customerCode}%0A📞 Mobile: ${c.mobile}%0A📅 Loan Date: ${c.loanDate}%0A💰 Loan: ₹${amt}%0A📆 Duration: ${c.planDuration || 60} Days%0A💵 EMI: ₹${c.dailyEmi || c.emi || 0}%0A🆔 Aadhar: ${c.aadhar || c.aadhaar || 'N/A'}%0A📇 PAN: ${c.pan || 'N/A'}%0A🏠 Address: ${c.address || 'N/A'}`;
+        window.open(`https://wa.me/91${c.mobile}?text=${msg}`, '_blank');
+      });
+
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  }
+  loadBond();
+</script>
 </body>
 </html>
