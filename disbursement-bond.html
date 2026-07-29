@@ -3,82 +3,386 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Customer Statement - GDA Finance</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <title>GDA Finance - Disbursement Bond</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
-    body { background:#F8FAFF; min-height:100vh; padding-bottom:85px; }
-    .app-header {
-      background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
-      padding:18px 16px 20px; border-radius:0 0 26px 26px;
-      display:flex; justify-content:space-between; align-items:center;
-      position:sticky; top:0; z-index:20;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
     }
-    .gda-logo-container{display:flex;align-items:center;gap:13px;}
-    .gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center;border:2px solid rgba(255,255,255,0.3);}
-    .gda-logo-icon .material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL'1;}
-    .gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff;}
-    .gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:#FFC107;text-transform:uppercase;}
-    .back-btn{background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:12px;border:1px solid rgba(255,255,255,0.18);}
-    .container{padding:14px;max-width:600px;margin:0 auto;}
-    .profile-card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.04);margin-bottom:16px;border:1px solid #F1F5F9;}
-    .profile-top{display:flex;gap:14px;align-items:center;margin-bottom:14px;}
-    .profile-top img{width:70px;height:70px;border-radius:50%;object-fit:cover;background:#F1F5F9;border:2px solid #E9D5FF;}
-    .profile-top h2{font-size:20px;font-weight:800;color:#0F172A;}
-    .profile-top p{font-size:13px;color:#64748B;font-weight:600;}
-    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
-    .info-item{background:#F8FAFF;padding:10px;border-radius:12px;}
-    .info-item .label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;}
-    .info-item .value{font-size:16px;font-weight:800;color:#0F172A;margin-top:2px;}
-    .kyc-section{background:#FFFBEB;border:1px solid #FDE68A;border-radius:16px;padding:14px;margin:12px 0;}
-    .kyc-section h4{font-size:12px;color:#92400E;font-weight:800;margin-bottom:8px;}
-    .kyc-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #FDE68A;font-size:13px;}
-    .kyc-row:last-child{border:none;}
-    .action-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin:14px 0;}
-    .action-btn{padding:10px;border-radius:12px;border:none;font-weight:800;font-size:11px;cursor:pointer;text-align:center;text-decoration:none;background:#F1F5F9;color:#0F172A;}
-    .action-btn.whatsapp{background:#ECFDF5;color:#059669;border:1px solid #D1FAE5;}
-    .action-btn.pdf{background:#FFF1F2;color:#DC2626;border:1px solid #FFE4E6;}
-    .action-btn.bond{background:#FFFBEB;color:#92400E;border:1px solid #FEF3C7;}
-    .action-btn.settle{background:#0F172A;color:#fff;}
-    .action-btn.settle.settled{background:#E2E8F0;color:#94A3B8;}
-    .table-wrap{background:#fff;border-radius:20px;border:1px solid #F1F5F9;overflow:hidden;}
-    .table-wrap h3{padding:14px 16px;background:#F8FAFF;font-size:13px;font-weight:800;color:#0F172A;border-bottom:1px solid #F1F5F9;}
-    table{width:100%;border-collapse:collapse;font-size:12px;}
-    th{background:#F8FAFF;padding:10px 12px;text-align:left;font-weight:700;color:#64748B;text-transform:uppercase;font-size:10px;}
-    td{padding:10px 12px;border-bottom:1px solid #F1F5F9;}
-    .del-btn{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6;padding:4px 10px;border-radius:6px;font-weight:700;cursor:pointer;}
-    .empty-msg{text-align:center;padding:20px;color:#94A3B8;}
+    body {
+      background: #f5f5f5;
+      padding: 16px;
+    }
+    .bond-sheet {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 28px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #1E3A8A;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1E3A8A;
+      letter-spacing: 0.5px;
+    }
+    .header p {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .bond-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 12px 0 18px 0;
+      background: #F8FAFF;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .photo-box {
+      float: right;
+      width: 100px;
+      height: 120px;
+      border: 2px solid #E2E8F0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-left: 16px;
+      margin-bottom: 10px;
+      background: #F1F5F9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-box .placeholder {
+      font-size: 36px;
+      font-weight: 800;
+      color: #94A3B8;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 13px;
+    }
+    .row.full {
+      grid-template-columns: 140px 1fr;
+    }
+    .row .label {
+      color: #64748B;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .row .value {
+      color: #0F172A;
+      font-weight: 600;
+    }
+    .row .blue {
+      color: #1E3A8A;
+      font-weight: 800;
+    }
+    .row .red {
+      color: #DC2626;
+      font-weight: 800;
+    }
+    .terms {
+      margin-top: 22px;
+      background: #F8FAFF;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 1px solid #E9D5FF;
+    }
+    .terms h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1E3A8A;
+      margin-bottom: 10px;
+    }
+    .terms ol {
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.7;
+      padding-left: 18px;
+    }
+    .terms ol li {
+      margin-bottom: 6px;
+    }
+    .stamp-area {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .stamp-area p {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 8px;
+    }
+    .stamp {
+      width: 130px;
+      height: 130px;
+      border: 2.5px solid #5B21B6;
+      border-radius: 50%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stamp-inner {
+      font-size: 10px;
+      font-weight: 800;
+      color: #5B21B6;
+      text-align: center;
+      border: 1.5px dashed #5B21B6;
+      border-radius: 50%;
+      width: 92%;
+      height: 92%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+    }
+    .signature-line {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 2px solid #0F172A;
+      display: inline-block;
+      font-weight: 700;
+      font-size: 13px;
+      color: #0F172A;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: 0.15s;
+    }
+    .btn-print {
+      background: #0F172A;
+      color: #fff;
+    }
+    .btn-whatsapp {
+      background: #25D366;
+      color: #fff;
+    }
+    .btn-back {
+      background: #E2E8F0;
+      color: #0F172A;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
 
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
-    .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
-    .nav-item.active{color:#E91E63;}
-    .nav-item .material-symbols-outlined{font-size:24px;}
+    @media print {
+      body { background: #fff; padding: 0; }
+      .bond-sheet { box-shadow: none; border-radius: 0; padding: 20px; }
+      .actions { display: none; }
+      .photo-box { border-color: #ccc; }
+    }
+
+    @media (max-width: 480px) {
+      .row { grid-template-columns: 1fr; gap: 4px; }
+      .row.full { grid-template-columns: 1fr; }
+      .photo-box { float: none; margin: 0 auto 12px; }
+    }
   </style>
 </head>
 <body>
 
-<header class="app-header">
-  <div class="gda-logo-container">
-    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
-    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+<div class="bond-sheet" id="bondSheet">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🏦 GDA FINANCE SERVICES</h1>
+    <p>Digital Loan Distribution &amp; Micro Finance System</p>
   </div>
-  <a href="customer-list.html" class="back-btn">← Back</a>
-</header>
 
-<div class="container" id="mainContainer">
-  <div id="loadingMsg" style="text-align:center;padding:40px;color:#94A3B8;">⏳ Loading KYC Data...</div>
-  <div id="profileContent" style="display:none;"></div>
+  <div class="bond-title">📜 LOAN DISBURSEMENT AGREEMENT BOND</div>
+
+  <!-- PHOTO (right floated) -->
+  <div class="photo-box" id="photoBox">
+    <img id="bondPhoto" src="" alt="Customer Photo" style="display:none;">
+    <span class="placeholder" id="photoPlaceholder">📷</span>
+  </div>
+
+  <!-- CUSTOMER DETAILS -->
+  <div class="row">
+    <span class="label">Customer Name</span>
+    <span class="value" id="bName">-</span>
+    <span class="label">Loan Number / ID</span>
+    <span class="value" id="bCode">-</span>
+  </div>
+  <div class="row">
+    <span class="label">Mobile Number</span>
+    <span class="value" id="bMobile">-</span>
+    <span class="label">Date of Disbursal</span>
+    <span class="value" id="bDate">-</span>
+  </div>
+  <div class="row">
+    <span class="label">Aadhaar Number</span>
+    <span class="value" id="bAadhaar">-</span>
+    <span class="label">PAN Card Number</span>
+    <span class="value" id="bPan">-</span>
+  </div>
+  <div class="row full">
+    <span class="label">Permanent Address</span>
+    <span class="value" id="bAddress">-</span>
+  </div>
+
+  <!-- LOAN TERMS -->
+  <div class="row">
+    <span class="label">Principal Amount</span>
+    <span class="blue" id="bPrincipal">₹0</span>
+    <span class="label">Plan Duration</span>
+    <span class="value" id="bDuration">-</span>
+  </div>
+  <div class="row">
+    <span class="label">Daily EMI Amount</span>
+    <span class="red" id="bEmi">₹0</span>
+    <span class="label">Total Payable Amount</span>
+    <span class="value" id="bTotal">₹0</span>
+  </div>
+
+  <!-- TERMS & CONDITIONS -->
+  <div class="terms">
+    <h3>📜 Terms &amp; Loan Declarations (नियम व शर्तें)</h3>
+    <ol>
+      <li>The borrower acknowledges receiving the principal loan amount mentioned above from <b>GDA Finance Services</b> in full and good faith.</li>
+      <li>It is mandatory for the borrower to pay the designated Daily EMI amount on time every day without failure as per the agreed plan duration.</li>
+      <li>Failure to repay the daily installment within due time will automatically attract predefined gap penalties and late fine criteria as set up by the company policies.</li>
+      <li>The company holds full commercial rights to take necessary lawful actions in case of total default or non-compliance with the repayment schedules.</li>
+    </ol>
+  </div>
+
+  <!-- STAMP & SIGNATURE -->
+  <div class="stamp-area">
+    <p>For GDA Finance Services</p>
+    <div class="stamp">
+      <div class="stamp-inner">
+        GDA FINANCE<br>
+        FROM THE TRUSTED FAMILY<br><br>
+        <span style="font-size:8px; border-top:1px solid #5B21B6; padding-top:4px; width:60%;">Signature</span>
+      </div>
+    </div>
+    <div class="signature-line">Branch Manager (Authorized)</div>
+  </div>
 </div>
 
-<nav class="bottom-nav">
-  <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
-  <a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a>
-  <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
-  <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
-  <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
-</nav>
+<!-- ACTION BUTTONS -->
+<div class="actions" style="max-width:800px; margin:12px auto 0;">
+  <button class="btn btn-print" onclick="window.print()">🖨️ Print / PDF</button>
+  <button class="btn btn-whatsapp" id="btnWhatsApp">📱 WhatsApp</button>
+  <a href="statement.html" class="btn btn-back">← Back to Statement</a>
+</div>
 
-<script type="module" src="statement.js"></script>
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const urlParams = new URLSearchParams(window.location.search);
+const customerId = urlParams.get('id');
+
+if (!customerId) {
+  alert("❌ Customer ID not found in URL!");
+  throw new Error("Missing customer ID");
+}
+
+async function loadBond() {
+  try {
+    const docSnap = await getDoc(doc(db, "customers", customerId));
+    if (!docSnap.exists()) {
+      alert("❌ Customer not found in database!");
+      return;
+    }
+    const c = docSnap.data();
+
+    // Fill all fields
+    document.getElementById("bName").innerText = c.name || '-';
+    document.getElementById("bCode").innerText = c.customerCode || customerId.substring(0,6).toUpperCase();
+    document.getElementById("bMobile").innerText = c.mobile || '-';
+    document.getElementById("bDate").innerText = c.loanDate || c.startDate || new Date().toISOString().split('T')[0];
+    document.getElementById("bAadhaar").innerText = c.aadhar || c.aadhaar || '-';
+    document.getElementById("bPan").innerText = c.pan || '-';
+    document.getElementById("bAddress").innerText = c.address || '-';
+    document.getElementById("bPrincipal").innerText = `₹${Number(c.loanAmount || 0).toLocaleString('en-IN')}`;
+    document.getElementById("bDuration").innerText = `${c.planDuration || c.duration || 60} Days`;
+    document.getElementById("bEmi").innerText = `₹${Number(c.dailyEmi || c.emi || 0)}`;
+    document.getElementById("bTotal").innerText = `₹${Math.round(Number(c.loanAmount || 0) * 1.2).toLocaleString('en-IN')}`;
+
+    // Photo handling
+    const photoEl = document.getElementById("bondPhoto");
+    const placeholder = document.getElementById("photoPlaceholder");
+    const possibleKeys = ['photoUrl', 'photo', 'customerPhoto', 'imageUrl', 'profilePic', 'custPhoto', 'customerImage', 'image', 'photoURL', 'imgUrl'];
+    let foundUrl = null;
+    for (let key of possibleKeys) {
+      if (c[key] && typeof c[key] === 'string' && c[key].startsWith('http')) {
+        foundUrl = c[key];
+        break;
+      }
+    }
+    if (foundUrl) {
+      photoEl.src = foundUrl;
+      photoEl.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      photoEl.style.display = 'none';
+      placeholder.style.display = 'flex';
+      placeholder.innerText = (c.name || 'C').charAt(0).toUpperCase();
+    }
+
+    // WhatsApp share
+    document.getElementById("btnWhatsApp").addEventListener('click', () => {
+      const msg = `*GDA FINANCE - LOAN BOND*%0A%0A👤 Name: ${c.name}%0A🆔 Code: ${c.customerCode}%0A📞 Mobile: ${c.mobile}%0A📅 Loan Date: ${c.loanDate || c.startDate}%0A💰 Loan Amount: ₹${c.loanAmount}%0A📆 Duration: ${c.planDuration || c.duration || 60} Days%0A💵 Daily EMI: ₹${c.dailyEmi || c.emi || 0}%0A📊 Total Payable: ₹${Math.round(Number(c.loanAmount||0)*1.2)}%0A🆔 Aadhar: ${c.aadhar || c.aadhaar || 'N/A'}%0A📇 PAN: ${c.pan || 'N/A'}%0A🏠 Address: ${c.address || 'N/A'}%0A📍 Branch: Garhwa`;
+      window.open(`https://wa.me/91${c.mobile}?text=${msg}`, '_blank');
+    });
+
+  } catch (err) {
+    alert("❌ Error loading bond data: " + err.message);
+    console.error(err);
+  }
+}
+
+loadBond();
+</script>
+
 </body>
 </html>
