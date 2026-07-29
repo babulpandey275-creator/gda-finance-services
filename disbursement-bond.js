@@ -42,7 +42,7 @@ async function loadBond() {
     elements.mobile.innerText = c.mobile || '-';
     elements.date.innerText = c.loanDate || c.startDate || new Date().toISOString().split('T')[0];
     
-    // Aadhar (supports both spellings)
+    // Aadhar (both spellings supported)
     elements.aadhaar.innerText = c.aadhar || c.aadhaar || '-';
     elements.pan.innerText = c.pan || '-';
     elements.address.innerText = c.address || '-';
@@ -57,12 +57,13 @@ async function loadBond() {
     elements.emi.innerText = `₹${dailyEmi}`;
     elements.total.innerText = `₹${totalPayable.toLocaleString('en-IN')}`;
 
-    // --- 2. Photo Handling (try multiple possible keys) ---
+    // --- ✅ 2. PHOTO HANDLING (यह नया लॉजिक है) ---
     const photoKeys = ['photoUrl', 'photo', 'customerPhoto', 'imageUrl', 'profilePic', 'custPhoto', 'customerImage', 'image', 'photoURL', 'imgUrl'];
     let foundUrl = null;
     for (let key of photoKeys) {
       if (c[key] && typeof c[key] === 'string' && c[key].startsWith('http')) {
         foundUrl = c[key];
+        console.log("✅ Photo mil gayi! Key:", key, "URL:", foundUrl);
         break;
       }
     }
@@ -72,13 +73,14 @@ async function loadBond() {
       elements.photo.style.display = 'block';
       elements.placeholder.style.display = 'none';
     } else {
+      console.log("⚠️ Photo nahi mili, placeholder dikhayenge.");
       elements.photo.style.display = 'none';
       elements.placeholder.style.display = 'flex';
-      // Show first letter of name as placeholder
+      // Name ka pehla letter show karein
       elements.placeholder.innerText = (c.name || 'C').charAt(0).toUpperCase();
     }
 
-    // --- 3. WhatsApp Share ---
+    // --- 3. WhatsApp Share (अब पूरी KYC के साथ) ---
     document.getElementById("btnWhatsApp").addEventListener('click', () => {
       const msg = `*GDA FINANCE - LOAN BOND*%0A%0A👤 Name: ${c.name}%0A🆔 Code: ${c.customerCode}%0A📞 Mobile: ${c.mobile}%0A📅 Loan Date: ${c.loanDate || c.startDate || 'N/A'}%0A💰 Loan Amount: ₹${loanAmt}%0A📆 Duration: ${duration} Days%0A💵 Daily EMI: ₹${dailyEmi}%0A📊 Total Payable: ₹${totalPayable}%0A🆔 Aadhar: ${c.aadhar || c.aadhaar || 'N/A'}%0A📇 PAN: ${c.pan || 'N/A'}%0A🏠 Address: ${c.address || 'N/A'}%0A📍 Branch: Garhwa`;
       window.open(`https://wa.me/91${c.mobile}?text=${msg}`, '_blank');
@@ -90,5 +92,4 @@ async function loadBond() {
   }
 }
 
-// Load the data
 loadBond();
