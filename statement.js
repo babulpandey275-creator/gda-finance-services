@@ -1,5 +1,8 @@
 import { db, auth } from "./firebase.js";
-import { doc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { 
+  doc, getDoc, updateDoc, deleteDoc, 
+  collection, query, where, getDocs 
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 const ADMIN_PASSWORD = "GDA@2026";
@@ -9,16 +12,19 @@ let currentCustomerId = null;
 const loadingMsg = document.getElementById("loadingMsg");
 const profileContent = document.getElementById("profileContent");
 
+// URL से customer ID निकालें
 function getCustomerIdFromUrl() {
   return new URLSearchParams(window.location.search).get('id');
 }
 
+// ---- RENDER PROFILE ----
 function renderProfile(cust, logs) {
   const planDur = Number(cust.planDuration || cust.duration || 60);
   const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
   const totalPaid = Number(cust.totalCollected || 0);
   const paidDays = Number(cust.paidDays || 0);
   const loanAmount = Number(cust.loanAmount || 0);
+  // Expected total = loan amount + 20% interest (as per your app)
   const expectedTotal = Math.max(loanAmount * 1.2, planDur * dailyEmi);
   const remaining = Math.max(0, expectedTotal - totalPaid);
   const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
@@ -41,6 +47,7 @@ function renderProfile(cust, logs) {
         <div class="info-item"><div class="label">Paid Days</div><div class="value">${paidDays} Days</div></div>
         <div class="info-item"><div class="label">Total Collected</div><div class="value">₹${totalPaid.toLocaleString('en-IN')}</div></div>
       </div>
+      <!-- KYC SECTION -->
       <div class="kyc-section">
         <h4>🔐 KYC VERIFICATION DETAILS</h4>
         <div class="kyc-row"><span>Aadhar Number</span><b>${cust.aadhar || 'Not Provided'}</b></div>
@@ -48,15 +55,18 @@ function renderProfile(cust, logs) {
         <div class="kyc-row"><span>Residential Address</span><b>${cust.address || 'Not Provided'}</b></div>
         <div class="kyc-row"><span>Status</span><b style="color:${isSettled ? '#059669' : '#DC2626'};">${cust.status || 'Active'}</b></div>
       </div>
+      <!-- ACTION BUTTONS -->
       <div class="action-bar">
         <button class="action-btn whatsapp" id="whatsappBtn">💬 WhatsApp</button>
         <button class="action-btn pdf" id="pdfBtn">📄 PDF</button>
-        <a href="bond.html?id=${currentCustomerId}" class="action-btn bond" target="_blank">📜 Bond</a>
+        <!-- 🔥 Bond button now points to disbursement-bond.html (exact match) -->
+        <a href="disbursement-bond.html?id=${currentCustomerId}" class="action-btn bond" target="_blank">📜 Bond</a>
         <button class="action-btn settle ${isSettled ? 'settled' : ''}" id="settleBtn" ${isSettled ? 'disabled' : ''}>
           ${isSettled ? '✅ Settled' : '⚖️ Settle'}
         </button>
       </div>
     </div>
+    <!-- EMI LOGS TABLE -->
     <div class="table-wrap">
       <h3>📋 RECEIVED INSTALLMENTS (EMI LOGS)</h3>
       <table>
@@ -81,10 +91,12 @@ function renderProfile(cust, logs) {
   loadingMsg.style.display = 'none';
   profileContent.style.display = 'block';
 
+  // Attach event listeners
   document.getElementById('whatsappBtn')?.addEventListener('click', () => shareWhatsApp(cust));
   document.getElementById('pdfBtn')?.addEventListener('click', () => generatePDF(cust, logs));
   document.getElementById('settleBtn')?.addEventListener('click', () => handleSettle(cust));
 
+  // Delete log buttons
   document.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -95,13 +107,13 @@ function renderProfile(cust, logs) {
   });
 }
 
-// --- WhatsApp ---
+// ---- WHATSAPP SHARE (with full KYC) ----
 function shareWhatsApp(cust) {
   const msg = `*GDA FINANCE SERVICES*%0A%0A📄 *KYC STATEMENT*%0A%0A👤 *Name:* ${cust.name}%0A📞 *Mobile:* ${cust.mobile}%0A🆔 *Code:* ${cust.customerCode}%0A📅 *Loan Date:* ${cust.loanDate || 'N/A'}%0A💰 *EMI:* ₹${cust.dailyEmi || cust.emi || 0}%0A📆 *Duration:* ${cust.planDuration || cust.duration || 60} Days%0A💵 *Paid:* ₹${cust.totalCollected || 0}%0A🆔 *Aadhar:* ${cust.aadhar || 'N/A'}%0A📇 *PAN:* ${cust.pan || 'N/A'}%0A🏠 *Address:* ${cust.address || 'N/A'}%0A📍 *Branch:* Garhwa`;
   window.open(`https://wa.me/91${cust.mobile}?text=${msg}`, '_blank');
 }
 
-// --- PDF ---
+// ---- PDF GENERATION (with KYC and logs) ----
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -147,7 +159,7 @@ function generatePDF(cust, logs) {
   doc.save(`${cust.name || 'Customer'}_GDA_Statement.pdf`);
 }
 
-// --- Settle ---
+// ---- SETTLE CUSTOMER ----
 async function handleSettle(cust) {
   if (cust.status === 'Settled' || cust.status === 'Closed') {
     alert('This account is already settled.');
@@ -169,7 +181,7 @@ async function handleSettle(cust) {
   }
 }
 
-// --- Delete Log ---
+// ---- DELETE EMI LOG ----
 async function deleteLog(logId, custId) {
   const pass = prompt("🔑 Admin Password to Delete this log:");
   if (pass !== ADMIN_PASSWORD) {
@@ -199,7 +211,7 @@ async function deleteLog(logId, custId) {
   }
 }
 
-// --- Load ---
+// ---- MAIN LOADER ----
 async function loadStatement() {
   const id = getCustomerIdFromUrl();
   if (!id) {
@@ -226,13 +238,20 @@ async function loadStatement() {
   }
 }
 
-// --- Auth ---
+// ---- AUTH ----
 onAuthStateChanged(auth, (user) => {
-  if (!user) location.href = "login.html";
-  else loadStatement();
+  if (!user) {
+    location.href = "login.html";
+  } else {
+    loadStatement();
+  }
 });
 
+// ---- LOGOUT ----
 document.getElementById("logoutBtn")?.addEventListener('click', async (e) => {
   e.preventDefault();
-  if (confirm("Logout?")) { await signOut(auth); location.href = "login.html"; }
+  if (confirm("Logout?")) {
+    await signOut(auth);
+    location.href = "login.html";
+  }
 });
