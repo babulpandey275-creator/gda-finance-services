@@ -1,97 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GDA Finance - Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-<style>
-:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--muted:#64748B;--line:#F1F5F9;--danger:#DC2626}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);min-height:100vh;padding-bottom:85px}
-.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
-.gda-logo-container{display:flex;align-items:center;gap:13px}
-.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center;border:2px solid rgba(255,255,255,0.3)}
-.gda-logo-icon.material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1}
-.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}
-.gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}
-.container{padding:14px;max-width:600px;margin:0 auto}
-.greet{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:12px}
-.collectCard{background:linear-gradient(135deg,#0F172A,#1E3A8A);border-radius:20px;padding:16px;color:#fff;margin-bottom:12px;box-shadow:0 8px 20px rgba(15,23,42,0.2)}
-.collectCard p{font-size:10px;letter-spacing:1px;color:#93C5FD;font-weight:700;text-transform:uppercase}
-.collectCard h2{font-size:24px;font-weight:800;margin:6px 0}
-.progress{height:6px;background:rgba(255,255,255,0.2);border-radius:10px;margin-top:10px;overflow:hidden}
-.progress div{height:100%;background:#10B981;width:0%;transition:0.5s}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.card{background:#fff;border-radius:18px;padding:14px;border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,0.04);cursor:pointer}
-.card p{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
-.card h3{font-size:20px;font-weight:800;color:#0F172A;margin-top:4px}
-.card.red{background:#FFF1F2;border-color:#FFE4E6}.card.red h3{color:var(--danger)}
-.dueSection{background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 4px 20px rgba(0,0,0,0.04);margin-bottom:14px;overflow:hidden}
-.dueHead{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:#FFFBEB;border-bottom:1px solid #FDE68A}
-.dueHead h3{font-size:13px;font-weight:800;color:#92400E}
-.dueItem{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #F8FAFF}
-.dueItem:last-child{border:none}
-.navGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.navCard{background:#fff;border-radius:18px;padding:14px;display:flex;align-items:center;gap:10px;text-decoration:none;border:1px solid var(--line);color:#0F172A;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}
-.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}
-.nav-item.active{color:var(--pink);font-weight:700}.nav-item.material-symbols-outlined{font-size:24px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GDA Finance - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #f4f7fc;
+      min-height: 100vh;
+      padding-bottom: 85px;
+    }
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, #2A1742 0%, #3A1C62 50%, #4C2A7A 100%);
+      padding: 18px 16px 20px;
+      border-radius: 0 0 26px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .gda-logo-container {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+    .gda-logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #E91E63, #FF5A8A);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .gda-logo-icon .material-symbols-outlined {
+      font-size: 28px;
+      color: #fff;
+      font-variation-settings: 'FILL' 1;
+    }
+    .gda-logo-text h1 {
+      margin: 0;
+      font-size: 27px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .gda-logo-text p {
+      margin-top: 3px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 3.2px;
+      color: #FFC107;
+      text-transform: uppercase;
+    }
+    .sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5e55;
+      background: #fff;
+      border-bottom: 1px solid #eef3f0;
+    }
+    .sub-header i {
+      margin-right: 6px;
+    }
+    .container {
+      padding: 14px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 12px;
+      border: 1px solid #eef3f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      cursor: default;
+    }
+    .stat-card .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #7a8f84;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-card .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f2a1d;
+      margin-top: 4px;
+    }
+    .stat-card .value small {
+      font-size: 14px;
+      font-weight: 500;
+      color: #7a8f84;
+    }
+    .stat-card .sub-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #e05a5a;
+      margin-top: 2px;
+    }
+    .stat-card .sub-text.green {
+      color: #1f8b4c;
+    }
+    .stat-card.overdue .value { color: #c73b3b; }
+    .stat-card.active .value { color: #2b5c8a; }
+    .stat-card.target .value { color: #b16d2b; }
+
+    .progress-bar {
+      height: 6px;
+      background: #e9f3ed;
+      border-radius: 10px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      background: #10B981;
+      width: 0%;
+      transition: width 0.4s;
+    }
+
+    /* Quick Navigation */
+    .nav-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1f2e26;
+      margin-bottom: 14px;
+    }
+    .nav-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .nav-item {
+      background: #f8fbfa;
+      border-radius: 18px;
+      padding: 18px 10px 14px;
+      text-align: center;
+      border: 1px solid #ebf2ee;
+      text-decoration: none;
+      color: #14261c;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: 0.1s;
+      cursor: pointer;
+    }
+    .nav-item:active {
+      transform: scale(0.96);
+      background: #eaf3ee;
+    }
+    .nav-item .icon {
+      font-size: 28px;
+      color: #1f8b4c;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .nav-item .title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .nav-item .desc {
+      font-size: 11px;
+      font-weight: 400;
+      color: #6a7f74;
+      margin-top: 2px;
+    }
+    .nav-item.full-width {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 14px 10px;
+    }
+    .nav-item.full-width .icon {
+      margin-bottom: 0;
+      font-size: 26px;
+    }
+    .nav-item.full-width .text-group {
+      text-align: left;
+    }
+
+    /* Daily Collection List */
+    .due-section {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #eef3f0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .due-head {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFBEB;
+      border-bottom: 1px solid #FDE68A;
+    }
+    .due-head h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #92400E;
+    }
+    .due-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f8faff;
+    }
+    .due-item:last-child {
+      border-bottom: none;
+    }
+    .due-item .info h4 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .due-item .info small {
+      font-size: 11px;
+      color: #64748B;
+    }
+    .due-item .amount {
+      text-align: right;
+    }
+    .due-item .amount b {
+      color: #DC2626;
+      font-size: 16px;
+    }
+    .due-item .amount a {
+      display: inline-block;
+      background: #0F172A;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      align-items: center;
+      border-top: 1px solid #F3E8FF;
+      z-index: 100;
+    }
+    .bottom-nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #A8A0B5;
+      font-size: 10px;
+      font-weight: 600;
+      gap: 3px;
+    }
+    .bottom-nav a.active {
+      color: #E91E63;
+      font-weight: 700;
+    }
+    .bottom-nav a .material-symbols-outlined {
+      font-size: 24px;
+    }
+  </style>
 </head>
 <body>
+
+<!-- HEADER -->
 <header class="app-header">
-<div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div>
-<button onclick="location.reload()" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);cursor:pointer;">↻ Refresh</button>
+  <div class="gda-logo-container">
+    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+  </div>
+  <div style="color:#fff; font-size:12px; background:rgba(255,255,255,0.15); padding:6px 12px; border-radius:30px;">
+    <span id="clockDisplay">11:32</span>
+  </div>
 </header>
 
+<!-- SUB HEADER -->
+<div class="sub-header">
+  <span><i class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">account_circle</i> Babul • <span id="greetDate">29 Jul</span></span>
+  <span><i class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">location_on</i> Garhwa</span>
+</div>
+
 <div class="container">
-<p class="greet" id="greetText">Good Morning, Babul • Garhwa</p>
 
-<div class="collectCard">
-<p>Today Collected / Demand</p>
-<h2 id="txtTodayCollected">₹0 / ₹0</h2>
-<p id="txtCollectedSub" style="color:#93C5FD;font-size:11px;">0% Completed</p>
-<div class="progress"><div id="progressBar"></div></div>
+  <!-- STATS GRID -->
+  <div class="stats-grid">
+    <div class="stat-card collected">
+      <div class="label"><i class="material-symbols-outlined" style="font-size:14px;">check_circle</i> Today Collected</div>
+      <div class="value" id="txtTodayCollected">₹0 <small>/ ₹0</small></div>
+      <div class="progress-bar"><div class="fill" id="progressBar" style="width:0%;"></div></div>
+      <div class="sub-text green" id="txtCollectedSub">0% Completed</div>
+    </div>
+    <div class="stat-card overdue" onclick="location.href='due-customers.html'">
+      <div class="label"><i class="material-symbols-outlined" style="font-size:14px;">warning</i> Today's Overdue</div>
+      <div class="value" id="txtTodayMissed">₹0</div>
+      <div class="sub-text" id="lblDueCount">Pending: 0</div>
+    </div>
+    <div class="stat-card active" onclick="location.href='customer-list.html'">
+      <div class="label"><i class="material-symbols-outlined" style="font-size:14px;">people</i> Active Accounts</div>
+      <div class="value" id="txtActiveAccounts">0</div>
+    </div>
+    <div class="stat-card target">
+      <div class="label"><i class="material-symbols-outlined" style="font-size:14px;">bullseye</i> Today's Target</div>
+      <div class="value" id="txtTodayDemand">₹0</div>
+    </div>
+  </div>
+
+  <!-- QUICK NAVIGATION -->
+  <div class="nav-section-title">⚡ Quick Navigation</div>
+  <div class="nav-grid">
+    <a href="register.html" class="nav-item">
+      <span class="icon material-symbols-outlined">person_add</span>
+      <div class="title">New Registration</div>
+      <div class="desc">Create Account &amp; Loan Entry</div>
+    </a>
+    <a href="collection.html" class="nav-item">
+      <span class="icon material-symbols-outlined">payments</span>
+      <div class="title">Daily Collection</div>
+      <div class="desc">Collect &amp; Record Today's EMI</div>
+    </a>
+    <a href="due-customers.html" class="nav-item">
+      <span class="icon material-symbols-outlined">list_alt</span>
+      <div class="title">Pending Due List</div>
+      <div class="desc">View Overdue Accounts</div>
+    </a>
+    <a href="missed-dates.html" class="nav-item">
+      <span class="icon material-symbols-outlined">event_busy</span>
+      <div class="title">Missed Dates</div>
+      <div class="desc">Check Date-wise Overdue</div>
+    </a>
+    <a href="history.html" class="nav-item full-width">
+      <span class="icon material-symbols-outlined">history</span>
+      <div class="text-group">
+        <div class="title">Collection History</div>
+        <div class="desc">Logs of All Transactions</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- DAILY COLLECTION LIST -->
+  <div class="due-section">
+    <div class="due-head">
+      <h3>💰 Daily Collection - Aaj Ka Collection</h3>
+      <span style="font-size:11px; background:#0F172A; color:#fff; padding:5px 10px; border-radius:20px;" id="dueTotalBadge">₹0</span>
+    </div>
+    <div id="pendingDueList">
+      <p style="text-align:center; padding:20px; color:#94A3B8; font-size:12px;">⏳ Loading daily collection list...</p>
+    </div>
+  </div>
+
 </div>
 
-<div class="grid">
-<!-- 🔥 Ab ispe click karoge to Due Customer wala naya page khulega jisme 2-3 din ka baki minus karke dikhega -->
-<div class="card red" onclick="location.href='due-customers.html'">
-<p>Today Due</p>
-<h3 id="txtTodayMissed">₹0</h3>
-<small><span id="lblDueCount">0</span> Customers - Due List Dekho →</small>
-</div>
-<div class="card" onclick="location.href='customer-list.html'"><p>Active Accounts</p><h3 id="txtActiveAccounts">0</h3><small>View All →</small></div>
-<div class="card"><p>Today Demand</p><h3 id="txtTodayDemand">₹0</h3></div>
-<div class="card" style="background:#ECFDF5"><p>System Status</p><h3 style="font-size:13px;color:#059669;">🟢 Live & Synced</h3></div>
-</div>
-
-<!-- 🔥 Ye Screenshot wala Daily Collection List Hai - Aaj kisko collect karna hai -->
-<div class="dueSection">
-<div class="dueHead">
-<h3>💰 Daily Collection - Aaj Ka Collection</h3>
-<span id="dueTotalBadge" style="font-size:11px;background:#0F172A;color:#fff;padding:5px 10px;border-radius:20px;">₹0</span>
-</div>
-<div id="pendingDueList">
-<p style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;">⏳ Loading daily collection list...</p>
-</div>
-</div>
-
-<div class="navGrid">
-<a href="customer-list.html" class="navCard">👥 Customers</a>
-<a href="collection.html" class="navCard">💲 Collect EMI</a>
-<a href="due-customers.html" class="navCard" style="border-color:#FDE68A;background:#FFFBEB;">🔴 Due List (Baki)</a>
-<a href="report.html" class="navCard">📊 Reports</a>
-</div>
-</div>
-
+<!-- BOTTOM NAVIGATION -->
 <nav class="bottom-nav">
-<a href="index.html" class="nav-item active"><span class="material-symbols-outlined">home</span>Home</a>
-<a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
-<a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
-<a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
-<a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+  <a href="index.html" class="active"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="collection.html"><span class="material-symbols-outlined">payments</span>Collect</a>
+  <a href="report.html"><span class="material-symbols-outlined">analytics</span>Reports</a>
+  <a href="#" id="logoutBtn" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
 </nav>
 
 <script type="module" src="dashboard.js"></script>
