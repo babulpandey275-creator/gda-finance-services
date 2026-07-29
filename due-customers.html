@@ -9,4 +9,153 @@
 :root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--muted:#64748B;--line:#F1F5F9;--danger:#DC2626;--text-muted:#94A3B8}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:var(--bg);min-height:100vh;padding-bottom:85px}
-.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C
+.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.gda-logo-container{display:flex;align-items:center;gap:13px}
+.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center;border:2px solid rgba(255,255,255,0.3)}
+.gda-logo-icon.material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1}
+.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}
+.gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}
+.container{padding:14px;max-width:700px;margin:0 auto}
+.filterCard{background:#fff;border-radius:18px;padding:14px;border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,0.04);margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filterCard input[type="date"]{padding:10px 12px;border-radius:10px;border:1.5px solid #E9D5FF;font-size:13px;font-weight:700;outline:none}
+.btnToday{padding:10px 14px;border-radius:10px;border:none;background:#0F172A;color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sumCard{background:#fff;border-radius:16px;padding:14px;border:1px solid var(--line);text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
+.sumCard b{font-size:18px;font-weight:800;display:block;color:var(--danger)}
+.sumCard span{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.tableCard{background:#fff;border-radius:18px;border:1px solid var(--line);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.04)}
+.tableHead{padding:14px 16px;background:#FFFBEB;border-bottom:1px solid #FDE68A;display:flex;justify-content:space-between;align-items:center}
+.tableHead h3{font-size:13px;font-weight:800;color:#92400E}
+.tableHead span{font-size:11px;background:#0F172A;color:#fff;padding:5px 10px;border-radius:20px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 10px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;background:#F8FAFF;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;font-size:13px;border-bottom:1px solid #F8FAFF}
+.empty-msg{text-align:center;padding:30px;color:var(--text-muted);font-size:13px}
+.btn-collect-sm{background:#0F172A;color:#fff;padding:6px 12px;border-radius:8px;text-decoration:none;font-size:11px;font-weight:700}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}
+.nav-item.active{color:var(--pink)}.nav-item.material-symbols-outlined{font-size:24px}
+</style>
+</head>
+<body>
+<header class="app-header"><div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div><a href="index.html" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:12px;">← Home</a></header>
+
+<div class="container">
+<div class="filterCard">
+<input type="date" id="dueDatePicker">
+<button class="btnToday" id="btnToday">📅 Today</button>
+<span style="font-size:11px;color:var(--muted);font-weight:600;margin-left:auto;" id="totalDueAmount">Total Due: ₹0</span>
+</div>
+
+<div class="summary">
+<div class="sumCard"><b id="dueCounterNum">0</b><span id="dueCounter">Pending Due List (0)</span></div>
+<div class="sumCard"><b id="totalDueAmount2">₹0</b><span>Total Baki Amount</span></div>
+</div>
+
+<div class="tableCard">
+<div class="tableHead"><h3>🔴 Due Customer List</h3><span id="selectedDateLabel">-</span></div>
+<table>
+<thead><tr><th>Customer</th><th>Mobile</th><th>EMI</th><th>Due Amount</th><th>Action</th></tr></thead>
+<tbody id="dueList"><tr><td colspan="5" class="empty-msg">⏳ Loading...</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<nav class="bottom-nav"><a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a><a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a><a href="due-customers.html" class="nav-item active"><span class="material-symbols-outlined">warning</span>Due</a><a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a><a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a></nav>
+
+<script type="module">
+// ==========================================================
+// 🚀 GDA FINANCE - DUE CUSTOMER LIST (Aapka Code + Fix)
+// ==========================================================
+import { db, auth } from "./firebase.js"; 
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
+
+const dueList = document.getElementById("dueList");
+const dueCounter = document.getElementById("dueCounter");
+const dueCounterNum = document.getElementById("dueCounterNum");
+const datePicker = document.getElementById("dueDatePicker");
+const btnToday = document.getElementById("btnToday");
+const totalDueLabel = document.getElementById("totalDueAmount");
+const totalDueLabel2 = document.getElementById("totalDueAmount2");
+const selectedDateLabel = document.getElementById("selectedDateLabel");
+
+const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+if (datePicker) datePicker.value = todayIST;
+if (selectedDateLabel) selectedDateLabel.innerText = todayIST;
+
+async function loadDueCustomers(targetDateStr) {
+    if (!targetDateStr) {
+        dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">❌ कोई तारीख चुनें!</td></tr>`;
+        if (totalDueLabel) totalDueLabel.innerText = "Total Due: ₹0";
+        if (totalDueLabel2) totalDueLabel2.innerText = "₹0";
+        if (dueCounter) dueCounter.innerText = "Pending Due List (0)";
+        if (dueCounterNum) dueCounterNum.innerText = "0";
+        return;
+    }
+    if (selectedDateLabel) selectedDateLabel.innerText = targetDateStr;
+    const targetDate = new Date(targetDateStr);
+    dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">⏳ ${targetDateStr} का डेटा लोड हो रहा है...</td></tr>`;
+    if (totalDueLabel) totalDueLabel.innerText = "Total Due: ₹0";
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "customers"));
+        let htmlContent = "";
+        let pendingCount = 0;
+        let totalDueSum = 0;
+
+        querySnapshot.forEach((doc) => {
+            const cust = doc.data();
+            if (cust.status === "Closed") return;
+
+            const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
+            const today = new Date(targetDate);
+            
+            let diffDays = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
+            let daysElapsed = Math.max(0, diffDays) + 1; 
+            
+            const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+            const expectedAmt = daysElapsed * dailyEmi;
+            const totalPaid = Number(cust.totalCollected || 0);
+            const currentDue = Math.max(0, expectedAmt - totalPaid);
+
+            if (currentDue > 0) {
+                pendingCount++;
+                totalDueSum += currentDue;
+                htmlContent += `
+                <tr>
+                    <td><strong>${cust.name}</strong><br><small style="color:var(--text-muted); font-size:11px;">${cust.customerCode || 'GDA'} • ${daysElapsed} Days</small></td>
+                    <td>${cust.mobile || 'N/A'}</td>
+                    <td>₹${dailyEmi}</td>
+                    <td style="color:var(--danger); font-weight:bold;">₹${currentDue.toLocaleString('en-IN')}</td>
+                    <td><a href="collection.html?id=${doc.id}" class="btn-collect-sm">Collect</a></td>
+                </tr>`;
+            }
+        });
+
+        if (totalDueLabel) totalDueLabel.innerText = `Total Due: ₹${totalDueSum.toLocaleString('en-IN')}`;
+        if (totalDueLabel2) totalDueLabel2.innerText = `₹${totalDueSum.toLocaleString('en-IN')}`;
+        if (dueCounterNum) dueCounterNum.innerText = pendingCount;
+
+        if (htmlContent === "") {
+            dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">✅ ${targetDateStr} तक कोई बकाया नहीं!</td></tr>`;
+            if (dueCounter) dueCounter.innerText = `Pending Due List (0)`;
+        } else {
+            dueList.innerHTML = htmlContent;
+            if (dueCounter) dueCounter.innerText = `Pending Due List (${pendingCount})`;
+        }
+    } catch (err) {
+        console.error(err);
+        dueList.innerHTML = `<tr><td colspan="5" class="empty-msg">❌ Error: ${err.message}</td></tr>`;
+    }
+}
+
+if (datePicker) datePicker.addEventListener("change", (e) => { loadDueCustomers(e.target.value); });
+if (btnToday) btnToday.addEventListener("click", () => { if (datePicker) { datePicker.value = todayIST; loadDueCustomers(todayIST); } });
+
+auth.onAuthStateChanged((user) => {
+    if (!user) { window.location.href = "login.html"; return; }
+    loadDueCustomers(todayIST);
+});
+</script>
+</body>
+</html>
