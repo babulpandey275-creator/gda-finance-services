@@ -3,83 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GDA Finance</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<title>GDA Finance - Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
-body{background:#fce4ec;min-height:100vh;padding-bottom:90px;}
-.header{background:#3a1c62;color:white;padding:16px 18px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;}
-.logo{display:flex;gap:12px;align-items:center;}
-.logo-icon{width:46px;height:46px;background:#ff1a75;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
-.header h1{font-size:24px;line-height:1;font-weight:800;}
-.header p{font-size:10px;color:#fde68a;letter-spacing:2px;font-weight:600;}
-.greet{font-size:11px;color:#ffd6e8;margin-top:3px;}
-.refresh{background:#ffffff26;color:white;border:1px solid #ffffff40;padding:8px 14px;border-radius:10px;font-size:12px;}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
-.card{background:white;border-radius:16px;padding:12px 10px;box-shadow:0 2px 10px rgba(0,0,0,0.04);text-align:center;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
-.card.green::before{background:#10b981;} .card.red::before{background:#ef4444;}
-.card.yellow::before{background:#f59e0b;} .card.pink::before{background:#ec4899;}
-.card label{font-size:9px;color:#7c6a94;font-weight:700;}
-.card .value{font-size:17px;font-weight:800;color:#3a1c62;margin-top:4px;}
-.card .value.red-text{color:#dc2626;}
-.card .sub{font-size:10px;color:#8b7a9e;}
-.progress{margin:6px auto 0;background:#f1e6f6;height:5px;border-radius:10px;max-width:90%;}
-.progress-bar{height:100%;border-radius:10px;}
-.defaulter-card{background:white;margin:0 14px 14px;border-radius:16px;padding:12px 14px;border-left:4px solid #ef4444;}
-.quick{padding:0 14px;} .quick h2{font-size:11px;color:#7c6a94;margin:6px 0 10px;}
-.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.nav-item{background:white;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;border:1px solid #f5e6f8;}
-.nav-icon{width:36px;height:36px;background:#3a1c62;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;}
-.nav-item b{font-size:12px;color:#3a1c62;display:block;} .nav-item span{font-size:10px;color:#6d5b85;}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px 0 10px;border-top:1px solid #f3e8f6;}
-.bnav-item{display:flex;flex-direction:column;align-items:center;color:#9ca3af;font-size:9px;text-decoration:none;}
-.bnav-item.active{color:#ff1a75;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#F8FAFF;min-height:100vh;padding-bottom:90px;color:#0F172A;}
+/* HEADER - International Navy Gradient */
+.header{background:linear-gradient(135deg,#0F172A 0%, #1E3A8A 100%);color:white;padding:20px 20px;border-radius:0 0 28px 28px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 10px 30px rgba(15,23,42,0.2);}
+.logo{display:flex;gap:14px;align-items:center;}
+.logo-icon{width:48px;height:48px;background:white;color:#1E3A8A;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0;}
+.header h1{font-size:22px;letter-spacing:1px;font-weight:800;line-height:1;}
+.header p{font-size:9px;color:#93C5FD;letter-spacing:2.5px;font-weight:600;margin-top:3px;}
+.greet{font-size:11px;color:#CBD5E1;margin-top:4px;font-weight:400;}
+.refresh{background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.15);padding:9px 16px;border-radius:12px;font-size:11px;font-weight:600;backdrop-filter:blur(10px);}
+
+/* STATS - Clean White Cards */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px 16px;}
+.card{background:white;border-radius:18px;padding:16px 14px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:1px solid #F1F5F9;text-align:left;position:relative;}
+.card label{font-size:9px;color:#64748B;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.card .value{font-size:20px;font-weight:800;color:#0F172A;margin-top:6px;letter-spacing:-0.5px;}
+.card .value.red-text{color:#DC2626;}
+.card .sub{font-size:11px;color:#94A3B8;margin-top:4px;font-weight:500;}
+.progress{margin:10px 0 0;background:#F1F5F9;height:6px;border-radius:10px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:10px;transition:0.5s;}
+
+.defaulter-card{background:white;margin:0 16px 16px;border-radius:18px;padding:14px 16px;border:1px solid #FEE2E2;box-shadow:0 4px 20px rgba(0,0,0,0.04);}
+.quick{padding:0 16px;} .quick h2{font-size:10px;color:#94A3B8;margin:8px 0 12px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;}
+.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.nav-item{background:white;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;border:1px solid #F1F5F9;box-shadow:0 2px 10px rgba(0,0,0,0.03);transition:0.2s;}
+.nav-item:active{transform:scale(0.97);}
+.nav-icon{width:42px;height:42px;background:#EFF6FF;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-size:18px;flex-shrink:0;font-weight:700;}
+.nav-item b{font-size:13px;color:#0F172A;display:block;font-weight:700;} .nav-item span{font-size:11px;color:#64748B;margin-top:2px;display:block;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);display:flex;justify-content:space-around;padding:10px 0 12px;border-top:1px solid #F1F5F9;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;color:#94A3B8;font-size:9px;font-weight:600;text-decoration:none;gap:3px;}
+.bnav-item.active{color:#1E3A8A;}
 </style>
 </head>
 <body>
+<!-- HTML ID SAB SAME HAI - KAAM NAHI BIGDEGA -->
 <div class="header">
   <div class="logo">
-    <div class="logo-icon">🛡️</div>
+    <div class="logo-icon">G</div>
     <div>
-      <h1>GDA</h1>
-      <p>FINANCE SERVICES</p>
-      <div class="greet" id="greetText">Namaste Babul Ji</div>
+      <h1>GDA FINANCE</h1>
+      <p>TRUST • GROWTH • SECURITY</p>
+      <div class="greet" id="greetText">Good Morning, Babul • Garhwa Branch</div>
     </div>
-  </div>
-  <button class="refresh" onclick="location.reload()">Refresh</button>
+  <button class="refresh" onclick="location.reload()">↻ Refresh</button>
 </div>
 
 <div class="stats">
-  <div class="card red"><label>TODAY'S OVERDUE</label><div class="value red-text" id="overdueAmt">₹0</div><div class="sub">Pending: <b id="pendingCount">0</b></div><div class="progress"><div id="overdueBar" class="progress-bar" style="background:#ef4444;width:0%"></div></div></div>
-  <div class="card green"><label>TODAY COLLECTED</label><div class="value" id="collectedAmt">₹0 / ₹0</div><div class="sub" id="collectedSub">0%</div><div class="progress"><div id="collectedBar" class="progress-bar" style="background:#10b981;width:0%"></div></div></div>
-  <div class="card pink"><label>TODAY'S TARGET</label><div class="value" id="targetAmt">₹0</div></div>
-  <div class="card yellow"><label>ACTIVE ACCOUNTS</label><div class="value" id="activeCount">0</div></div>
+  <div class="card"><label>Today's Overdue</label><div class="value red-text" id="overdueAmt">₹0</div><div class="sub">Pending: <b id="pendingCount">0</b> accounts</div><div class="progress"><div id="overdueBar" class="progress-bar" style="background:#EF4444;width:0%"></div></div></div>
+  <div class="card"><label>Today Collected</label><div class="value" id="collectedAmt">₹0 / ₹0</div><div class="sub" id="collectedSub">0% Completed</div><div class="progress"><div id="collectedBar" class="progress-bar" style="background:#10B981;width:0%"></div></div></div>
+  <div class="card"><label>Today's Target</label><div class="value" id="targetAmt">₹0</div><div class="sub">Daily Target</div></div>
+  <div class="card"><label>Active Accounts</label><div class="value" id="activeCount">0</div><div class="sub">Live Loans</div></div>
 </div>
 
-<div class="defaulter-card" id="defaulterCard" style="display:none;"><h3 style="font-size:12px;color:#3a1c62;">🔴 Aaj Pehle Inse Lena Hai</h3><div id="defaulterList"></div></div>
+<div class="defaulter-card" id="defaulterCard" style="display:none;"><h3 style="font-size:12px;color:#0F172A;font-weight:700;">🔴 Priority Collections</h3><div id="defaulterList" style="margin-top:8px;"></div></div>
 
-<div class="quick"><h2>QUICK NAVIGATION</h2><div class="nav-grid">
-  <div class="nav-item" onclick="location.href='register.html'"><div class="nav-icon">👤+</div><div><b>New Registration</b><span>Create Account</span></div></div>
-  <div class="nav-item" onclick="location.href='collection.html'"><div class="nav-icon">💰</div><div><b>Daily Collection</b><span>Collect EMI</span></div></div>
-  <div class="nav-item" onclick="location.href='due-customers.html'"><div class="nav-icon">⚠️</div><div><b>Pending Due</b><span>Overdue List</span></div></div>
-  <div class="nav-item" onclick="location.href='missed-dates.html'"><div class="nav-icon">📅</div><div><b>Missed Dates</b><span>Date-wise Due</span></div></div>
+<div class="quick"><h2>Quick Navigation</h2><div class="nav-grid">
+  <div class="nav-item" onclick="location.href='register.html'"><div class="nav-icon">+</div><div><b>New Registration</b><span>Create Account</span></div></div>
+  <div class="nav-item" onclick="location.href='collection.html'"><div class="nav-icon">$</div><div><b>Daily Collection</b><span>Collect EMI</span></div></div>
+  <div class="nav-item" onclick="location.href='due-customers.html'"><div class="nav-icon">!</div><div><b>Pending Due</b><span>Overdue List</span></div></div>
+  <div class="nav-item" onclick="location.href='missed-dates.html'"><div class="nav-icon">◷</div><div><b>Missed Dates</b><span>Date-wise Due</span></div></div>
 </div></div>
 
 <div class="bottom-nav">
-  <a class="bnav-item active"><span>🏠</span><span>Home</span></a>
-  <a class="bnav-item" onclick="location.href='customer-list.html'"><span>👥</span><span>Customers</span></a>
-  <a class="bnav-item" onclick="location.href='collection.html'"><span>💲</span><span>Collect</span></a>
-  <a class="bnav-item" onclick="location.href='reports.html'"><span>📊</span><span>Reports</span></a>
-  <a class="bnav-item" id="logoutBtn" style="color:#ff1a75;"><span>🚪</span><span>Logout</span></a>
+  <a class="bnav-item active"><span>⌂</span><span>Home</span></a>
+  <a class="bnav-item" onclick="location.href='customer-list.html'"><span>◫</span><span>Customers</span></a>
+  <a class="bnav-item" onclick="location.href='collection.html'"><span>$</span><span>Collect</span></a>
+  <a class="bnav-item" onclick="location.href='reports.html'"><span>◱</span><span>Reports</span></a>
+  <a class="bnav-item" id="logoutBtn" style="color:#EF4444;"><span>↪</span><span>Logout</span></a>
 </div>
 
+<!-- AAPKA PURANA SCRIPT WAISE HI RAHEGA - BAS ID SAME HAI -->
 <script type="module">
 import { db, auth } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 const d=new Date();
-document.getElementById("greetText").innerText=`Namaste Babul Ji | ${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`;
+document.getElementById("greetText").innerText=`Good Morning, Babul • ${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} • Garhwa`;
 onAuthStateChanged(auth,u=>{if(!u)location.href='login.html';else load();});
 async function load(){
   const [custSnap,colSnap]=await Promise.all([getDocs(collection(db,"customers")),getDocs(collection(db,"collections"))]);
@@ -91,17 +95,17 @@ async function load(){
   const overdue=Math.max(0,target-todayCollected);
   const percent=target>0?Math.round((todayCollected/target)*100):0;
   document.getElementById("activeCount").innerText=active;
-  document.getElementById("targetAmt").innerText=`₹${target}`;
-  document.getElementById("collectedAmt").innerText=`₹${todayCollected} / ₹${target}`;
+  document.getElementById("targetAmt").innerText=`₹${target.toLocaleString('en-IN')}`;
+  document.getElementById("collectedAmt").innerText=`₹${todayCollected.toLocaleString('en-IN')} / ₹${target.toLocaleString('en-IN')}`;
   document.getElementById("collectedSub").innerText=`${percent}% Completed`;
   document.getElementById("collectedBar").style.width=percent+"%";
-  document.getElementById("overdueAmt").innerText=`₹${overdue}`;
+  document.getElementById("overdueAmt").innerText=`₹${overdue.toLocaleString('en-IN')}`;
   document.getElementById("pendingCount").innerText=active;
   document.getElementById("overdueBar").style.width=(100-percent)+"%";
   const top3=customers.slice(0,3);
   if(top3.length>0){
     document.getElementById("defaulterCard").style.display='block';
-    document.getElementById("defaulterList").innerHTML=top3.map((c,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dashed #eee;"><span>${i+1}. ${c.name}</span><b>₹${c.dailyEmi||0}</b></div>`).join('');
+    document.getElementById("defaulterList").innerHTML=top3.map((c,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dashed #F1F5F9;"><span>${i+1}. ${c.name}</span><b>₹${c.dailyEmi||0}</b></div>`).join('');
   }
 }
 document.getElementById("logoutBtn").onclick=async()=>{await signOut(auth);location.href='login.html';};
