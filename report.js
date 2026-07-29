@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 GDA FINANCE - REPORT ENGINE (FIXED DATE HANDLING)
+// 🚀 GDA FINANCE - REPORT ENGINE (DEBUG VERSION)
 // ============================================================
 
 import { db, auth } from "./firebase.js";
@@ -7,9 +7,9 @@ import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstati
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 // ============================================================
-// ADMIN LOCK LOGIC
+// ADMIN LOCK LOGIC (with Debugging)
 // ============================================================
-const ADMIN_PASSWORD = "GDA@2026";
+const ADMIN_PASSWORD = "GDA@2026"; // ✅ सही पासवर्ड (Case-Sensitive)
 const lockOverlay = document.getElementById('lockOverlay');
 const appContent = document.getElementById('appContent');
 const lockPassword = document.getElementById('lockPassword');
@@ -17,35 +17,46 @@ const unlockBtn = document.getElementById('unlockBtn');
 const lockError = document.getElementById('lockError');
 
 function checkLock() {
-  if (sessionStorage.getItem('reportUnlocked') === 'true') {
+  const unlocked = sessionStorage.getItem('reportUnlocked');
+  console.log("🔍 Lock Status from sessionStorage:", unlocked);
+  if (unlocked === 'true') {
     lockOverlay.classList.add('hidden');
     appContent.style.display = 'block';
     initReport();
   } else {
     lockOverlay.classList.remove('hidden');
     appContent.style.display = 'none';
+    lockPassword.value = ''; // Clear input
+    lockPassword.focus();
   }
 }
 
 function unlock() {
-  const pwd = lockPassword.value.trim();
-  if (pwd === ADMIN_PASSWORD) {
+  const entered = lockPassword.value.trim();
+  console.log(`🔑 You entered: "${entered}" (length: ${entered.length})`);
+  console.log(`🔑 Expected: "${ADMIN_PASSWORD}" (length: ${ADMIN_PASSWORD.length})`);
+
+  if (entered === ADMIN_PASSWORD) {
+    console.log("✅ Password matched! Unlocking...");
     sessionStorage.setItem('reportUnlocked', 'true');
     lockOverlay.classList.add('hidden');
     appContent.style.display = 'block';
     initReport();
   } else {
+    console.log("❌ Password mismatch.");
     lockError.style.display = 'block';
     lockPassword.value = '';
     lockPassword.focus();
   }
 }
 
-lockPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
+lockPassword.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') unlock();
+});
 unlockBtn.addEventListener('click', unlock);
 
 // ============================================================
-// DOM Elements
+// DOM Elements for Report
 // ============================================================
 const totalPortfolio = document.getElementById("totalPortfolio");
 const disbursement = document.getElementById("disbursement");
@@ -71,7 +82,7 @@ function updateTabUI(activeBtn) {
 }
 
 // ============================================================
-// 🔥 TOTAL DUE CALCULATION (Dashboard Style)
+// TOTAL DUE CALCULATION
 // ============================================================
 function calculateTotalDue(customers, targetDateStr) {
   const targetDate = new Date(targetDateStr);
@@ -96,7 +107,7 @@ function calculateTotalDue(customers, targetDateStr) {
 }
 
 // ============================================================
-// 📊 RENDER REPORT (FIXED: Timestamp → String Conversion)
+// RENDER REPORT
 // ============================================================
 async function renderReport() {
   const targetDate = reportDatePicker ? reportDatePicker.value : todayIST;
@@ -149,7 +160,7 @@ async function renderReport() {
       }
     });
 
-    // --- Customers (🔥 FIXED: Timestamp to String) ---
+    // --- Customers ---
     const custSnap = await getDocs(collection(db, "customers"));
     let lifetimeDisbursementUptoTarget = 0;
     let lifetimeInterestUptoTarget = 0;
@@ -163,7 +174,6 @@ async function renderReport() {
       const loanAmt = Number(cust.loanAmount || 0);
       allCustomers.push({ ...cust, id: doc.id });
 
-      // 🔥 Convert loanDate (any format) to YYYY-MM-DD
       let loanDateStr = '';
       if (cust.loanDate) {
         if (typeof cust.loanDate === 'string') {
@@ -218,7 +228,7 @@ async function renderReport() {
 }
 
 // ============================================================
-// 💾 BACKUP & RESTORE
+// BACKUP & RESTORE
 // ============================================================
 async function downloadBackup() {
   const statusDiv = document.getElementById("backupStatus");
@@ -333,13 +343,16 @@ async function restoreBackup(file) {
 }
 
 // ============================================================
-// 🚀 INITIALIZATION
+// INITIALIZATION
 // ============================================================
 function initReport() {
+  console.log("📊 Initializing Report...");
   onAuthStateChanged(auth, (user) => {
     if (!user) {
+      console.log("🔒 User not logged in. Redirecting to login.");
       location.href = "login.html";
     } else {
+      console.log("✅ User logged in. Rendering report.");
       renderReport();
     }
   });
@@ -371,6 +384,7 @@ function initReport() {
 }
 
 // ============================================================
-// 🔥 START – Lock Check
+// START – LOCK CHECK
 // ============================================================
+console.log("🚀 report.js loaded. Starting lock check...");
 checkLock();
