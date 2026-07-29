@@ -7,12 +7,11 @@ const ADMIN_PASSWORD = "GDA@2026";
 
 let allCustomers = [];
 
-// 1. डेटा लोड करें
 async function loadCustomers() {
-    listContainer.innerHTML = "⏳ लोड हो रहा है...";
+    listContainer.innerHTML = "<p style='text-align:center; padding:20px;'>⏳ लोड हो रहा है...</p>";
     try {
         const querySnapshot = await getDocs(collection(db, "customers"));
-        allCustomers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        allCustomers = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         renderList(allCustomers);
     } catch (err) {
         listContainer.innerHTML = "❌ डेटा लोड नहीं हुआ।";
@@ -20,46 +19,38 @@ async function loadCustomers() {
     }
 }
 
-// 2. लिस्ट रेंडर करें (फोटो एरर हैंडलिंग के साथ)
 function renderList(data) {
     listContainer.innerHTML = "";
     if (data.length === 0) {
-        listContainer.innerHTML = "<p style='text-align:center;'>कोई कस्टमर नहीं मिला।</p>";
+        listContainer.innerHTML = "<p style='text-align:center; padding:20px;'>कोई कस्टमर नहीं मिला।</p>";
         return;
     }
 
     data.forEach(cust => {
         const card = document.createElement("div");
         card.className = "cust-card";
-        card.style.cssText = "display:flex; flex-direction:column; gap:10px; padding:15px; border-bottom:1px solid #ddd;";
         
-        // 🔥🔥🔥 सिर्फ यह 1 लाइन (Line) बदली है – बाकी सब बिल्कुल वैसा ही है
-        // अब फोटो 50x50 पिक्सल (Thumbnail) में आएगी – 10x तेज़ (Faster)!
         const imageUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) 
-            ? cust.photoUrl + '?w=50&h=50&fit=crop' 
+            ? cust.photoUrl 
             : 'https://via.placeholder.com/55';
 
         card.innerHTML = `
         <div onclick="window.location.href='statement.html?id=${cust.id}'" style="display:flex;gap:12px;align-items:center;cursor:pointer;">
-            <img src="${imageUrl}" 
-                 onerror="this.src='https://via.placeholder.com/55'" 
-                 style="width:55px;height:55px;border-radius:50%;object-fit:cover; border: 1px solid #eee;">
+            <img src="${imageUrl}" onerror="this.src='https://via.placeholder.com/55'" style="width:55px;height:55px;border-radius:50%;object-fit:cover; border:1px solid #eee;">
             <div>
-                <h4 style="margin:0;font-size:16px;">${cust.name || "N/A"}</h4>
+                <h4 style="margin:0;font-size:16px;color:var(--text-main);">${cust.name || "N/A"}</h4>
                 <p style="margin:0;font-size:12px;color:#64748b;">📱 ${cust.mobile || "N/A"}</p>
-                <p style="margin:0;font-size:12px;color:#64748b;">💰 लोन: ₹${cust.loanAmount || 0}</p>
+                <p style="margin:0;font-size:12px;color:#64748b;">💰 लोन: ₹${cust.loanAmount || 0} | ${cust.customerCode || ''}</p>
             </div>
-        </div>
-        <div style="display:flex;gap:5px;width:100%;">
-            <a href="collection.html?id=${cust.id}" style="background:#28a745;color:white;flex:1;padding:8px;border-radius:5px;text-decoration:none;font-size:12px;font-weight:bold;text-align:center;">Collect</a>
-            <button onclick="secureDelete('${cust.id}')" style="background:#ef4444;color:white;flex:1;padding:8px;border:none;border-radius:5px;font-size:12px;font-weight:bold;cursor:pointer;">Del</button>
-            <button onclick="secureEdit('${cust.id}')" style="background:#ffb703;color:black;flex:1;padding:8px;border:none;border-radius:5px;font-size:12px;font-weight:bold;cursor:pointer;">Edit</button>
+        <div style="display:flex;gap:6px;width:100%;margin-top:12px;">
+            <a href="collection.html?id=${cust.id}" style="background:#10b981;color:white;flex:1;padding:8px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:bold;text-align:center;">Collect</a>
+            <button onclick="secureDelete('${cust.id}')" style="background:#d32f2f;color:white;flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">Del</button>
+            <button onclick="secureEdit('${cust.id}')" style="background:#FFC107;color:black;flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">Edit</button>
         </div>`;
         listContainer.appendChild(card);
     });
 }
 
-// 3. सर्च फंक्शन
 if (searchInp) {
     searchInp.addEventListener("input", (e) => {
         const term = e.target.value.toLowerCase();
@@ -71,7 +62,6 @@ if (searchInp) {
     });
 }
 
-// 4. सुरक्षित एडिट
 window.secureEdit = (docId) => {
     const pass = prompt("🔑 Edit करने के लिए Admin Password डालें:");
     if (pass === ADMIN_PASSWORD) {
@@ -81,7 +71,6 @@ window.secureEdit = (docId) => {
     }
 };
 
-// 5. सुरक्षित डिलीट
 window.secureDelete = async (docId) => {
     const pass = prompt("⚠️ DELETE करने के लिए Admin Password डालें:");
     if (pass === ADMIN_PASSWORD) {
@@ -89,7 +78,7 @@ window.secureDelete = async (docId) => {
         try {
             await deleteDoc(doc(db, "customers", docId));
             alert("✅ डिलीट सफल!");
-            loadCustomers(); // लिस्ट को ताज़ा करें
+            loadCustomers();
         } catch (err) {
             alert("❌ एरर: " + err.message);
         }
@@ -98,5 +87,14 @@ window.secureDelete = async (docId) => {
     }
 };
 
-// पेज लोड होते ही डेटा लोड करें
+window.filterCustomers = (type) => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    if (type === 'closed') {
+        renderList(allCustomers.filter(c => c.status === 'Closed' || c.status === 'Settled'));
+    } else {
+        renderList(allCustomers.filter(c => c.status !== 'Closed' && c.status !== 'Settled'));
+    }
+};
+
 loadCustomers();
