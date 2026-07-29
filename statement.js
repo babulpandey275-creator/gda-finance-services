@@ -1,33 +1,19 @@
-// statement.js - FINAL FIXED - History aur Photo Wapas Ayega
-import { db, auth } from "./firebase.js"; 
+import { db } from "./firebase.js"; 
 import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; 
 
-const ADMIN_PASSWORD = "GDA@2026";
+const urlParams = new URLSearchParams(window.location.search);
+const custId = urlParams.get('id');
 
-auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
+if (!custId) { window.location.href = "customer-list.html"; }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const custId = urlParams.get('id');
-    if (!custId) { 
-        window.location.href = "customer-list.html"; 
-        return; 
-    }
-
+async function loadFullStatement() {
     try {
         const custDoc = await getDoc(doc(db, "customers", custId));
-        if (!custDoc.exists()) { 
-            alert("कस्टमर नहीं मिला!"); 
-            return; 
-        }
+        if (!custDoc.exists()) { alert("कस्टमर नहीं मिला!"); return; }
         const cust = custDoc.data();
 
-        // 🔥 FIX: Dono naam se data lega - purana aur naya
         document.getElementById("lblName").innerText = cust.name || "-";
-        document.getElementById("lblId").innerText = cust.customerCode || "GDA" + custId.substring(0,3).toUpperCase();
+        document.getElementById("lblId").innerText = cust.customerCode || "GDA";
         document.getElementById("lblMobile").innerText = cust.mobile || "-";
         document.getElementById("lblAadhar").innerText = cust.aadhaar || "-"; 
         document.getElementById("lblPan").innerText = cust.panCard || cust.pan || "-";
@@ -38,76 +24,60 @@ auth.onAuthStateChanged(async (user) => {
         document.getElementById("lblPlan").innerText = cust.planDuration || "-";
         document.getElementById("custPhoto").src = cust.photoUrl || "https://img.icons8.com/color/96/user-male-circle.png";
 
-        const colRef = collection(db, "collections");
-        const q = query(colRef, where("customerId", "==", custId));
-        const querySnapshot = await getDocs(q);
-        
+        // 🔥 FIX: History load - bina auth ke bhi chalega
         let logs = [];
-        let totalCollected = 0;
-        querySnapshot.forEach(d => { logs.push({ colId: d.id, ...d.data() }); });
+        try {
+            const colRef = collection(db, "collections");
+            const q = query(colRef, where("customerId", "==", custId));
+            const snap = await getDocs(q);
+            snap.forEach(d => { logs.push({ colId: d.id, ...d.data() }); });
+        } catch(e) {
+            // Agar where query fail ho to sab leke filter karo
+            const allSnap = await getDocs(collection(db, "collections"));
+            allSnap.forEach(d => {
+                if(d.data().customerId === custId) logs.push({ colId: d.id, ...d.data() });
+            });
+        }
+
         logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+        let totalCollected = 0;
         logs.forEach(l => totalCollected += Number(l.amount || 0));
 
-        const totalPayable = Number(cust.totalPayable || cust.totalCollection || 0);
+        const totalPayable = Number(cust.totalPayable || cust.totalCollection || cust.loanAmount || 0);
         const remaining = Math.max(0, totalPayable - totalCollected);
         
-        document.getElementById("lblRemaining").innerHTML = `₹${remaining}`;
+        document.getElementById("lblRemaining").innerText = `₹${remaining}`;
         document.getElementById("lblPaidDays").innerText = `${logs.length} Days Paid`;
         document.getElementById("lblTotalCollected").innerText = `₹${totalCollected}`;
 
-        document.getElementById("btnWhatsapp").onclick = () => window.open(`https://wa.me/91${cust.mobile}`, '_blank');
+        document.getElementById("btnWhatsapp").onclick = () => {
+            const msg = `*GDA Finance*%0AName: ${cust.name}%0ALoan: ₹${cust.loanAmount}%0APaid: ₹${totalCollected}%0ARemaining: ₹${remaining}%0APaid Days: ${logs.length}`;
+            window.open(`https://wa.me/91${cust.mobile}?text=${msg}`, '_blank');
+        };
         document.getElementById("btnPdf").onclick = () => window.print();
         document.getElementById("btnOpenBond").onclick = () => window.location.href = `disbursement-bond.html?id=${custId}`;
-
         document.getElementById("btnSettlement").onclick = async () => {
-            const pass = prompt("Admin Password डालें:");
-            if (pass !== ADMIN_PASSWORD) { if (pass !== null) alert("❌ गलत पासवर्ड!"); return; }
-            const amt = prompt("Enter Final Settlement Amount:");
-            if (amt !== null && !isNaN(amt)) {
-                await updateDoc(doc(db, "customers", custId), { status: "Settled", settlementAmount: Number(amt) });
-                alert("✅ Settlement Successful!"); location.reload();
-            }
+            const pass = prompt("Admin Password:");
+            if(pass !== "GDA@2026") return alert("गलत पासवर्ड");
+            const amt = prompt("Settlement Amount:");
+            if(amt) { await updateDoc(doc(db, "customers", custId), { status: "Settled" }); alert("Settled!"); location.reload(); }
         };
 
         const historyRows = document.getElementById("historyRows");
-        if(logs.length > 0){
+        if(logs.length === 0){
+            historyRows.innerHTML = "<tr><td colspan='4' style='text-align:center;padding:20px;'>No EMI Found</td></tr>";
+        } else {
             historyRows.innerHTML = logs.map(log => `
                 <tr>
                     <td>📅 ${log.date}</td>
-                    <td>${log.note || 'EMI Received'}</td>
-                    <td style="color:#22c55e; text-align:right;">+₹${log.amount}</td>
-                    <td><button class="btn-row-del" data-colid="${log.colId}">🗑️</button></td>
+                    <td>${log.note || 'EMI'}</td>
+                    <td style="color:#10b981;text-align:right;">+₹${log.amount}</td>
+                    <td><button class="btn-row-del" data-colid="${log.colId}" style="background:#d32f2f;color:white;border:none;padding:4px 8px;border-radius:5px;">🗑️</button></td>
                 </tr>
             `).join("");
-        } else {
-            historyRows.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No EMI found</td></tr>";
         }
 
-        document.querySelectorAll(".btn-row-del").forEach(btn => {
-            btn.onclick = async (e) => {
-                const pass = prompt("Admin Password डालें:");
-                if (pass !== ADMIN_PASSWORD) { if (pass !== null) alert("❌ गलत पासवर्ड!"); return; }
-                if (confirm("Delete करना है?")) {
-                    const colId = e.target.getAttribute("data-colid");
-                    const colDoc = await getDoc(doc(db, "collections", colId));
-                    const colAmount = colDoc.exists()? Number(colDoc.data().amount || 0) : 0;
-                    await deleteDoc(doc(db, "collections", colId));
-                    const custRef = doc(db, "customers", custId);
-                    const custSnap = await getDoc(custRef);
-                    if(custSnap.exists()){
-                        const cData = custSnap.data();
-                        await updateDoc(custRef, {
-                            totalCollected: Math.max(0, Number(cData.totalCollected || totalCollected) - colAmount),
-                            paidDays: Math.max(0, Number(cData.paidDays || 0) - 1)
-                        });
-                    }
-                    alert("✅ Delete ho gaya!"); location.reload();
-                }
-            };
-        });
+    } catch (err) { console.error(err); document.getElementById("historyRows").innerHTML = `<tr><td colspan=4>Error: ${err.message}</td></tr>`; }
+}
 
-    } catch (err) { 
-        console.error("Error:", err); 
-        alert("❌ Error: " + err.message);
-    }
-});
+loadFullStatement();
