@@ -12,6 +12,19 @@ let currentCustomerId = null;
 const loadingMsg = document.getElementById("loadingMsg");
 const profileContent = document.getElementById("profileContent");
 
+// ============================================================
+// 🔥 नया Helper Function – कई Keys चेक करने के लिए
+// ============================================================
+function getCustomerValue(cust, keys, defaultValue = 'Not Provided') {
+  if (!cust) return defaultValue;
+  for (let key of keys) {
+    if (cust[key] && cust[key] !== '') {
+      return cust[key];
+    }
+  }
+  return defaultValue;
+}
+
 function getCustomerIdFromUrl() {
   return new URLSearchParams(window.location.search).get('id');
 }
@@ -26,6 +39,10 @@ function renderProfile(cust, logs) {
   const remaining = Math.max(0, expectedTotal - totalPaid);
   const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
   const isSettled = (cust.status === 'Settled' || cust.status === 'Closed');
+
+  // ✅ Aadhar और PAN के लिए Multi-Key Search
+  const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
+  const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
   let html = `
     <div class="profile-card">
@@ -46,8 +63,8 @@ function renderProfile(cust, logs) {
       </div>
       <div class="kyc-section">
         <h4>🔐 KYC VERIFICATION DETAILS</h4>
-        <div class="kyc-row"><span>Aadhar Number</span><b>${cust.aadhar || 'Not Provided'}</b></div>
-        <div class="kyc-row"><span>PAN Card</span><b>${cust.pan || 'Not Provided'}</b></div>
+        <div class="kyc-row"><span>Aadhar Number</span><b>${aadharValue}</b></div>
+        <div class="kyc-row"><span>PAN Card</span><b>${panValue}</b></div>
         <div class="kyc-row"><span>Residential Address</span><b>${cust.address || 'Not Provided'}</b></div>
         <div class="kyc-row"><span>Status</span><b style="color:${isSettled ? '#059669' : '#DC2626'};">${cust.status || 'Active'}</b></div>
       </div>
@@ -99,12 +116,14 @@ function renderProfile(cust, logs) {
 }
 
 function shareWhatsApp(cust) {
-  const msg = `*GDA FINANCE SERVICES*%0A%0A📄 *KYC STATEMENT*%0A%0A👤 *Name:* ${cust.name}%0A📞 *Mobile:* ${cust.mobile}%0A🆔 *Code:* ${cust.customerCode}%0A📅 *Loan Date:* ${cust.loanDate || 'N/A'}%0A💰 *EMI:* ₹${cust.dailyEmi || cust.emi || 0}%0A📆 *Duration:* ${cust.planDuration || cust.duration || 60} Days%0A💵 *Paid:* ₹${cust.totalCollected || 0}%0A🆔 *Aadhar:* ${cust.aadhar || 'N/A'}%0A📇 *PAN:* ${cust.pan || 'N/A'}%0A🏠 *Address:* ${cust.address || 'N/A'}%0A📍 *Branch:* Garhwa`;
+  const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
+  const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
+  const msg = `*GDA FINANCE SERVICES*%0A%0A📄 *KYC STATEMENT*%0A%0A👤 *Name:* ${cust.name}%0A📞 *Mobile:* ${cust.mobile}%0A🆔 *Code:* ${cust.customerCode}%0A📅 *Loan Date:* ${cust.loanDate || 'N/A'}%0A💰 *EMI:* ₹${cust.dailyEmi || cust.emi || 0}%0A📆 *Duration:* ${cust.planDuration || cust.duration || 60} Days%0A💵 *Paid:* ₹${cust.totalCollected || 0}%0A🆔 *Aadhar:* ${aadharValue}%0A📇 *PAN:* ${panValue}%0A🏠 *Address:* ${cust.address || 'N/A'}%0A📍 *Branch:* Garhwa`;
   window.open(`https://wa.me/91${cust.mobile}?text=${msg}`, '_blank');
 }
 
 // ============================================================
-// 🚀 नई PDF – PROFESSIONAL & DECENT
+// 🚀 नई PDF – PROFESSIONAL & DECENT (अब Aadhar/PAN सही से दिखेगा)
 // ============================================================
 function generatePDF(cust, logs) {
   const { jsPDF } = window.jspdf;
@@ -113,8 +132,12 @@ function generatePDF(cust, logs) {
   const margin = 16;
   let y = margin;
 
+  // ✅ Aadhar और PAN Multi-Key Search
+  const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
+  const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
+
   // ---- HEADER ----
-  doc.setFillColor(26, 35, 53); // dark blue
+  doc.setFillColor(26, 35, 53);
   doc.rect(margin, y, pageW - (margin * 2), 28, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
@@ -143,7 +166,6 @@ function generatePDF(cust, logs) {
   doc.setLineWidth(0.3);
   doc.rect(margin, y, pageW - (margin * 2), 52, 'FD');
   
-  // Left column
   doc.setTextColor(80, 80, 80);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -169,7 +191,6 @@ function generatePDF(cust, logs) {
     doc.text(f.value, x + 28, yy);
   });
 
-  // Right column
   const fields2 = [
     { label: 'Code', value: cust.customerCode || 'GDA' },
     { label: 'Loan Date', value: cust.loanDate || cust.startDate || 'N/A' },
@@ -188,7 +209,7 @@ function generatePDF(cust, logs) {
   });
   y += 56;
 
-  // ---- KYC DETAILS BOX ----
+  // ---- KYC DETAILS BOX (अब Aadhar/PAN सही से दिखेगा) ----
   doc.setFillColor(255, 251, 235);
   doc.setDrawColor(220, 180, 80);
   doc.setLineWidth(0.3);
@@ -201,8 +222,8 @@ function generatePDF(cust, logs) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   const kycY = y + 14;
-  doc.text(`Aadhar: ${cust.aadhar || 'Not Provided'}`, margin + 8, kycY);
-  doc.text(`PAN: ${cust.pan || 'Not Provided'}`, margin + 70, kycY);
+  doc.text(`Aadhar: ${aadharValue}`, margin + 8, kycY);
+  doc.text(`PAN: ${panValue}`, margin + 70, kycY);
   doc.text(`Status: ${cust.status || 'Active'}`, margin + 130, kycY);
   doc.text(`Address: ${cust.address || 'Not Provided'}`, margin + 8, kycY + 8);
   y += 34;
@@ -218,7 +239,6 @@ function generatePDF(cust, logs) {
   doc.line(margin, y, pageW - margin, y);
   y += 4;
 
-  // Table headers
   const col1 = margin + 4;
   const col2 = margin + 50;
   const col3 = margin + 110;
@@ -234,7 +254,6 @@ function generatePDF(cust, logs) {
   doc.text('Action', col4, y + 5.5);
   y += 8;
 
-  // Table rows
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(40, 40, 50);
   doc.setFontSize(8);
@@ -284,12 +303,11 @@ function generatePDF(cust, logs) {
   doc.setFont('helvetica', 'normal');
   doc.text(`Generated on: ${now} | GDA Finance Services`, pageW / 2, y + 13, { align: 'center' });
 
-  // ---- SAVE ----
   doc.save(`${cust.name || 'Customer'}_GDA_Statement.pdf`);
 }
 
 // ============================================================
-// बाकी फंक्शन (Settle, Delete, Auth) – पहले जैसे ही
+// बाकी फंक्शन (Settle, Delete, Auth)
 // ============================================================
 
 async function handleSettle(cust) {
