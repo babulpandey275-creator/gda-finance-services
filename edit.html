@@ -37,6 +37,7 @@
       border-color:#3A1C62; box-shadow:0 0 0 4px rgba(58,28,98,0.08);
     }
     .form-group textarea { resize:vertical; min-height:60px; }
+    .form-group input[readonly] { background:#F1F5F9; color:#64748B; }
 
     .photo-preview {
       display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; background:#F8FAFF; border-radius:12px;
@@ -51,8 +52,10 @@
       cursor:pointer; box-shadow:0 8px 20px rgba(58,28,98,0.25); transition:0.15s;
     }
     .btn-save:active { transform:scale(0.98); }
-    .btn-save:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
-    .loading-text { text-align:center; padding:40px; color:#94A3B8; }
+    .btn-save:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; cursor:not-allowed; }
+
+    .loading-text { text-align:center; padding:40px; color:#94A3B8; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .error-text { color:#DC2626; }
   </style>
 </head>
 <body>
@@ -68,10 +71,16 @@
 <div class="container">
   <div class="form-card">
     <h2>✏️ Edit Customer</h2>
-    <div id="loadingIndicator" class="loading-text">⏳ Loading...</div>
-    
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-text">
+      <span style="font-size:32px;">⏳</span>
+      Loading customer data...
+    </div>
+
+    <!-- Edit Form (hidden initially) -->
     <form id="editForm" style="display:none;">
-      <!-- ✅ ये सारे IDs आपके edit.js से बिल्कुल मेल खाते हैं -->
+      <!-- Personal Details -->
       <div class="form-group">
         <label>Full Name</label>
         <input type="text" id="customerName" placeholder="Enter full name" required>
@@ -87,14 +96,16 @@
         <input type="text" id="guardianName" placeholder="Father/Husband Name">
       </div>
 
-      <div class="form-group">
-        <label>Aadhaar Number</label>
-        <input type="text" id="aadhaar" placeholder="Enter Aadhaar number">
-      </div>
-
-      <div class="form-group">
-        <label>PAN Card Number</label>
-        <input type="text" id="panNumber" placeholder="Enter PAN number">
+      <!-- KYC -->
+      <div class="row-grid">
+        <div class="form-group">
+          <label>Aadhaar Number</label>
+          <input type="text" id="aadhaar" placeholder="Enter Aadhaar number">
+        </div>
+        <div class="form-group">
+          <label>PAN Card Number</label>
+          <input type="text" id="panNumber" placeholder="Enter PAN number" style="text-transform:uppercase;">
+        </div>
       </div>
 
       <div class="form-group">
@@ -102,6 +113,7 @@
         <textarea id="address" placeholder="Enter full address"></textarea>
       </div>
 
+      <!-- Loan Details -->
       <div class="row-grid">
         <div class="form-group">
           <label>Loan Date</label>
@@ -120,16 +132,16 @@
         </div>
         <div class="form-group">
           <label>Total Payable (₹)</label>
-          <input type="text" id="totalAmount" readonly style="background:#F1F5F9;">
+          <input type="text" id="totalAmount" readonly>
         </div>
       </div>
 
       <div class="form-group">
         <label>Daily EMI (₹)</label>
-        <input type="text" id="emi" readonly style="background:#F1F5F9;">
+        <input type="text" id="emi" readonly>
       </div>
 
-      <!-- Photo Upload -->
+      <!-- Photo -->
       <div class="photo-preview">
         <img id="photoPreview" src="https://via.placeholder.com/70" alt="Preview">
         <div class="info">
