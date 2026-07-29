@@ -1,38 +1,155 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Statement - GDA</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"><style>:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#FFF0F3;--muted:#64748B;--line:#F3E8FF}*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{background:var(--bg);min-height:100vh;padding-bottom:85px}.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}.gda-logo-container{display:flex;align-items:center;gap:13px}.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center}.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}.gda-logo-text p{font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}.back-btn{background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:12px}.container{padding:14px;max-width:600px;margin:0 auto}.profileCard{background:#fff;border-radius:24px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);margin-bottom:12px}.profileCard img{width:72px;height:72px;border-radius:20px;object-fit:cover;border:2px solid #F1F5F9}.detailsCard{background:#fff;border-radius:20px;padding:8px 16px;box-shadow:0 6px 20px rgba(0,0,0,0.04);border:1px solid var(--line);margin-bottom:14px}.detailRow{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #F8FAFF}.detailRow:last-child{border:none}.detailRow span:first-child{font-size:13px;color:#6B5A8A;font-weight:600}.detailRow b{font-size:14px;color:#0F172A;font-weight:800}.btnGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}.btn{padding:13px;border-radius:14px;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;justify-content:center;align-items:center;text-decoration:none}.btn.whatsapp{background:#10B981;color:#fff}.btn.pdf{background:#3A1C62;color:#fff}.btn.bond{background:#FFC107;color:#000}.btn.settle{background:#DC2626;color:#fff}.logsHead{font-size:15px;font-weight:800;color:var(--primary);margin-bottom:10px}.logsCard{background:#fff;border-radius:20px;overflow:hidden;border:1px solid var(--line)}.logsHeader{display:grid;grid-template-columns:1fr 1fr 1fr 0.8fr;background:#FDF2F8;padding:12px 14px;font-size:11px;font-weight:700;color:#6B5A8A;text-transform:uppercase}.logRow{display:grid;grid-template-columns:1fr 1fr 1fr 0.8fr;padding:12px 14px;border-bottom:1px solid #F8FAFF;font-size:12px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}.nav-item.active{color:var(--pink)}.nav-item.material-symbols-outlined{font-size:24px}</style></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Statement - GDA Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#FFF0F3;--muted:#64748B;--line:#F3E8FF}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:var(--bg);min-height:100vh;padding-bottom:85px}
+.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.gda-logo-container{display:flex;align-items:center;gap:13px}
+.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center}
+.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}
+.gda-logo-text p{font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}
+.back-btn{background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:12px}
+.container{padding:14px;max-width:600px;margin:0 auto}
+.profileCard{background:#fff;border-radius:24px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);margin-bottom:12px}
+.profileCard img{width:72px;height:72px;border-radius:20px;object-fit:cover;border:2px solid #F1F5F9}
+.detailsCard{background:#fff;border-radius:20px;padding:8px 16px;box-shadow:0 6px 20px rgba(0,0,0,0.04);border:1px solid var(--line);margin-bottom:14px}
+.detailRow{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #F8FAFF}
+.detailRow:last-child{border:none}
+.detailRow span:first-child{font-size:13px;color:#6B5A8A;font-weight:600}
+.detailRow b{font-size:14px;color:#0F172A;font-weight:800}
+.btnGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.btn{padding:13px;border-radius:14px;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;justify-content:center;align-items:center;text-decoration:none}
+.btn.whatsapp{background:#10B981;color:#fff}
+.btn.pdf{background:#3A1C62;color:#fff}
+.btn.bond{background:#FFC107;color:#000}
+.btn.settle{background:#DC2626;color:#fff}
+.logsHead{font-size:15px;font-weight:800;color:var(--primary);margin-bottom:10px}
+.logsCard{background:#fff;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+.logsHeader{display:grid;grid-template-columns:1fr 1fr 1fr 0.8fr;background:#FDF2F8;padding:12px 14px;font-size:11px;font-weight:700;color:#6B5A8A;text-transform:uppercase}
+.logRow{display:grid;grid-template-columns:1fr 1fr 1fr 0.8fr;padding:12px 14px;border-bottom:1px solid #F8FAFF;font-size:12px;align-items:center}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}
+.nav-item.active{color:var(--pink)}
+</style>
+</head>
 <body>
 <header class="app-header"><div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div><a href="customer-list.html" class="back-btn">← Back</a></header>
 <div class="container">
 <div class="profileCard"><img id="custPhoto" src="https://via.placeholder.com/100"><div><h2 id="txtName">Loading...</h2><p id="txtMobile">📱 --</p><p id="txtCode">🆔 --</p></div></div>
-<div class="detailsCard"><div class="detailRow"><span>🪪 Aadhaar</span><b id="txtAadhaar">-</b></div><div class="detailRow"><span>💳 PAN</span><b id="txtPan">-</b></div><div class="detailRow"><span>🏠 Address</span><b id="txtAddress">-</b></div><div class="detailRow"><span>💰 Loan Amount</span><b id="txtLoan">₹0</b></div><div class="detailRow"><span>📅 Loan Date</span><b id="txtLoanDate">-</b></div><div class="detailRow"><span>📅 Daily EMI</span><b id="txtEmi">₹0</b></div><div class="detailRow"><span>📋 Plan Duration</span><b id="txtPlan">-</b></div><div class="detailRow"><span>💰 Remaining</span><b id="txtRemaining" style="color:#DC2626;">₹0</b></div><div class="detailRow"><span>✅ Paid Days</span><b id="txtPaidDays">0 Days</b></div><div class="detailRow" style="border:none;"><span>💰 Total Collected</span><b id="txtTotalCollected">₹0</b></div></div>
+<div class="detailsCard">
+<div class="detailRow"><span>📅 Loan Date</span><b id="txtLoanDate">-</b></div>
+<div class="detailRow"><span>📅 Daily EMI</span><b id="txtEmi">₹0</b></div>
+<div class="detailRow"><span>📋 Plan Duration</span><b id="txtPlan">-</b></div>
+<div class="detailRow"><span>💰 Remaining</span><b id="txtRemaining" style="color:#DC2626;">₹0</b></div>
+<div class="detailRow"><span>✅ Paid Days</span><b id="txtPaidDays">0 Days</b></div>
+<div class="detailRow" style="border:none;"><span>💰 Total Collected</span><b id="txtTotalCollected">₹0</b></div>
+</div>
 <div class="btnGrid"><a href="#" id="btnWhatsapp" class="btn whatsapp">📱 WhatsApp</a><a href="#" id="btnPdf" class="btn pdf">📄 PDF</a><a href="#" id="btnBond" class="btn bond">📜 Bond</a><a href="#" id="btnSettle" class="btn settle">✅ Settle</a></div>
-<div class="logsHead">📋 RECEIVED INSTALLMENTS (EMI LOGS)</div><div class="logsCard"><div class="logsHeader"><span>DATE</span><span>NOTE</span><span>AMOUNT</span><span>ACTION</span></div><div id="logsBody"><p style="text-align:center;padding:20px;color:#94A3B8;">⏳ लोड हो रहा है...</p></div></div>
+<div class="logsHead">📋 RECEIVED INSTALLMENTS (EMI LOGS)</div>
+<div class="logsCard"><div class="logsHeader"><span>DATE</span><span>NOTE</span><span>AMOUNT</span><span>ACTION</span></div><div id="logsBody"><p style="text-align:center;padding:20px;color:#94A3B8;">⏳ लोड हो रहा है...</p></div></div>
 </div>
 <nav class="bottom-nav"><a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a><a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a><a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a><a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a><a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { db, auth } from "./firebase.js";
-import { doc, getDoc, collection, getDocs, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, query, where, updateDoc, deleteDoc, doc as docRef } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+const ADMIN_PIN = "GDA@2026"; // 🔐 Aapka Admin PIN
 const custId = new URLSearchParams(window.location.search).get('id');
 let custData=null;
+let collectionsData=[];
+
 async function loadStatement(){
- if(!custId){alert("Customer ID nahi mila");location.href="customer-list.html";return;}
+ if(!custId){alert("ID nahi mila");location.href="customer-list.html";return;}
  const snap=await getDoc(doc(db,"customers",custId));if(!snap.exists()){alert("Customer nahi mila");return;}
  custData={id:snap.id,...snap.data()};
  document.getElementById("custPhoto").src=custData.photoUrl||custData.photo||'https://via.placeholder.com/100';
  document.getElementById("txtName").innerText=custData.name||'N/A';document.getElementById("txtMobile").innerText=`📱 ${custData.mobile||'N/A'}`;document.getElementById("txtCode").innerText=`🆔 ${custData.customerCode||'GDA'}`;
- document.getElementById("txtAadhaar").innerText=custData.aadhaar||custData.adhar||'-';document.getElementById("txtPan").innerText=custData.pan||'-';document.getElementById("txtAddress").innerText=custData.address||'-';
- document.getElementById("txtLoan").innerText=`₹${Number(custData.loanAmount||0).toLocaleString('en-IN')}`;document.getElementById("txtLoanDate").innerText=custData.loanDate||custData.startDate||'-';document.getElementById("txtEmi").innerText=`₹${Number(custData.dailyEmi||custData.emi||0)}`;document.getElementById("txtPlan").innerText=custData.planDuration?`${custData.planDuration} Days`:`${custData.duration||60} Days`;
- const q=query(collection(db,"collections"),where("customerId","==",custId));const colSnap=await getDocs(q);let total=0,cols=[];colSnap.forEach(d=>{const data=d.data();cols.push(data);total+=Number(data.amount||data.collectionAmount||0);});cols.sort((a,b)=>new Date(b.date||b.collectionDate)-new Date(a.date||a.collectionDate));
- const remaining=Math.max(0,Number(custData.loanAmount||0)*1.2-total);const paidDays=custData.dailyEmi?Math.floor(total/Number(custData.dailyEmi)):cols.length;
+ document.getElementById("txtLoanDate").innerText=custData.loanDate||custData.startDate||'-';document.getElementById("txtEmi").innerText=`₹${Number(custData.dailyEmi||custData.emi||0)}`;document.getElementById("txtPlan").innerText=custData.planDuration?`${custData.planDuration} Days`:`${custData.duration||60} Days`;
+ const q=query(collection(db,"collections"),where("customerId","==",custId));const colSnap=await getDocs(q);let total=0;collectionsData=[];colSnap.forEach(d=>{const data=d.data();collectionsData.push({id:d.id,...data});total+=Number(data.amount||data.collectionAmount||0);});collectionsData.sort((a,b)=>new Date(b.date||b.collectionDate)-new Date(a.date||a.collectionDate));
+ const remaining=Math.max(0,Number(custData.loanAmount||0)*1.2-total);const paidDays=custData.dailyEmi?Math.floor(total/Number(custData.dailyEmi)):collectionsData.length;
  document.getElementById("txtRemaining").innerText=`₹${remaining.toLocaleString('en-IN')}`;document.getElementById("txtPaidDays").innerText=`${paidDays} Days`;document.getElementById("txtTotalCollected").innerText=`₹${total.toLocaleString('en-IN')}`;
- const body=document.getElementById("logsBody");if(cols.length===0)body.innerHTML=`<p style="text-align:center;padding:20px;color:#94A3B8;">No EMI logs</p>`;else body.innerHTML=cols.map(c=>`<div class="logRow"><span>${c.date||c.collectionDate||''}</span><span>${c.note||'EMI'}</span><b>₹${Number(c.amount||c.collectionAmount||0)}</b><span>-</span></div>`).join('');
+ const body=document.getElementById("logsBody");
+ if(collectionsData.length===0)body.innerHTML=`<p style="text-align:center;padding:20px;color:#94A3B8;">No EMI logs</p>`;
+ else body.innerHTML=collectionsData.map(c=>`
+  <div class="logRow">
+   <span>${c.date||c.collectionDate||''}</span>
+   <span>${c.note||'EMI Received'}</span>
+   <b>₹${Number(c.amount||c.collectionAmount||0)}</b>
+   <a href="#" onclick="deleteEMI('${c.id}')" style="color:#DC2626;font-weight:800;text-decoration:none;background:#FFF1F2;padding:4px 8px;border-radius:6px;border:1px solid #FFE4E6;">🗑️ Del</a>
+  </div>`).join('');
 }
-// ✅ BOND BUTTON - FINAL FIX - Photo wala bond khulega
-document.getElementById("btnBond").onclick=(e)=>{e.preventDefault();if(!custId){alert("ID nahi mila");return;}window.location.href=`bond.html?id=${custId}`;};
-document.getElementById("btnPdf").onclick=(e)=>{e.preventDefault();if(!custId)return;window.location.href=`bond.html?id=${custId}`;};
-document.getElementById("btnWhatsapp").onclick=(e)=>{e.preventDefault();const msg=`*GDA Finance*%0AName: ${custData.name}%0ACode: ${custData.customerCode}%0ALoan: ₹${custData.loanAmount}`;window.open(`https://wa.me/91${custData.mobile}?text=${msg}`,'_blank');};
-document.getElementById("btnSettle").onclick=async(e)=>{e.preventDefault();if(!confirm("Settle karna hai?"))return;await updateDoc(doc(db,"customers",custId),{status:"Closed"});alert("✅ Settled!");location.href="customer-list.html";};
+
+// 🗑️ EMI DELETE - Admin PIN ke saath
+window.deleteEMI = async (colId) => {
+ const pin = prompt("🔐 EMI Delete karne ke liye Admin PIN daalo:");
+ if(pin !== ADMIN_PIN){ if(pin!==null) alert("❌ Galat PIN!"); return; }
+ if(!confirm("Kya aap is EMI ko delete karna chahte ho?")) return;
+ try{
+  await deleteDoc(doc(db,"collections",colId));
+  alert("✅ EMI Deleted!");
+  location.reload();
+ }catch(err){ alert("Error: "+err.message); }
+};
+
+// ✅ SETTLE - Admin PIN + Settlement PDF Generate
+document.getElementById("btnSettle").onclick=async(e)=>{
+ e.preventDefault();
+ const pin = prompt("🔐 Settlement ke liye Admin PIN daalo:");
+ if(pin !== ADMIN_PIN){ if(pin!==null) alert("❌ Galat PIN!"); return; }
+ if(!confirm(`Kya aap ${custData.name} ka account settle karna chahte ho? Settlement PDF generate hoga!`)) return;
+ 
+ // Settlement PDF Generate
+ const {jsPDF}=window.jspdf;const pdf=new jsPDF();
+ pdf.setFontSize(16);pdf.setFont(undefined,'bold');pdf.text("GDA FINANCE SERVICES",20,20);
+ pdf.setFontSize(10);pdf.setFont(undefined,'normal');pdf.text("SETTLEMENT / NOC CERTIFICATE",20,28);
+ pdf.line(20,32,190,32);
+ pdf.setFontSize(11);
+ pdf.text(`Customer Name: ${custData.name}`,20,42);
+ pdf.text(`Customer Code: ${custData.customerCode||'GDA'}`,20,50);
+ pdf.text(`Mobile: ${custData.mobile||'-'}`,20,58);
+ pdf.text(`Loan Amount: Rs. ${custData.loanAmount||0}`,20,66);
+ pdf.text(`Total Collected: ${document.getElementById("txtTotalCollected").innerText}`,20,74);
+ pdf.text(`Remaining: ${document.getElementById("txtRemaining").innerText}`,20,82);
+ pdf.text(`Settlement Date: ${new Date().toLocaleDateString('en-GB')}`,20,90);
+ pdf.text(`Status: CLOSED / SETTLED`,20,100);
+ pdf.text("This is to certify that above customer has settled his/her loan account.",20,115);
+ pdf.text("For GDA Finance Services",20,140);
+ pdf.text("Branch Manager (Authorized)",20,160);
+ pdf.save(`${custData.name}_Settlement_${custData.customerCode||''}.pdf`);
+
+ await updateDoc(doc(db,"customers",custId),{status:"Closed"});
+ alert("✅ Account Settled & PDF Downloaded!");
+ location.href="customer-list.html";
+};
+
+// 📄 PDF - Statement PDF
+document.getElementById("btnPdf").onclick=(e)=>{
+ e.preventDefault();
+ const {jsPDF}=window.jspdf;const pdf=new jsPDF();
+ pdf.text(`GDA FINANCE - STATEMENT`,20,20);
+ pdf.text(`Name: ${custData.name}`,20,35);
+ pdf.text(`Code: ${custData.customerCode||''}`,20,45);
+ pdf.text(`Mobile: ${custData.mobile||''}`,20,55);
+ pdf.text(`Loan: ${custData.loanAmount||0}`,20,65);
+ pdf.text(`Total Collected: ${document.getElementById("txtTotalCollected").innerText}`,20,75);
+ pdf.text(`Remaining: ${document.getElementById("txtRemaining").innerText}`,20,85);
+ pdf.save(`${custData.name}_Statement.pdf`);
+};
+
+document.getElementById("btnBond").onclick=(e)=>{e.preventDefault();window.location.href=`bond.html?id=${custId}`;};
+document.getElementById("btnWhatsapp").onclick=(e)=>{e.preventDefault();const msg=`*GDA Finance*%0AName: ${custData.name}%0ACode: ${custData.customerCode}%0ALoan: ${custData.loanAmount}%0APaid: ${document.getElementById("txtTotalCollected").innerText}`;window.open(`https://wa.me/91${custData.mobile}?text=${msg}`,'_blank');};
+
 onAuthStateChanged(auth,user=>{if(!user)location.href="login.html";else loadStatement();});
 document.getElementById("logoutBtn").onclick=async(e)=>{e.preventDefault();await signOut(auth);location.href="login.html";};
-</script></body></html>
+</script>
+</body>
+</html>
