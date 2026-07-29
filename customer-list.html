@@ -7,54 +7,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 <style>
 :root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--card:#fff;--muted:#64748B;--line:#F1F5F9;}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
-
-/* === SAME GDA HEADER AS COLLECTION PAGE === */
-.app-header{
-  background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
-  padding:18px 16px 20px;border-radius:0 0 26px 26px;
-  display:flex;justify-content:space-between;align-items:center;
-  box-shadow:0 12px 32px rgba(58,28,98,0.28);position:sticky;top:0;z-index:20;
-}
+.app-header{background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 12px 32px rgba(58,28,98,0.28);position:sticky;top:0;z-index:20;}
 .gda-logo-container{display:flex;align-items:center;gap:13px;}
-.gda-logo-icon{
-  width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);
-  display:flex;justify-content:center;align-items:center;
-  border:2px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(233,30,99,0.35);
-}
+.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center;border:2px solid rgba(255,255,255,0.3);}
 .gda-logo-icon .material-symbols-outlined{font-size:28px;color:#fff;font-variation-settings:'FILL' 1;}
-.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;line-height:1;color:#fff;letter-spacing:0.5px;}
+.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;line-height:1;color:#fff;}
 .gda-logo-text p{margin-top:3px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:3.2px;color:var(--gold);}
-.back-btn{background:rgba(255,255,255,0.14);backdrop-filter:blur(12px);color:#fff;border:1px solid rgba(255,255,255,0.18);padding:9px 14px;border-radius:12px;font-size:12px;font-weight:600;text-decoration:none;}
-
+.back-btn{background:rgba(255,255,255,0.14);color:#fff;border:1px solid rgba(255,255,255,0.18);padding:9px 14px;border-radius:12px;font-size:12px;font-weight:600;text-decoration:none;}
 .container{padding:14px;max-width:600px;margin:0 auto;}
-
-/* Tabs */
 .filterTabs{display:flex;gap:8px;margin-bottom:12px;}
-.tabBtn{padding:11px 18px;border-radius:30px;border:1.5px solid #E2E8F0;background:#fff;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:0.2s;}
-.tabBtn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(58,28,98,0.2);}
-
-/* Search */
+.tabBtn{padding:11px 18px;border-radius:30px;border:1.5px solid #E2E8F0;background:#fff;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;}
+.tabBtn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 .searchWrap{position:relative;margin-bottom:14px;}
-.searchWrap input{width:100%;padding:14px 14px 42px;border-radius:14px;border:1.5px solid #E9D5FF;background:#fff;font-size:13px;font-weight:600;outline:none;}
+.searchWrap input{width:100%;padding:14px 14px 14px 42px;border-radius:14px;border:1.5px solid #E9D5FF;background:#fff;font-size:13px;font-weight:600;outline:none;}
 .searchWrap .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);}
-.searchWrap input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(58,28,98,0.06);}
-
-/* Customer Card - Same as your screenshot */
-.custCard{background:#fff;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:1px solid #F1F5F9;margin-bottom:10px;}
+.custCard{background:#fff;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:1px solid #F1F5F9;margin-bottom:10px;cursor:pointer;}
 .custCard img{width:56px;height:56px;border-radius:16px;object-fit:cover;background:#F1F5F9;flex-shrink:0;}
 .custInfo{flex:1;min-width:0;}
 .custInfo h3{font-size:15px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.custInfo p{font-size:12px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.custInfo p{font-size:12px;color:var(--muted);margin-top:2px;}
 .custInfo p b{color:#0F172A;}
 .actions{display:flex;gap:6px;flex-shrink:0;}
-.btn{padding:9px 14px;border-radius:12px;font-size:12px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
-.btnCollect{background:#0F172A;color:#fff;}
-.btnDel{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6;}
-.btnEdit{background:#FFFBEB;color:#92400E;border:1px solid #FEF3C7;}
+.btn{padding:9px 14px;border-radius:12px;font-size:12px;font-weight:700;border:none;cursor:pointer;text-decoration:none;}
+.btnCollect{background:#0F172A;color:#fff;} .btnDel{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6;} .btnEdit{background:#FFFBEB;color:#92400E;border:1px solid #FEF3C7;}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
+/* DRAWER */
+.drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:100;display:none;}
+.drawerOverlay.active{display:block;}
+.drawer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:28px 28px 0 0;z-index:101;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:0.3s;}
+.drawer.active{transform:translateY(0);}
+.drawerHandle{width:40px;height:4px;background:#E2E8F0;border-radius:10px;margin:10px auto;}
+.drawerHead{padding:0 20px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);}
+.drawerBody{padding:16px;}
+.bondPaper{background:linear-gradient(135deg,#FFFBEB,#FFF7ED);border:1.5px solid #FDE68A;border-radius:16px;padding:16px;margin-bottom:14px;}
+.bondPaper h4{font-size:14px;font-weight:800;color:#92400E;margin-bottom:10px;text-align:center;}
+.bondRow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #FDE68A;font-size:12px;}
+.drawerBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.dBtn{padding:13px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:center;gap:6px;text-decoration:none;}
+.dBtn.whatsapp{background:#25D366;color:#fff;} .dBtn.pdf{background:#DC2626;color:#fff;} .dBtn.call{background:#0F172A;color:#fff;} .dBtn.close{background:#F1F5F9;color:var(--muted);}
+.historyBox{background:#F8FAFF;border:1px solid var(--line);border-radius:12px;padding:12px;max-height:180px;overflow-y:auto;}
+.historyBox h5{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.hItem{display:flex;justify-content:space-between;padding:6px 0;font-size:11px;border-bottom:1px solid #F1F5F9;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:90;}
 .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
 .nav-item.active{color:var(--pink);font-weight:700;}
 .nav-item .material-symbols-outlined{font-size:24px;}
@@ -62,28 +59,39 @@ body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
 </head>
 <body>
 
-<!-- GDA HEADER - SAME AS COLLECTION -->
 <header class="app-header">
-  <div class="gda-logo-container">
-    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
-    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
-  </div>
+  <div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div>
   <a href="index.html" class="back-btn">← Back</a>
 </header>
 
 <div class="container">
-  <div class="filterTabs">
-    <button class="tabBtn active" id="btnActive">Active Accounts</button>
-    <button class="tabBtn" id="btnClosed">Closed Accounts</button>
-  </div>
+  <div class="filterTabs"><button class="tabBtn active" id="btnActive">Active Accounts</button><button class="tabBtn" id="btnClosed">Closed Accounts</button></div>
+  <div class="searchWrap"><span class="material-symbols-outlined icon" style="font-size:18px;">search</span><input type="text" id="searchInput" placeholder="Search name, mobile, code..."></div>
+  <div id="customerList"><div style="text-align:center;padding:30px;color:#94A3B8;">⏳ Loading customers...</div></div>
+</div>
 
-  <div class="searchWrap">
-    <span class="material-symbols-outlined icon" style="font-size:18px;">search</span>
-    <input type="text" id="searchInput" placeholder="Search name, mobile, code...">
-  </div>
-
-  <div id="customerList">
-    <div style="text-align:center;padding:30px;color:#94A3B8;">⏳ Loading customers...</div>
+<div class="drawerOverlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawerHandle"></div>
+  <div class="drawerHead"><h3 id="drawerName">Customer Details</h3><button id="closeDrawer" style="border:none;background:#F1F5F9;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button></div>
+  <div class="drawerBody">
+    <div class="bondPaper">
+      <h4>📄 GDA FINANCE - BOND PAPER</h4>
+      <div class="bondRow"><span>Name:</span><b id="bName">-</b></div>
+      <div class="bondRow"><span>Code:</span><b id="bCode">-</b></div>
+      <div class="bondRow"><span>Mobile:</span><b id="bMobile">-</b></div>
+      <div class="bondRow"><span>Loan:</span><b id="bLoan">₹0</b></div>
+      <div class="bondRow"><span>EMI:</span><b id="bEmi">₹0</b></div>
+      <div class="bondRow"><span>Paid:</span><b id="bPaid">₹0</b></div>
+      <div class="bondRow" style="border:none;"><span>Remaining:</span><b id="bRemain" style="color:#DC2626;">₹0</b></div>
+    </div>
+    <div class="drawerBtns">
+      <a href="#" id="btnWhatsapp" class="dBtn whatsapp">WhatsApp PDF</a>
+      <a href="#" id="btnPdf" class="dBtn pdf">PDF Download</a>
+      <a href="#" id="btnCall" class="dBtn call">📞 Call</a>
+      <button id="btnClose2" class="dBtn close">Close</button>
+    </div>
+    <div class="historyBox"><h5>📊 Collection History - Niche wala collection</h5><div id="historyList">Loading...</div></div>
   </div>
 </div>
 
@@ -95,62 +103,87 @@ body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
   <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
 </nav>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { db, auth } from "./firebase.js";
 import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-const customerList = document.getElementById("customerList");
-const searchInput = document.getElementById("searchInput");
-const btnActive = document.getElementById("btnActive");
-const btnClosed = document.getElementById("btnClosed");
+const customerList=document.getElementById("customerList");
+const searchInput=document.getElementById("searchInput");
+const btnActive=document.getElementById("btnActive");
+const btnClosed=document.getElementById("btnClosed");
+const drawer=document.getElementById("drawer");
+const drawerOverlay=document.getElementById("drawerOverlay");
+let allCustomers=[], allCollections=[], currentMode="Active", selectedCustomer=null;
 
-let allCustomers = [];
-let currentMode = "Active";
-
-function renderList(filterText=""){
-  let filtered = allCustomers.filter(c => currentMode==="Active" ? c.status!=="Closed" : c.status==="Closed");
-  if(filterText){
-    const q = filterText.toLowerCase();
-    filtered = filtered.filter(c => (c.name||"").toLowerCase().includes(q) || (c.mobile||"").includes(q) || (c.customerCode||"").toLowerCase().includes(q));
-  }
-  if(filtered.length===0){ customerList.innerHTML=`<div style="text-align:center;padding:40px;color:#94A3B8;">No ${currentMode} accounts found</div>`; return; }
-  customerList.innerHTML = filtered.map(c=>`
-    <div class="custCard">
-      <img src="${c.photoUrl||c.photo||'https://via.placeholder.com/100?text=GDA'}" onerror="this.src='https://via.placeholder.com/100?text=GDA'">
-      <div class="custInfo">
-        <h3>${c.name||'No Name'}</h3>
-        <p>📱 ${c.mobile||'N/A'}</p>
-        <p>💰 Loan: <b>₹${Number(c.loanAmount||0).toLocaleString('en-IN')}</b> | ID: ${c.customerCode||'GDA'}</p>
-      </div>
-      <div class="actions">
-        <a href="collection.html?id=${c.id}" class="btn btnCollect">Collect</a>
-        <button class="btn btnDel" onclick="deleteCust('${c.id}')">Del</button>
-        <a href="edit-customer.html?id=${c.id}" class="btn btnEdit">Edit</a>
-      </div>
-    </div>
-  `).join('');
+function openDrawer(cust){
+  selectedCustomer=cust;
+  document.getElementById("drawerName").innerText=cust.name;
+  document.getElementById("bName").innerText=cust.name;
+  document.getElementById("bCode").innerText=cust.customerCode||'GDA';
+  document.getElementById("bMobile").innerText=cust.mobile||'N/A';
+  document.getElementById("bLoan").innerText=`₹${Number(cust.loanAmount||0).toLocaleString('en-IN')}`;
+  document.getElementById("bEmi").innerText=`₹${Number(cust.dailyEmi||cust.emi||0)}`;
+  document.getElementById("bPaid").innerText=`₹${Number(cust.totalCollected||0).toLocaleString('en-IN')}`;
+  document.getElementById("bRemain").innerText=`₹${Math.max(0, Number(cust.loanAmount||0)*1.2 - Number(cust.totalCollected||0)).toLocaleString('en-IN')}`;
+  document.getElementById("btnCall").href=`tel:${cust.mobile}`;
+  const hist=allCollections.filter(x=>x.customerId===cust.id).sort((a,b)=> new Date(b.date||b.collectionDate)-new Date(a.date||a.collectionDate)).slice(0,25);
+  document.getElementById("historyList").innerHTML= hist.length? hist.map(h=>`<div class="hItem"><span>${h.date||h.collectionDate}</span><b>₹${Number(h.amount||h.collectionAmount||0)}</b></div>`).join('') : '<div style="color:#94A3B8;">No collection yet</div>';
+  drawer.classList.add("active");drawerOverlay.classList.add("active");
 }
+function closeDrawer(){drawer.classList.remove("active");drawerOverlay.classList.remove("active");}
+document.getElementById("closeDrawer").onclick=closeDrawer;
+document.getElementById("btnClose2").onclick=closeDrawer;
+drawerOverlay.onclick=closeDrawer;
 
-window.deleteCust = async(id)=>{
-  if(!confirm("Delete karna hai?")) return;
-  await deleteDoc(doc(db,"customers",id));
-  allCustomers = allCustomers.filter(x=>x.id!==id);
-  renderList(searchInput.value);
+document.getElementById("btnWhatsapp").onclick=(e)=>{
+  e.preventDefault();
+  const msg=`*GDA Finance*%0AName: ${selectedCustomer.name}%0ACode: ${selectedCustomer.customerCode}%0ALoan: ₹${selectedCustomer.loanAmount}%0AEMI: ₹${selectedCustomer.dailyEmi||selectedCustomer.emi}%0APaid: ₹${selectedCustomer.totalCollected||0}%0ABranch: Garhwa`;
+  window.open(`https://wa.me/91${selectedCustomer.mobile}?text=${msg}`,'_blank');
+};
+document.getElementById("btnPdf").onclick=(e)=>{
+  e.preventDefault();
+  const { jsPDF }=window.jspdf; const pdf=new jsPDF();
+  pdf.text("GDA FINANCE - BOND PAPER",20,20);
+  pdf.text(`Name: ${selectedCustomer.name}`,20,35);
+  pdf.text(`Code: ${selectedCustomer.customerCode}`,20,45);
+  pdf.text(`Mobile: ${selectedCustomer.mobile}`,20,55);
+  pdf.text(`Loan: ${selectedCustomer.loanAmount}`,20,65);
+  pdf.text(`EMI: ${selectedCustomer.dailyEmi||selectedCustomer.emi}`,20,75);
+  pdf.text(`Paid: ${selectedCustomer.totalCollected}`,20,85);
+  pdf.save(`${selectedCustomer.name}_Bond.pdf`);
 };
 
+function renderList(filterText=""){
+  let filtered=allCustomers.filter(c=> currentMode==="Active"? c.status!=="Closed" : c.status==="Closed");
+  if(filterText){const q=filterText.toLowerCase();filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.mobile||'').includes(q)||(c.customerCode||'').toLowerCase().includes(q));}
+  if(filtered.length===0){customerList.innerHTML=`<div style="text-align:center;padding:40px;color:#94A3B8;">No ${currentMode} accounts</div>`;return;}
+  customerList.innerHTML=filtered.map(c=>`
+    <div class="custCard" onclick="window.openDrawerById('${c.id}')">
+      <img src="${c.photoUrl||c.photo||'https://via.placeholder.com/100?text=GDA'}" onerror="this.src='https://via.placeholder.com/100?text=GDA'">
+      <div class="custInfo"><h3>${c.name||'No Name'}</h3><p>📱 ${c.mobile||'N/A'}</p><p>💰 Loan: <b>₹${Number(c.loanAmount||0).toLocaleString('en-IN')}</b> | ID: ${c.customerCode||'GDA'}</p></div>
+      <div class="actions">
+        <a href="collection.html?id=${c.id}" class="btn btnCollect" onclick="event.stopPropagation()">Collect</a>
+        <button class="btn btnDel" onclick="event.stopPropagation(); deleteCust('${c.id}')">Del</button>
+        <a href="edit-customer.html?id=${c.id}" class="btn btnEdit" onclick="event.stopPropagation()">Edit</a>
+      </div>
+    </div>`).join('');
+}
+window.openDrawerById=(id)=>{const c=allCustomers.find(x=>x.id===id);if(c) openDrawer(c);};
+window.deleteCust=async(id)=>{if(!confirm("Delete?")) return; await deleteDoc(doc(db,"customers",id)); allCustomers=allCustomers.filter(x=>x.id!==id); renderList(searchInput.value);};
+
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="login.html"; return; }
-  const snap = await getDocs(collection(db,"customers"));
-  allCustomers = []; snap.forEach(d=>{ allCustomers.push({id:d.id,...d.data()}); });
+  if(!user){location.href="login.html";return;}
+  const [custSnap,colSnap]=await Promise.all([getDocs(collection(db,"customers")), getDocs(collection(db,"collections"))]);
+  allCustomers=[]; custSnap.forEach(d=>allCustomers.push({id:d.id,...d.data()}));
+  allCollections=[]; colSnap.forEach(d=>allCollections.push(d.data()));
   renderList();
 });
-
-btnActive.onclick=()=>{ currentMode="Active"; btnActive.classList.add("active"); btnClosed.classList.remove("active"); renderList(searchInput.value); };
-btnClosed.onclick=()=>{ currentMode="Closed"; btnClosed.classList.add("active"); btnActive.classList.remove("active"); renderList(searchInput.value); };
+btnActive.onclick=()=>{currentMode="Active";btnActive.classList.add("active");btnClosed.classList.remove("active");renderList(searchInput.value);};
+btnClosed.onclick=()=>{currentMode="Closed";btnClosed.classList.add("active");btnActive.classList.remove("active");renderList(searchInput.value);};
 searchInput.oninput=(e)=>renderList(e.target.value);
-
-document.getElementById("logoutBtn").onclick=async(e)=>{ e.preventDefault(); await signOut(auth); location.href="login.html"; };
+document.getElementById("logoutBtn").onclick=async(e)=>{e.preventDefault();await signOut(auth);location.href="login.html";};
 </script>
 </body>
 </html>
