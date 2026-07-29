@@ -1,178 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Financial Reports - GDA Finance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0F172A; /* Navy - International */
-            --secondary: #E11D48;
-            --success: #059669;
-            --danger: #DC2626;
-            --bg: #F8FAFF;
-            --card: #ffffff;
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            --line: #F1F5F9;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); min-height: 100vh; padding-bottom: 80px; }
-
-        .app-header {
-            background: linear-gradient(135deg,#0F172A 0%,#1E3A8A 100%);
-            color: white;
-            padding: 16px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 0 0 20px 20px;
-        }
-        .app-header h1 { font-size: 18px; font-weight: 800; }
-        .app-header a { color: white; text-decoration: none; font-size: 12px; background:rgba(255,255,255,0.15); padding:7px 12px; border-radius:8px;}
-
-        .container { padding: 14px; max-width: 600px; margin: 0 auto; }
-
-        .report-controls {
-            background: white;
-            padding: 14px;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-            border: 1px solid var(--line);
-            margin-bottom: 14px;
-        }
-        .date-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-        .date-row label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;display:block;}
-        .report-controls input[type="date"] {
-            flex: 1;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #E2E8F0;
-            font-size: 13px;
-            font-weight:600;
-            background: #F8FAFF;
-            outline:none;
-        }
-        .btn-expense {
-            background: var(--primary);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        .mode-tabs { display: flex; gap: 6px; background:#F1F5F9; padding:4px; border-radius:12px;}
-        .mode-tab {
-            flex:1; padding: 8px 10px; border-radius: 8px; border: none;
-            background: transparent; font-size: 11px; font-weight: 700;
-            cursor: pointer; color: var(--text-muted); transition: 0.2s;
-        }
-        .mode-tab.active { background: var(--primary); color: white; box-shadow:0 2px 8px rgba(0,0,0,0.15);}
-
-        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .report-box {
-            background: white; padding: 16px 12px; border-radius: 18px; text-align: left;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid var(--line);
-        }
-        .report-box.full { grid-column: span 2; }
-        .report-box p { font-size: 9px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing:0.7px; margin: 0 0 6px 0;}
-        .report-box h3 { font-size: 20px; margin: 0; color: var(--text-main); font-weight: 800;}
-        .report-box.positive h3 { color: var(--success); }
-        .report-box.negative h3 { color: var(--danger); }
-        .report-box.primary { background: linear-gradient(135deg,#0F172A,#1E3A8A); border:none; }
-        .report-box.primary p{color:#93C5FD;} .report-box.primary h3{color:#fff;}
-
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
-            background: white; display: grid; grid-template-columns: repeat(5, 1fr);
-            border-top: 1px solid var(--line); z-index:30;
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #94a3b8; font-size: 10px; font-weight:600; gap:2px;}
-        .nav-item.active { color: var(--primary); font-weight: 700; }
-        .nav-item .material-symbols-outlined { font-size: 22px; }
-
-        #dateLabel{display:none;} /* Aapke JS me ye ID chahiye par dikhana nahi hai */
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Financial Reports - GDA Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#0F172A;--success:#059669;--danger:#DC2626;--bg:#F8FAFF;--card:#fff;--muted:#64748B;--line:#F1F5F9;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
+.header{background:linear-gradient(135deg,#0F172A,#1E3A8A);color:#fff;padding:16px;border-radius:0 0 20px 20px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:18px;font-weight:800;}
+.header a{color:#fff;text-decoration:none;font-size:12px;background:rgba(255,255,255,0.15);padding:7px 12px;border-radius:8px;}
+.container{padding:14px;max-width:600px;margin:0 auto;}
+.controls{background:#fff;padding:14px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.04);border:1px solid var(--line);margin-bottom:14px;}
+.dateRow{display:flex;gap:10px;align-items:end;margin-bottom:12px;}
+.dateRow input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #E2E8F0;font-size:13px;font-weight:600;background:#F8FAFF;outline:none;}
+.btnExp{background:var(--primary);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;}
+.tabs{display:flex;gap:6px;background:#F1F5F9;padding:4px;border-radius:12px;}
+.tab{flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;}
+.tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.box{background:#fff;padding:16px 12px;border-radius:18px;border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,0.04);}
+.box.full{grid-column:span 2;}
+.box p{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;}
+.box h3{font-size:20px;font-weight:800;color:var(--primary);}
+.box.green h3{color:var(--success);} .box.red h3{color:var(--danger);}
+.box.dark{background:linear-gradient(135deg,#0F172A,#1E3A8A);border:none;}
+.box.dark p{color:#93C5FD;} .box.dark h3{color:#fff;}
+.nav{position:fixed;bottom:0;left:0;right:0;height:65px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);z-index:30;}
+.navItem{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:#94a3b8;font-size:10px;font-weight:600;gap:2px;}
+.navItem.active{color:var(--primary);font-weight:700;}
+</style>
 </head>
 <body>
 
-    <header class="app-header">
-        <div><h1>📊 Financial Reports</h1><div style="font-size:10px;color:#93C5FD;margin-top:2px;">GDA Finance • Garhwa</div></div>
-        <a href="index.html">← Home</a>
-    </header>
+<div class="header">
+  <div><h1>📊 Financial Reports</h1><div style="font-size:10px;color:#93C5FD;">GDA Finance • Garhwa</div></div>
+  <a href="index.html">← Home</a>
+</div>
 
-    <div class="container">
-        <p id="dateLabel" style="display:none;">Monthly Report</p>
-        <div class="report-controls">
-            <div class="date-row">
-                <div style="flex:1">
-                    <label>Select Date</label>
-                    <input type="date" id="reportDatePicker">
-                </div>
-                <a href="expense-manager.html" class="btn-expense">
-                    <span class="material-symbols-outlined" style="font-size:18px;">add</span> Expense
-                </a>
-            </div>
-            <div class="mode-tabs">
-                <button class="mode-tab" id="btnDaily">Daily</button>
-                <button class="mode-tab active" id="btnMonthly">Monthly</button>
-                <button class="mode-tab" id="btnQuarterly">Quarterly</button>
-                <button class="mode-tab" id="btnYearly">Yearly</button>
-            </div>
-        </div>
-
-        <div class="report-grid">
-            <div class="report-box full primary">
-                <p>Total Portfolio (Market Running)</p>
-                <h3 id="totalPortfolio">₹0</h3>
-            </div>
-            <div class="report-box">
-                <p>Disbursement</p>
-                <h3 id="disbursement">₹0</h3>
-            </div>
-            <div class="report-box positive">
-                <p>Collection</p>
-                <h3 id="collection">₹0</h3>
-            </div>
-            <div class="report-box positive">
-                <p>Interest Income</p>
-                <h3 id="interestIncome">₹0</h3>
-            </div>
-            <div class="report-box negative">
-                <p>Total Expenses</p>
-                <h3 id="totalExpenses">₹0</h3>
-            </div>
-            <div class="report-box" style="background:#ECFDF5;border-color:#A7F3D0;">
-                <p style="color:#059669;">Net Profit</p>
-                <h3 id="netProfit" style="color:#059669;">₹0</h3>
-            </div>
-            <div class="report-box negative">
-                <p>Total Due</p>
-                <h3 id="totalDue">₹0</h3>
-            </div>
-            <div class="report-box">
-                <p>New Accounts</p>
-                <h3 id="newAccounts">0</h3>
-            </div>
-        </div>
+<div class="container">
+  <div class="controls">
+    <div class="dateRow">
+      <div style="flex:1"><label style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">Select Date</label><input type="date" id="reportDatePicker"></div>
+      <a href="expense-manager.html" class="btnExp"><span class="material-symbols-outlined" style="font-size:18px;">add</span> Expense</a>
     </div>
+    <div class="tabs">
+      <button class="tab" id="btnDaily">Daily</button>
+      <button class="tab active" id="btnMonthly">Monthly</button>
+      <button class="tab" id="btnQuarterly">Quarterly</button>
+      <button class="tab" id="btnYearly">Yearly</button>
+    </div>
+  </div>
 
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
-        <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
-        <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
-        <a href="reports.html" class="nav-item active"><span class="material-symbols-outlined">analytics</span>Reports</a>
-        <a href="#" id="logoutBtn" class="nav-item" style="color:var(--danger);"><span class="material-symbols-outlined">logout</span>Logout</a>
-    </nav>
+  <div class="grid">
+    <div class="box full dark"><p>Total Portfolio (Market Running)</p><h3 id="totalPortfolio">₹0</h3></div>
+    <div class="box"><p>Disbursement</p><h3 id="disbursement">₹0</h3></div>
+    <div class="box green"><p>Collection</p><h3 id="collection">₹0</h3></div>
+    <div class="box green"><p>Interest Income</p><h3 id="interestIncome">₹0</h3></div>
+    <div class="box red"><p>Total Expenses</p><h3 id="totalExpenses">₹0</h3></div>
+    <div class="box" style="background:#ECFDF5;border-color:#A7F3D0;"><p style="color:#059669;">Net Profit</p><h3 id="netProfit" style="color:#059669;">₹0</h3></div>
+    <div class="box red"><p>Total Due</p><h3 id="totalDue">₹0</h3></div>
+    <div class="box"><p>New Accounts</p><h3 id="newAccounts">0</h3></div>
+  </div>
+</div>
 
-    <!-- Aapka original report.js - Path sahi rakho -->
-    <script type="module" src="report.js"></script>
+<nav class="nav">
+  <a href="index.html" class="navItem"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html" class="navItem"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="collection.html" class="navItem"><span class="material-symbols-outlined">paid</span>Collect</a>
+  <a href="report.html" class="navItem active"><span class="material-symbols-outlined">analytics</span>Reports</a>
+  <a href="#" id="logoutBtn" class="navItem" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+</nav>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+const totalPortfolio = document.getElementById("totalPortfolio");
+const disbursement = document.getElementById("disbursement");
+const collectionEl = document.getElementById("collection");
+const interestIncome = document.getElementById("interestIncome");
+const totalExpensesEl = document.getElementById("totalExpenses");
+const netProfit = document.getElementById("netProfit");
+const totalDue = document.getElementById("totalDue");
+const newAccounts = document.getElementById("newAccounts");
+const reportDatePicker = document.getElementById("reportDatePicker");
+const btnDaily = document.getElementById("btnDaily");
+const btnMonthly = document.getElementById("btnMonthly");
+const btnQuarterly = document.getElementById("btnQuarterly");
+const btnYearly = document.getElementById("btnYearly");
+
+let currentMode = "Monthly";
+const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+if (reportDatePicker) reportDatePicker.value = todayIST;
+
+function updateTabUI(activeBtn){
+  [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(b=>b?.classList.remove("active"));
+  activeBtn?.classList.add("active");
+}
+
+async function renderReportPipeline(){
+  const targetDate = reportDatePicker ? reportDatePicker.value : todayIST;
+  let startDateStr = "0000-00-00";
+  let endDateStr = targetDate;
+  const parsedDate = new Date(targetDate);
+  const yyyy = parsedDate.getFullYear();
+  const mm = String(parsedDate.getMonth()+1).padStart(2,'0');
+  if(currentMode==="Daily"){ startDateStr=targetDate; }
+  else if(currentMode==="Monthly"){ startDateStr=`${yyyy}-${mm}-01`; const lastDay=new Date(yyyy, parsedDate.getMonth()+1,0).getDate(); endDateStr=`${yyyy}-${mm}-${String(lastDay).padStart(2,'0')}`; }
+  else if(currentMode==="Yearly"){ startDateStr=`${yyyy}-01-01`; endDateStr=`${yyyy}-12-31`; }
+  else if(currentMode==="Quarterly"){ const q=Math.floor(parsedDate.getMonth()/3); const qStart=q*3; startDateStr=`${yyyy}-${String(qStart+1).padStart(2,'0')}-01`; const qEndMonth=qStart+2; const lastDay=new Date(yyyy,qEndMonth+1,0).getDate(); endDateStr=`${yyyy}-${String(qEndMonth+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`; }
+
+  try{
+    let expensesSum=0;
+    const expSnap=await getDocs(collection(db,"expenses"));
+    expSnap.forEach(d=>{ const data=d.data(); if(data.date && data.date>=startDateStr && data.date<=endDateStr){ expensesSum+=Number(data.amount||0);} });
+
+    let lifetimeCollectionUptoTarget=0, rangeCollectionSum=0, todayCollectedForOverdue=0;
+    const colSnap=await getDocs(collection(db,"collections"));
+    colSnap.forEach(d=>{ const data=d.data(); const amt=Number(data.amount||0); if(data.date && data.date<=targetDate) lifetimeCollectionUptoTarget+=amt; if(data.date && data.date===targetDate) todayCollectedForOverdue+=amt; if(data.date && data.date>=startDateStr && data.date<=endDateStr) rangeCollectionSum+=amt; });
+
+    const custSnap=await getDocs(collection(db,"customers"));
+    let lifetimeDisbursementUptoTarget=0, lifetimeInterestUptoTarget=0, rangeDisbursementSum=0, rangeInterestSum=0, rangeAccountsCount=0, totalTodayDemandCalculated=0;
+    custSnap.forEach(d=>{ const cust=d.data(); const loanAmt=Number(cust.loanAmount||0); const emi=Number(cust.dailyEmi||cust.emi||0); if(cust.loanDate && cust.loanDate<=targetDate){ lifetimeDisbursementUptoTarget+=loanAmt; lifetimeInterestUptoTarget+=(loanAmt*0.20);} if(cust.loanDate && cust.loanDate>=startDateStr && cust.loanDate<=endDateStr){ rangeDisbursementSum+=loanAmt; rangeInterestSum+=(loanAmt*0.20); if(cust.status!=="Closed") rangeAccountsCount++; } if(cust.status!=="Closed"){ totalTodayDemandCalculated+=emi; } });
+
+    let dynamicTotalOverdue=0;
+    if(currentMode==="Daily"){ dynamicTotalOverdue=Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue); }
+    else if(currentMode==="Monthly"){ dynamicTotalOverdue = todayCollectedForOverdue >= totalTodayDemandCalculated ? 0 : Math.max(0, totalTodayDemandCalculated - todayCollectedForOverdue); }
+    else{ dynamicTotalOverdue=Math.max(0, totalTodayDemandCalculated); }
+
+    const rawTotalMarketCap=lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
+    const portfolioRemaining=Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
+    const netProfitSum=rangeInterestSum - expensesSum;
+
+    if(totalPortfolio) totalPortfolio.innerText=`₹${portfolioRemaining.toLocaleString('en-IN')}`;
+    if(disbursement) disbursement.innerText=`₹${rangeDisbursementSum.toLocaleString('en-IN')}`;
+    if(collectionEl) collectionEl.innerText=`₹${rangeCollectionSum.toLocaleString('en-IN')}`;
+    if(interestIncome) interestIncome.innerText=`₹${rangeInterestSum.toLocaleString('en-IN')}`;
+    if(totalExpensesEl) totalExpensesEl.innerText=`₹${expensesSum.toLocaleString('en-IN')}`;
+    if(netProfit) netProfit.innerText=`₹${netProfitSum.toLocaleString('en-IN')}`;
+    if(totalDue) totalDue.innerText=`₹${dynamicTotalOverdue.toLocaleString('en-IN')}`;
+    if(newAccounts) newAccounts.innerText=rangeAccountsCount;
+
+  }catch(err){ console.error("Report Error:",err); }
+}
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user){ location.href="login.html"; return; }
+  renderReportPipeline();
+});
+
+btnDaily.onclick=()=>{ currentMode="Daily"; updateTabUI(btnDaily); renderReportPipeline(); };
+btnMonthly.onclick=()=>{ currentMode="Monthly"; updateTabUI(btnMonthly); renderReportPipeline(); };
+btnQuarterly.onclick=()=>{ currentMode="Quarterly"; updateTabUI(btnQuarterly); renderReportPipeline(); };
+btnYearly.onclick=()=>{ currentMode="Yearly"; updateTabUI(btnYearly); renderReportPipeline(); };
+reportDatePicker.onchange=()=>renderReportPipeline();
+
+document.getElementById("logoutBtn").onclick=async(e)=>{
+  e.preventDefault();
+  await signOut(auth);
+  location.href="login.html";
+};
+</script>
 </body>
 </html>
