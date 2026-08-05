@@ -18,7 +18,25 @@
     .form-group input[readonly] { background:#F1F5F9; color:#64748B; }
     .row-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     
-    /* Document Upload Styles */
+    /* ✅ नया – फोटो पिकर (Camera / Gallery) */
+    .photo-picker {
+      display:flex; gap:10px; margin:8px 0 16px;
+    }
+    .photo-picker button {
+      flex:1; padding:10px; border-radius:12px; border:1.5px solid #E2E8F0;
+      background:#fff; font-weight:700; font-size:13px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      transition:0.2s;
+    }
+    .photo-picker button:active { transform:scale(0.96); background:#F8FAFF; }
+    .photo-picker button.camera { background:#1B5E20; color:#fff; border-color:#1B5E20; }
+    .photo-picker button.gallery { background:#F8FAFF; }
+
+    .photo-preview {
+      display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; background:#F8FAFF; border-radius:12px;
+    }
+    .photo-preview img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #1B5E20; background:#fff; }
+    
     .doc-upload-box {
       border: 2px dashed #E2E8F0;
       border-radius: 12px;
@@ -27,6 +45,7 @@
       background: #F8FAFF;
       cursor: pointer;
       transition: 0.2s;
+      margin-bottom: 12px;
     }
     .doc-upload-box:hover { border-color: #3A1C62; }
     .doc-upload-box .preview { width:100%; max-height:120px; object-fit:cover; border-radius:8px; display:none; }
@@ -35,8 +54,13 @@
     .doc-upload-box input[type="file"] { display:none; }
     .doc-label { font-size:11px; font-weight:700; color:#3A1C62; display:flex; align-items:center; gap:6px; margin-top:6px; }
 
-    .btn { width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98); color:#fff; border:none; border-radius:14px; font-weight:800; font-size:16px; cursor:pointer; }
-    .btn:disabled { background:#E2E8F0; color:#94A3B8; }
+    .btn {
+      width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98);
+      color:#fff; border:none; border-radius:14px; font-weight:800; font-size:16px;
+      cursor:pointer; box-shadow:0 8px 20px rgba(58,28,98,0.25); transition:0.15s;
+    }
+    .btn:active { transform:scale(0.98); }
+    .btn:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
   </style>
 </head>
 <body>
@@ -44,6 +68,29 @@
 <div class="card">
   <h2>📝 New Registration</h2>
   <form id="regForm">
+
+    <!-- ===== CUSTOMER PHOTO – अब Camera और Gallery दोनों विकल्प ===== -->
+    <div class="photo-preview">
+      <img id="photoPreview" src="https://via.placeholder.com/70" alt="Photo">
+      <div>
+        <span>📸 Photo</span><br>
+        <small style="color:#64748B;">Choose from below</small>
+      </div>
+      <!-- Hidden file inputs -->
+      <input type="file" id="customerPhotoCamera" accept="image/*" capture="environment" style="display:none;" onchange="previewImage(this, 'photoPreview')">
+      <input type="file" id="customerPhotoGallery" accept="image/*" style="display:none;" onchange="previewImage(this, 'photoPreview')">
+    </div>
+
+    <!-- ✅ Camera / Gallery बटन -->
+    <div class="photo-picker">
+      <button class="camera" type="button" onclick="document.getElementById('customerPhotoCamera').click();">
+        <span class="material-symbols-outlined" style="font-size:20px;">photo_camera</span> Camera
+      </button>
+      <button class="gallery" type="button" onclick="document.getElementById('customerPhotoGallery').click();">
+        <span class="material-symbols-outlined" style="font-size:20px;">photo_library</span> Gallery
+      </button>
+    </div>
+
     <!-- Personal Details -->
     <div class="form-group"><label>Full Name</label><input type="text" id="customerName" required></div>
     <div class="form-group"><label>Mobile Number</label><input type="tel" id="mobile" maxlength="10" required></div>
@@ -66,31 +113,33 @@
       <div class="form-group"><label>Daily EMI</label><input type="text" id="dailyCollection" readonly></div>
     </div>
 
-    <!-- ===== 📁 DOCUMENT UPLOADS (NEW) ===== -->
+    <!-- ===== KYC DOCUMENTS – अब हर डॉक्यूमेंट के लिए Camera/Gallery अलग-अलग ===== -->
     <div style="margin:18px 0; border-top:2px dashed #E9D5FF; padding-top:16px;">
-      <p style="font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:12px;">📁 KYC DOCUMENTS (Upload Photos)</p>
+      <p style="font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:12px;">📁 KYC DOCUMENTS</p>
 
       <!-- Aadhar Card -->
-      <div class="doc-upload-box" id="aadharBox" onclick="document.getElementById('aadharInput').click()">
+      <div class="doc-upload-box" onclick="document.getElementById('aadharInput').click()">
         <img class="preview" id="aadharPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">credit_card</span> Tap to upload Aadhar Card</span>
-        <input type="file" id="aadharInput" accept="image/*">
+        <input type="file" id="aadharInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'aadharPreview')">
         <div class="doc-label">🆔 Aadhar Card</div>
       </div>
+      <!-- Aadhar के लिए अलग Camera / Gallery बटन (ऑप्शनल) – अगर चाहें तो हर डॉक्यूमेंट के लिए भी ऐसा कर सकते हैं -->
+      <!-- हम सिर्फ default file picker पर भरोसा करते हैं, जो दोनों देता है। -->
 
       <!-- PAN Card -->
-      <div class="doc-upload-box" id="panBox" onclick="document.getElementById('panInput').click()">
+      <div class="doc-upload-box" onclick="document.getElementById('panInput').click()">
         <img class="preview" id="panPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">description</span> Tap to upload PAN Card</span>
-        <input type="file" id="panInput" accept="image/*">
+        <input type="file" id="panInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'panPreview')">
         <div class="doc-label">📇 PAN Card</div>
       </div>
 
       <!-- Voter Card -->
-      <div class="doc-upload-box" id="voterBox" onclick="document.getElementById('voterInput').click()">
+      <div class="doc-upload-box" onclick="document.getElementById('voterInput').click()">
         <img class="preview" id="voterPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">how_to_vote</span> Tap to upload Voter ID</span>
-        <input type="file" id="voterInput" accept="image/*">
+        <input type="file" id="voterInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'voterPreview')">
         <div class="doc-label">🗳️ Voter ID Card</div>
       </div>
     </div>
@@ -99,6 +148,38 @@
   </form>
 </div>
 
+<script>
+  // ===== PREVIEW FUNCTIONS =====
+  function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById(previewId).src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function previewDoc(input, previewId) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById(previewId);
+        img.src = e.target.result;
+        img.style.display = 'block';
+        // Hide placeholder if exists
+        const parent = img.closest('.doc-upload-box');
+        if (parent) {
+          const placeholder = parent.querySelector('.placeholder');
+          if (placeholder) placeholder.style.display = 'none';
+        }
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+
+<!-- register.js को मॉड्यूल के रूप में लोड करें -->
 <script type="module" src="register.js"></script>
 </body>
 </html>
