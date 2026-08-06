@@ -1,13 +1,14 @@
 // ==========================================
-// 🚀 GDA FINANCE - NETWORK-FIRST SERVICE WORKER CORE (v3)
+// 🚀 GDA FINANCE - NETWORK-FIRST SERVICE WORKER CORE (v4)
 // ==========================================
 
-const CACHE_NAME = "gda-finance-v3";
+const CACHE_NAME = "gda-finance-v4";
 
 // Core application files to store in local mobile memory for offline performance
 const urlsToCache = [
     "./",
     "./index.html",
+    "./login.html",
     "./customer-list.html",
     "./register.html",
     "./edit.html",
@@ -16,8 +17,11 @@ const urlsToCache = [
     "./history.html",
     "./report.html",
     "./statement.html",
-    "./disbursement-bond.html",
+    "./bond.html",
     "./expense-manager.html",
+    "./advisor.html",
+    "./documents.html",
+    "./missed-dates.html",
     "./firebase.js",
     "./manifest.json",
     "./icon-192.png",
