@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 GDA FINANCE - REPORT ENGINE (DEBUG VERSION)
+// 🚀 GDA FINANCE - REPORT ENGINE
 // ============================================================
 
 import { db, auth } from "./firebase.js";
@@ -7,9 +7,9 @@ import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstati
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 // ============================================================
-// ADMIN LOCK LOGIC (with Debugging)
+// ADMIN LOCK LOGIC
 // ============================================================
-const ADMIN_PASSWORD = "GDA@2026"; // ✅ सही पासवर्ड (Case-Sensitive)
+const ADMIN_PASSWORD = "GDA@2026";
 const lockOverlay = document.getElementById('lockOverlay');
 const appContent = document.getElementById('appContent');
 const lockPassword = document.getElementById('lockPassword');
@@ -18,7 +18,6 @@ const lockError = document.getElementById('lockError');
 
 function checkLock() {
   const unlocked = sessionStorage.getItem('reportUnlocked');
-  console.log("🔍 Lock Status from sessionStorage:", unlocked);
   if (unlocked === 'true') {
     lockOverlay.classList.add('hidden');
     appContent.style.display = 'block';
@@ -26,24 +25,20 @@ function checkLock() {
   } else {
     lockOverlay.classList.remove('hidden');
     appContent.style.display = 'none';
-    lockPassword.value = ''; // Clear input
+    lockPassword.value = '';
     lockPassword.focus();
   }
 }
 
 function unlock() {
   const entered = lockPassword.value.trim();
-  console.log(`🔑 You entered: "${entered}" (length: ${entered.length})`);
-  console.log(`🔑 Expected: "${ADMIN_PASSWORD}" (length: ${ADMIN_PASSWORD.length})`);
 
   if (entered === ADMIN_PASSWORD) {
-    console.log("✅ Password matched! Unlocking...");
     sessionStorage.setItem('reportUnlocked', 'true');
     lockOverlay.classList.add('hidden');
     appContent.style.display = 'block';
     initReport();
   } else {
-    console.log("❌ Password mismatch.");
     lockError.style.display = 'block';
     lockPassword.value = '';
     lockPassword.focus();
@@ -79,6 +74,114 @@ if (reportDatePicker) reportDatePicker.value = todayIST;
 function updateTabUI(activeBtn) {
   [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(btn => btn?.classList.remove("active"));
   if (activeBtn) activeBtn.classList.add("active");
+}
+
+// ============================================================
+// 🔄 LOADING STATE
+// ============================================================
+function setLoading(isLoading) {
+  document.querySelectorAll('.grid .box').forEach(box => {
+    box.classList.toggle('loading', isLoading);
+  });
+}
+
+// ============================================================
+// 📆 पिछले period की तारीख-रेंज निकालना (तुलना के लिए)
+// ============================================================
+function getPreviousRange(mode, targetDateStr) {
+  const d = new Date(targetDateStr);
+  const yyyy = d.getFullYear();
+  const mm = d.getMonth();
+
+  if (mode === "Daily") {
+    const prev = new Date(d);
+    prev.setDate(prev.getDate() - 1);
+    const s = prev.toISOString().split('T')[0];
+    return { startDateStr: s, endDateStr: s };
+  }
+  if (mode === "Monthly") {
+    const prevMonthDate = new Date(yyyy, mm - 1, 1);
+    const py = prevMonthDate.getFullYear();
+    const pm = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(py, prevMonthDate.getMonth() + 1, 0).getDate();
+    return { startDateStr: `${py}-${pm}-01`, endDateStr: `${py}-${pm}-${String(lastDay).padStart(2, '0')}` };
+  }
+  if (mode === "Yearly") {
+    return { startDateStr: `${yyyy - 1}-01-01`, endDateStr: `${yyyy - 1}-12-31` };
+  }
+  const q = Math.floor(mm / 3);
+  const prevQ = q - 1;
+  const py = prevQ < 0 ? yyyy - 1 : yyyy;
+  const qStart = ((prevQ + 4) % 4) * 3;
+  const qEndMonth = qStart + 2;
+  const lastDay = new Date(py, qEndMonth + 1, 0).getDate();
+  return { startDateStr: `${py}-${String(qStart + 1).padStart(2, '0')}-01`, endDateStr: `${py}-${String(qEndMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` };
+}
+
+// ============================================================
+// 📊 Delta badge (▲/▼ %) दिखाना
+// ============================================================
+function renderDelta(elId, current, previous) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (previous <= 0) { el.style.display = 'none'; return; }
+  const pct = ((current - previous) / previous) * 100;
+  el.style.display = 'inline-block';
+  if (Math.abs(pct) < 1) {
+    el.className = 'delta flat';
+    el.innerText = '● Same as before';
+  } else if (pct > 0) {
+    el.className = 'delta up';
+    el.innerText = `▲ ${pct.toFixed(0)}% vs pichla period`;
+  } else {
+    el.className = 'delta down';
+    el.innerText = `▼ ${Math.abs(pct).toFixed(0)}% vs pichla period`;
+  }
+}
+
+// ============================================================
+// 📈 पिछले 7 दिन का Collection Trend
+// ============================================================
+function renderTrendChart(dailyTotals) {
+  const canvas = document.getElementById('trendChart');
+  if (!canvas) return;
+  const parent = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || parent.clientWidth || 300;
+  const cssH = 110;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const values = dailyTotals.map(d => d.total);
+  const maxVal = Math.max(...values, 1);
+  const padding = 8;
+  const barGap = 8;
+  const barW = (cssW - padding * 2 - barGap * (values.length - 1)) / values.length;
+
+  values.forEach((val, i) => {
+    const barH = Math.max(2, (val / maxVal) * (cssH - 34));
+    const x = padding + i * (barW + barGap);
+    const y = cssH - barH - 20;
+
+    ctx.fillStyle = val > 0 ? '#3A1C62' : '#E2E8F0';
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(dailyTotals[i].label, x + barW / 2, cssH - 6);
+
+    if (val > 0) {
+      ctx.fillStyle = '#0F172A';
+      ctx.font = 'bold 8.5px Inter, sans-serif';
+      ctx.fillText(`₹${Math.round(val / 1000)}k`, x + barW / 2, y - 4);
+    }
+  });
 }
 
 // ============================================================
@@ -134,30 +237,45 @@ async function renderReport() {
     endDateStr = `${yyyy}-${String(qEndMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
   }
 
+  const { startDateStr: prevStart, endDateStr: prevEnd } = getPreviousRange(currentMode, targetDate);
+
+  setLoading(true);
+
   try {
     // --- Expenses ---
     let expensesSum = 0;
+    let expensesSumPrev = 0;
     const expSnap = await getDocs(collection(db, "expenses"));
     expSnap.forEach(doc => {
       const data = doc.data();
-      if (data.date && data.date >= startDateStr && data.date <= endDateStr) {
-        expensesSum += Number(data.amount || 0);
-      }
+      const amt = Number(data.amount || 0);
+      if (data.date && data.date >= startDateStr && data.date <= endDateStr) expensesSum += amt;
+      if (data.date && data.date >= prevStart && data.date <= prevEnd) expensesSumPrev += amt;
     });
 
     // --- Collections ---
     let lifetimeCollectionUptoTarget = 0;
     let rangeCollectionSum = 0;
+    let rangeCollectionSumPrev = 0;
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const dt = new Date(targetDate);
+      dt.setDate(dt.getDate() - i);
+      const key = dt.toISOString().split('T')[0];
+      const label = dt.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3);
+      last7.push({ key, label, total: 0 });
+    }
+    const last7Map = {};
+    last7.forEach(d => { last7Map[d.key] = d; });
+
     const colSnap = await getDocs(collection(db, "collections"));
     colSnap.forEach(doc => {
       const data = doc.data();
       const amt = Number(data.amount || 0);
-      if (data.date && data.date <= targetDate) {
-        lifetimeCollectionUptoTarget += amt;
-      }
-      if (data.date && data.date >= startDateStr && data.date <= endDateStr) {
-        rangeCollectionSum += amt;
-      }
+      if (data.date && data.date <= targetDate) lifetimeCollectionUptoTarget += amt;
+      if (data.date && data.date >= startDateStr && data.date <= endDateStr) rangeCollectionSum += amt;
+      if (data.date && data.date >= prevStart && data.date <= prevEnd) rangeCollectionSumPrev += amt;
+      if (data.date && last7Map[data.date]) last7Map[data.date].total += amt;
     });
 
     // --- Customers ---
@@ -167,6 +285,8 @@ async function renderReport() {
     let rangeDisbursementSum = 0;
     let rangeInterestSum = 0;
     let rangeAccountsCount = 0;
+    let rangeDisbursementSumPrev = 0;
+    let rangeInterestSumPrev = 0;
     const allCustomers = [];
 
     custSnap.forEach(doc => {
@@ -203,16 +323,19 @@ async function renderReport() {
         rangeInterestSum += (loanAmt * 0.20);
         if (cust.status !== "Closed") rangeAccountsCount++;
       }
+      if (loanDateStr && loanDateStr >= prevStart && loanDateStr <= prevEnd) {
+        rangeDisbursementSumPrev += loanAmt;
+        rangeInterestSumPrev += (loanAmt * 0.20);
+      }
     });
 
-    // Total Due
     const totalOverdue = calculateTotalDue(allCustomers, targetDate);
 
     const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
     const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
     const netProfitSum = rangeInterestSum - expensesSum;
+    const netProfitSumPrev = rangeInterestSumPrev - expensesSumPrev;
 
-    // Render UI
     if (totalPortfolio) totalPortfolio.innerText = `₹${Math.round(portfolioRemaining).toLocaleString('en-IN')}`;
     if (disbursement) disbursement.innerText = `₹${Math.round(rangeDisbursementSum).toLocaleString('en-IN')}`;
     if (collectionEl) collectionEl.innerText = `₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')}`;
@@ -222,8 +345,16 @@ async function renderReport() {
     if (totalDue) totalDue.innerText = `₹${Math.round(totalOverdue).toLocaleString('en-IN')}`;
     if (newAccounts) newAccounts.innerText = rangeAccountsCount;
 
+    renderDelta('deltaDisbursement', rangeDisbursementSum, rangeDisbursementSumPrev);
+    renderDelta('deltaCollection', rangeCollectionSum, rangeCollectionSumPrev);
+    renderDelta('deltaNetProfit', netProfitSum, netProfitSumPrev);
+
+    renderTrendChart(last7);
+
   } catch (err) {
     console.error("Report render error:", err);
+  } finally {
+    setLoading(false);
   }
 }
 
@@ -288,12 +419,16 @@ async function restoreBackup(file) {
     return;
   }
 
-  if (!confirm("⚠️ WARNING: This will OVERWRITE all existing data in Firestore!\n\nAre you sure you want to continue?")) {
+  if (!confirm("⚠️ WARNING: This will OVERWRITE all existing data in Firestore!\n\nAapka current data pehle safety ke liye download ho jayega, uske baad restore shuru hoga.\n\nContinue karein?")) {
     statusDiv.innerText = '⏹️ Restore cancelled.';
     statusDiv.style.color = '#64748B';
     setTimeout(() => { statusDiv.style.display = 'none'; }, 2000);
     return;
   }
+
+  statusDiv.innerText = '⏳ Safety backup le rahe hain (restore se pehle)...';
+  statusDiv.style.color = '#f59e0b';
+  await downloadBackup();
 
   try {
     statusDiv.innerText = '⏳ Reading backup file...';
@@ -346,25 +481,20 @@ async function restoreBackup(file) {
 // INITIALIZATION
 // ============================================================
 function initReport() {
-  console.log("📊 Initializing Report...");
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      console.log("🔒 User not logged in. Redirecting to login.");
       location.href = "login.html";
     } else {
-      console.log("✅ User logged in. Rendering report.");
       renderReport();
     }
   });
 
-  // Tabs
   btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReport(); };
   btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReport(); };
   btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReport(); };
   btnYearly.onclick = () => { currentMode = "Yearly"; updateTabUI(btnYearly); renderReport(); };
   reportDatePicker.onchange = () => renderReport();
 
-  // Logout
   document.getElementById("logoutBtn").onclick = async (e) => {
     e.preventDefault();
     sessionStorage.removeItem('reportUnlocked');
@@ -372,7 +502,6 @@ function initReport() {
     location.href = "login.html";
   };
 
-  // Backup & Restore
   document.getElementById('backupDownloadBtn').addEventListener('click', downloadBackup);
   document.getElementById('restoreFileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -386,5 +515,4 @@ function initReport() {
 // ============================================================
 // START – LOCK CHECK
 // ============================================================
-console.log("🚀 report.js loaded. Starting lock check...");
 checkLock();
