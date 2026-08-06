@@ -1,150 +1,199 @@
-<!DOCTYPE html> 
-<html lang="hi"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Admin Login - GDA Finance Services</title> 
-    <link rel="stylesheet" href="style.css"> 
-    <style> 
-        * { box-sizing: border-box; }
-        
-        body { 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            /* 🌌 प्रीमियम गहरा फ़ाइनेंस 8K ग्रेडिएंट बैकग्राउंड */
-            background: linear-gradient(135deg, #090d16 0%, #0f172a 40%, #1e3a8a 100%); 
-            overflow: hidden; 
-            position: relative; 
-            font-family: Arial, sans-serif;
-        } 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - GDA Finance Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-        /* बैकग्राउंड में तैरते हुए दो सुंदर 3D ग्लोइंग इफेक्ट्स */
-        body::before, body::after {
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* GDA Purple Gradient Background */
+            background: linear-gradient(160deg, #2A1742 0%, #3A1C62 55%, #4C2A7A 100%);
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
             content: "";
             position: absolute;
-            width: 350px;
-            height: 350px;
+            top: -180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 520px;
+            height: 520px;
             border-radius: 50%;
+            background: radial-gradient(circle, rgba(233,30,99,0.30) 0%, rgba(233,30,99,0) 70%);
+            filter: blur(10px);
             z-index: 1;
         }
-        body::before { background: linear-gradient(45deg, #1e40af, #0d9488); top: -10%; left: -10%; opacity: 0.4; filter: blur(80px); }
-        body::after { background: linear-gradient(45deg, #b45309, #1e3a8a); bottom: -10%; right: -10%; opacity: 0.3; filter: blur(90px); }
+        body::after {
+            content: "";
+            position: absolute;
+            bottom: -160px;
+            right: -120px;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,193,7,0.25) 0%, rgba(255,193,7,0) 70%);
+            filter: blur(20px);
+            z-index: 1;
+        }
 
-        .login-box { 
+        .login-box {
             position: relative;
             z-index: 2;
-            /* ✨ लक्ज़री कांच जैसा चमकदार (Glassmorphism) कार्ड */
-            background: rgba(255, 255, 255, 0.07); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            width: 350px; 
-            padding: 35px 25px; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); 
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            width: 350px;
+            max-width: 90vw;
+            padding: 34px 26px;
+            border-radius: 24px;
+            border: 1px solid rgba(233, 30, 99, 0.25);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
             text-align: center;
-        } 
-
-        .app-logo {
-            font-size: 36px;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
-        h2 { 
-            margin: 0 0 5px 0;
-            color: #ffffff; 
-            font-size: 24px;
-            font-weight: bold;
+        .logo-wrap {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #E91E63, #FF5A8A);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            box-shadow: 0 8px 24px rgba(233,30,99,0.35);
+            border: 2px solid rgba(255,255,255,0.25);
+        }
+
+        h2 {
+            color: #ffffff;
+            font-size: 23px;
+            font-weight: 800;
             letter-spacing: 0.5px;
-        } 
+            margin-bottom: 4px;
+        }
 
         .sub-title {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-bottom: 25px;
-            font-weight: 500;
+            color: #D9CDEB;
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
 
-        /* 👤 🔑 इनपुट बॉक्स स्टाइल */
-        input { 
-            width: 100%; 
-            padding: 14px 16px; 
-            margin: 12px 0; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 10px; 
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-        } 
+        .tagline {
+            color: #FFC107;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
 
-        /* इनपुट बॉक्स पर क्लिक करने पर ग्लो इफेक्ट */
+        .field-label {
+            display: block;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            color: #D9CDEB;
+            letter-spacing: 0.4px;
+            margin: 14px 0 6px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            font-size: 14.5px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
         input:focus {
             background: rgba(255, 255, 255, 0.1);
-            border-color: #3b82f6;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+            border-color: #E91E63;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.18);
         }
 
-        input::placeholder {
-            color: #64748b;
+        input::placeholder { color: #9B8FB0; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #E91E63 0%, #FF5A8A 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.35);
+            transition: all 0.25s ease;
+            margin-top: 22px;
         }
 
-        /* 🔥 शानदार वीआईपी ब्लू-गोल्डन ग्लोइंग बटन */
-        button { 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 10px; 
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); 
-            color: #fff; 
-            font-size: 16px; 
-            font-weight: bold;
-            cursor: pointer; 
-            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.4);
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            letter-spacing: 0.5px;
-        } 
-
-        button:hover { 
+        button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-        } 
-
-        button:active {
-            transform: translateY(1px);
+            box-shadow: 0 10px 26px rgba(233, 30, 99, 0.5);
         }
 
-        #error { 
-            color: #f87171; 
-            text-align: center; 
-            margin-top: 15px; 
-            font-size: 14px;
+        button:active:not(:disabled) { transform: translateY(1px); }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #error {
+            color: #FCA5A5;
+            text-align: center;
+            margin-top: 14px;
+            font-size: 12.5px;
             font-weight: 600;
-        } 
-    </style> 
-</head> 
-<body> 
+            min-height: 16px;
+        }
 
-    <div class="login-box"> 
-        <div class="app-logo">🏦</div>
-        <h2>GDA Finance</h2> 
+        .footer-note {
+            margin-top: 20px;
+            font-size: 10.5px;
+            color: #8B7FA0;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="logo-wrap">🏦</div>
+        <h2>GDA FINANCE</h2>
         <div class="sub-title">🔒 Admin Control Panel</div>
-        
-        <input type="text" id="username" placeholder="Username" required autocomplete="off"> 
-        <input type="password" id="password" placeholder="Password" required> 
-        
-        <button id="loginBtn">Secure Login</button> 
-        <p id="error"></p> 
-    </div> 
+        <div class="tagline">Trusted Daily Finance Partner</div>
 
-    <script type="module" src="login.js"></script> 
-</body> 
+        <label class="field-label">Username / Email</label>
+        <input type="text" id="username" placeholder="Enter your email" required autocomplete="off">
+
+        <label class="field-label">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+
+        <button id="loginBtn">Secure Login</button>
+        <p id="error"></p>
+
+        <div class="footer-note">© GDA Finance Services — Secure Access Only</div>
+    </div>
+
+    <script type="module" src="login.js"></script>
+</body>
 </html>
