@@ -186,6 +186,7 @@
     .btn-collect { background:#0F172A; color:#fff; }
     .btn-call { background:#ECFDF5; color:#059669; border:1px solid #D1FAE5; }
     .btn-view { background:#F1F5F9; color:#0F172A; }
+    .btn-whatsapp { background:#DCFCE7; color:#16A34A; border:1px solid #BBF7D0; }
 
     .empty-state {
       text-align: center;
@@ -349,6 +350,15 @@
           const code = cust.customerCode || "GDA";
           const mobile = cust.mobile || "";
 
+          // WhatsApp reminder message (pre-filled)
+          const waMsg =
+            `Namaste ${name} ji,%0A%0A` +
+            `Aapke GDA Finance Services loan (Code: ${code}) me *Rs. ${currentDue.toLocaleString('en-IN')}* ka payment abhi baki hai.%0A` +
+            `(${missedDays} din ka collection pending hai)%0A%0A` +
+            `Kripya jald se jald apna daily EMI Rs. ${dailyEmi} jama karayein.%0A%0A` +
+            `Dhanyawad,%0AGDA Finance Services`;
+          const waLink = mobile ? `https://wa.me/91${mobile}?text=${waMsg}` : "#";
+
           html += `
             <div class="due-card">
               <div class="due-top">
@@ -367,8 +377,9 @@
                 </div>
               </div>
               <div class="due-bottom">
-                <a href="collection.html?id=${doc.id}" class="btn-sm btn-collect">💰 Collect ₹${dailyEmi}</a>
+                <a href="collection.html?id=${doc.id}" class="btn-sm btn-collect">💰 Collect</a>
                 <a href="tel:${mobile}" class="btn-sm btn-call">📞 Call</a>
+                <a href="${waLink}" target="_blank" class="btn-sm btn-whatsapp" ${!mobile ? 'onclick="alert(\'Mobile number nahi mila\'); return false;"' : ''}>📲 WhatsApp</a>
                 <a href="statement.html?id=${doc.id}" class="btn-sm btn-view">👁️ View</a>
               </div>
             </div>
