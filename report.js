@@ -140,48 +140,51 @@ function renderDelta(elId, current, previous) {
 }
 
 // ============================================================
-// 📈 पिछले 7 दिन का Collection Trend
+// 📈 पिछले 7 दिन का Collection Trend — छोटा canvas chart
 // ============================================================
 function renderTrendChart(dailyTotals) {
-  const canvas = document.getElementById('trendChart');
-  if (!canvas) return;
-  const parent = canvas.parentElement;
-  const dpr = window.devicePixelRatio || 1;
-  const cssW = canvas.clientWidth || parent.clientWidth || 300;
-  const cssH = 110;
-  canvas.width = cssW * dpr;
-  canvas.height = cssH * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, cssW, cssH);
+  try {
+    const canvas = document.getElementById('trendChart');
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || parent.clientWidth || 300;
+    const cssH = 110;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssW, cssH);
 
-  const values = dailyTotals.map(d => d.total);
-  const maxVal = Math.max(...values, 1);
-  const padding = 8;
-  const barGap = 8;
-  const barW = (cssW - padding * 2 - barGap * (values.length - 1)) / values.length;
+    const values = dailyTotals.map(d => d.total);
+    const maxVal = Math.max(...values, 1);
+    const padding = 8;
+    const barGap = 8;
+    const barW = (cssW - padding * 2 - barGap * (values.length - 1)) / values.length;
 
-  values.forEach((val, i) => {
-    const barH = Math.max(2, (val / maxVal) * (cssH - 34));
-    const x = padding + i * (barW + barGap);
-    const y = cssH - barH - 20;
+    values.forEach((val, i) => {
+      const barH = Math.max(2, (val / maxVal) * (cssH - 34));
+      const x = padding + i * (barW + barGap);
+      const y = cssH - barH - 20;
 
-    ctx.fillStyle = val > 0 ? '#3A1C62' : '#E2E8F0';
-    ctx.beginPath();
-    ctx.roundRect(x, y, barW, barH, 4);
-    ctx.fill();
+      ctx.fillStyle = val > 0 ? '#3A1C62' : '#E2E8F0';
+      ctx.fillRect(x, y, barW, barH);
 
-    ctx.fillStyle = '#94A3B8';
-    ctx.font = '9px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(dailyTotals[i].label, x + barW / 2, cssH - 6);
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '9px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(dailyTotals[i].label, x + barW / 2, cssH - 6);
 
-    if (val > 0) {
-      ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 8.5px Inter, sans-serif';
-      ctx.fillText(`₹${Math.round(val / 1000)}k`, x + barW / 2, y - 4);
-    }
-  });
+      if (val > 0) {
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 8.5px Inter, sans-serif';
+        ctx.fillText(`₹${Math.round(val / 1000)}k`, x + barW / 2, y - 4);
+      }
+    });
+  } catch (err) {
+    console.error('Trend chart render error:', err);
+  }
 }
 
 // ============================================================
@@ -329,6 +332,7 @@ async function renderReport() {
       }
     });
 
+    // Total Due
     const totalOverdue = calculateTotalDue(allCustomers, targetDate);
 
     const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
@@ -336,6 +340,7 @@ async function renderReport() {
     const netProfitSum = rangeInterestSum - expensesSum;
     const netProfitSumPrev = rangeInterestSumPrev - expensesSumPrev;
 
+    // Render UI
     if (totalPortfolio) totalPortfolio.innerText = `₹${Math.round(portfolioRemaining).toLocaleString('en-IN')}`;
     if (disbursement) disbursement.innerText = `₹${Math.round(rangeDisbursementSum).toLocaleString('en-IN')}`;
     if (collectionEl) collectionEl.innerText = `₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')}`;
@@ -516,4 +521,3 @@ function initReport() {
 // START – LOCK CHECK
 // ============================================================
 checkLock();
-
