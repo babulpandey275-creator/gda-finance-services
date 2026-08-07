@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Register - GDA Finance</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="theme.css">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
     body { background:var(--color-bg, #F8FAFF); min-height:100vh; padding:20px; }
@@ -18,7 +17,6 @@
     .form-group input[readonly] { background:#F1F5F9; color:#64748B; }
     .row-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     
-    /* ✅ नया – फोटो पिकर (Camera / Gallery) */
     .photo-picker {
       display:flex; gap:10px; margin:8px 0 16px;
     }
@@ -61,6 +59,10 @@
     }
     .btn:active { transform:scale(0.98); }
     .btn:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
+
+    .field-error { color:#DC2626; font-size:10.5px; font-weight:600; margin-top:4px; display:none; }
+    .form-group.invalid input, .form-group.invalid textarea { border-color:#DC2626; }
+    .form-group.invalid .field-error { display:block; }
   </style>
 </head>
 <body>
@@ -71,14 +73,13 @@
 
     <!-- ===== CUSTOMER PHOTO – अब Camera और Gallery दोनों विकल्प ===== -->
     <div class="photo-preview">
-      <img id="photoPreview" src="https://via.placeholder.com/70" alt="Photo">
+      <img id="photoPreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 70'%3E%3Ccircle cx='35' cy='35' r='35' fill='%23F1F5F9'/%3E%3Ctext x='35' y='44' font-size='26' text-anchor='middle'%3E%F0%9F%93%B7%3C/text%3E%3C/svg%3E" alt="Photo">
       <div>
         <span>📸 Photo</span><br>
         <small style="color:#64748B;">Choose from below</small>
       </div>
-      <!-- Hidden file inputs -->
-      <input type="file" id="customerPhotoCamera" accept="image/*" capture="environment" style="display:none;" onchange="previewImage(this, 'photoPreview')">
-      <input type="file" id="customerPhotoGallery" accept="image/*" style="display:none;" onchange="previewImage(this, 'photoPreview')">
+      <input type="file" id="customerPhotoCamera" accept="image/*" capture="environment" style="display:none;">
+      <input type="file" id="customerPhotoGallery" accept="image/*" style="display:none;">
     </div>
 
     <!-- ✅ Camera / Gallery बटन -->
@@ -93,19 +94,35 @@
 
     <!-- Personal Details -->
     <div class="form-group"><label>Full Name</label><input type="text" id="customerName" required></div>
-    <div class="form-group"><label>Mobile Number</label><input type="tel" id="mobile" maxlength="10" required></div>
+    <div class="form-group" id="mobileGroup">
+      <label>Mobile Number</label>
+      <input type="tel" id="mobile" maxlength="10" required>
+      <div class="field-error">10 अंकों का सही मोबाइल नंबर डालें (6-9 से शुरू)</div>
+    </div>
     <div class="form-group"><label>Guardian Name</label><input type="text" id="guardianName"></div>
 
     <!-- KYC Numbers -->
     <div class="row-grid">
-      <div class="form-group"><label>Aadhaar Number</label><input type="text" id="aadhaar" placeholder="12 digits"></div>
-      <div class="form-group"><label>PAN Card Number</label><input type="text" id="panNumber" style="text-transform:uppercase;"></div>
+      <div class="form-group" id="aadhaarGroup">
+        <label>Aadhaar Number</label>
+        <input type="text" id="aadhaar" placeholder="12 digits" maxlength="12">
+        <div class="field-error">Aadhaar 12 अंकों का होना चाहिए</div>
+      </div>
+      <div class="form-group" id="panGroup">
+        <label>PAN Card Number</label>
+        <input type="text" id="panNumber" style="text-transform:uppercase;" maxlength="10" placeholder="ABCDE1234F">
+        <div class="field-error">सही PAN फॉर्मेट डालें (जैसे ABCDE1234F)</div>
+      </div>
     </div>
     <div class="form-group"><label>Residential Address</label><textarea id="address" rows="2"></textarea></div>
 
     <!-- Loan Details -->
     <div class="row-grid">
-      <div class="form-group"><label>Loan Amount (₹)</label><input type="number" id="loanAmount" required></div>
+      <div class="form-group" id="loanAmountGroup">
+        <label>Loan Amount (₹)</label>
+        <input type="number" id="loanAmount" min="500" required>
+        <div class="field-error">Loan amount ₹500 से ज़्यादा होना चाहिए</div>
+      </div>
       <div class="form-group"><label>Plan Duration</label><select id="loanPlan"><option value="60">60 Days</option><option value="80">80 Days</option><option value="120">120 Days</option></select></div>
     </div>
     <div class="row-grid">
@@ -113,7 +130,7 @@
       <div class="form-group"><label>Daily EMI</label><input type="text" id="dailyCollection" readonly></div>
     </div>
 
-    <!-- ===== KYC DOCUMENTS – अब हर डॉक्यूमेंट के लिए Camera/Gallery अलग-अलग ===== -->
+    <!-- ===== KYC DOCUMENTS ===== -->
     <div style="margin:18px 0; border-top:2px dashed #E9D5FF; padding-top:16px;">
       <p style="font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:12px;">📁 KYC DOCUMENTS</p>
 
@@ -121,17 +138,15 @@
       <div class="doc-upload-box" onclick="document.getElementById('aadharInput').click()">
         <img class="preview" id="aadharPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">credit_card</span> Tap to upload Aadhar Card</span>
-        <input type="file" id="aadharInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'aadharPreview')">
+        <input type="file" id="aadharInput" accept="image/*" style="display:none;">
         <div class="doc-label">🆔 Aadhar Card</div>
       </div>
-      <!-- Aadhar के लिए अलग Camera / Gallery बटन (ऑप्शनल) – अगर चाहें तो हर डॉक्यूमेंट के लिए भी ऐसा कर सकते हैं -->
-      <!-- हम सिर्फ default file picker पर भरोसा करते हैं, जो दोनों देता है। -->
 
       <!-- PAN Card -->
       <div class="doc-upload-box" onclick="document.getElementById('panInput').click()">
         <img class="preview" id="panPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">description</span> Tap to upload PAN Card</span>
-        <input type="file" id="panInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'panPreview')">
+        <input type="file" id="panInput" accept="image/*" style="display:none;">
         <div class="doc-label">📇 PAN Card</div>
       </div>
 
@@ -139,7 +154,7 @@
       <div class="doc-upload-box" onclick="document.getElementById('voterInput').click()">
         <img class="preview" id="voterPreview" src="">
         <span class="placeholder"><span class="material-symbols-outlined">how_to_vote</span> Tap to upload Voter ID</span>
-        <input type="file" id="voterInput" accept="image/*" style="display:none;" onchange="previewDoc(this, 'voterPreview')">
+        <input type="file" id="voterInput" accept="image/*" style="display:none;">
         <div class="doc-label">🗳️ Voter ID Card</div>
       </div>
     </div>
@@ -147,37 +162,6 @@
     <button type="submit" class="btn" id="regBtn">💾 Register Customer</button>
   </form>
 </div>
-
-<script>
-  // ===== PREVIEW FUNCTIONS =====
-  function previewImage(input, previewId) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        document.getElementById(previewId).src = e.target.result;
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-
-  function previewDoc(input, previewId) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.getElementById(previewId);
-        img.src = e.target.result;
-        img.style.display = 'block';
-        // Hide placeholder if exists
-        const parent = img.closest('.doc-upload-box');
-        if (parent) {
-          const placeholder = parent.querySelector('.placeholder');
-          if (placeholder) placeholder.style.display = 'none';
-        }
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-</script>
 
 <!-- register.js को मॉड्यूल के रूप में लोड करें -->
 <script type="module" src="register.js"></script>
