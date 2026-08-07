@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GDA Finance - Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -14,21 +14,25 @@
       -webkit-tap-highlight-color: transparent;
     }
     body {
-      background: #f4f7fc;
+      background: #F8FAFF;
       min-height: 100vh;
       padding-bottom: 85px;
     }
-    /* Header */
+    /* ===== HEADER (गहरा purple/gold — बाकी pages जैसा) ===== */
     .app-header {
       background: linear-gradient(135deg, #2A1742 0%, #3A1C62 50%, #4C2A7A 100%);
-      padding: 18px 16px 20px;
+      padding: 18px 16px 0;
       border-radius: 0 0 26px 26px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       position: sticky;
       top: 0;
       z-index: 20;
+      box-shadow: 0 12px 32px rgba(58,28,98,0.28);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
     }
     .gda-logo-container {
       display: flex;
@@ -44,6 +48,7 @@
       justify-content: center;
       align-items: center;
       border: 2px solid rgba(255,255,255,0.3);
+      box-shadow: 0 4px 14px rgba(233,30,99,0.35);
     }
     .gda-logo-icon .material-symbols-outlined {
       font-size: 28px;
@@ -52,38 +57,57 @@
     }
     .gda-logo-text h1 {
       margin: 0;
-      font-size: 27px;
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
       font-weight: 800;
       color: #fff;
+      line-height: 1;
     }
     .gda-logo-text p {
-      margin-top: 3px;
+      margin-top: 4px;
       font-size: 10.5px;
       font-weight: 700;
       letter-spacing: 3.2px;
       color: #FFC107;
       text-transform: uppercase;
     }
+    .clock-pill {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 7px 13px;
+      border-radius: 30px;
+    }
+
+    /* ===== SUB HEADER (अब header के अंदर ही, अलग-थलग नहीं) ===== */
     .sub-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 16px;
-      font-size: 14px;
+      padding: 10px 4px 16px;
+      font-size: 12.5px;
       font-weight: 600;
-      color: #4b5e55;
-      background: #fff;
-      border-bottom: 1px solid #eef3f0;
+      color: #E9D5FF;
     }
-    .sub-header i {
-      margin-right: 6px;
+    .sub-header span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
+    .sub-header .material-symbols-outlined {
+      font-size: 16px;
+      color: #FFC107;
+    }
+
     .container {
       padding: 14px;
       max-width: 600px;
       margin: 0 auto;
     }
-    /* Stats Grid */
+
+    /* ===== STATS GRID ===== */
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -92,65 +116,68 @@
     }
     .stat-card {
       background: #fff;
-      border-radius: 16px;
-      padding: 14px 12px;
-      border: 1px solid #eef3f0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border-radius: 18px;
+      padding: 15px 13px;
+      border: 1px solid #F1F5F9;
+      box-shadow: 0 4px 16px rgba(58,28,98,0.05);
       cursor: default;
     }
     .stat-card .label {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10.5px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.4px;
-      color: #7a8f84;
+      color: #8B7FA3;
       display: flex;
       align-items: center;
       gap: 4px;
     }
     .stat-card .value {
-      font-size: 20px;
-      font-weight: 700;
-      color: #0f2a1d;
-      margin-top: 4px;
+      font-family: 'Fraunces', serif;
+      font-size: 21px;
+      font-weight: 800;
+      color: #1E0F35;
+      margin-top: 5px;
     }
     .stat-card .value small {
-      font-size: 14px;
-      font-weight: 500;
-      color: #7a8f84;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #A8A0B5;
     }
     .stat-card .sub-text {
-      font-size: 12px;
-      font-weight: 500;
-      color: #e05a5a;
-      margin-top: 2px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #DC2626;
+      margin-top: 3px;
     }
     .stat-card .sub-text.green {
-      color: #1f8b4c;
+      color: #059669;
     }
-    .stat-card.overdue .value { color: #c73b3b; }
-    .stat-card.active .value { color: #2b5c8a; }
-    .stat-card.target .value { color: #b16d2b; }
+    .stat-card.overdue .value { color: #DC2626; }
+    .stat-card.active .value { color: #3A1C62; }
+    .stat-card.target .value { color: #B7791F; }
+    .stat-card.collected .value { color: #059669; }
 
     .progress-bar {
       height: 6px;
-      background: #e9f3ed;
+      background: #ECFDF5;
       border-radius: 10px;
-      margin-top: 8px;
+      margin-top: 9px;
       overflow: hidden;
     }
     .progress-bar .fill {
       height: 100%;
-      background: #10B981;
+      background: linear-gradient(90deg, #10B981, #34D399);
       width: 0%;
       transition: width 0.4s;
     }
 
-    /* Quick Navigation */
+    /* ===== QUICK NAVIGATION ===== */
     .nav-section-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1f2e26;
+      font-size: 15px;
+      font-weight: 800;
+      color: #1E0F35;
       margin-bottom: 14px;
     }
     .nav-grid {
@@ -160,35 +187,35 @@
       margin-bottom: 20px;
     }
     .nav-item {
-      background: #f8fbfa;
+      background: #fff;
       border-radius: 18px;
       padding: 18px 10px 14px;
       text-align: center;
-      border: 1px solid #ebf2ee;
+      border: 1px solid #F1F5F9;
       text-decoration: none;
-      color: #14261c;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      color: #1E0F35;
+      box-shadow: 0 4px 14px rgba(58,28,98,0.04);
       transition: 0.1s;
       cursor: pointer;
     }
     .nav-item:active {
       transform: scale(0.96);
-      background: #eaf3ee;
+      background: #FAF7FC;
     }
     .nav-item .icon {
-      font-size: 28px;
-      color: #1f8b4c;
+      font-size: 27px;
+      color: #3A1C62;
       display: block;
       margin-bottom: 8px;
     }
     .nav-item .title {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13.5px;
+      font-weight: 800;
     }
     .nav-item .desc {
-      font-size: 11px;
-      font-weight: 400;
-      color: #6a7f74;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #94A3B8;
       margin-top: 2px;
     }
     .nav-item.full-width {
@@ -207,12 +234,12 @@
       text-align: left;
     }
 
-    /* Daily Collection List */
+    /* ===== DAILY COLLECTION LIST ===== */
     .due-section {
       background: #fff;
       border-radius: 20px;
-      border: 1px solid #eef3f0;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      border: 1px solid #F1F5F9;
+      box-shadow: 0 4px 20px rgba(58,28,98,0.05);
       margin-bottom: 14px;
       overflow: hidden;
     }
@@ -225,7 +252,7 @@
       border-bottom: 1px solid #FDE68A;
     }
     .due-head h3 {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 800;
       color: #92400E;
     }
@@ -234,7 +261,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
-      border-bottom: 1px solid #f8faff;
+      border-bottom: 1px solid #F8FAFF;
     }
     .due-item:last-child {
       border-bottom: none;
@@ -257,7 +284,7 @@
     }
     .due-item .amount a {
       display: inline-block;
-      background: #0F172A;
+      background: #3A1C62;
       color: #fff;
       padding: 5px 10px;
       border-radius: 8px;
@@ -267,7 +294,7 @@
       margin-top: 4px;
     }
 
-    /* Bottom Nav */
+    /* ===== BOTTOM NAV ===== */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -303,22 +330,20 @@
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- HEADER (logo + greeting bar, दोनों एक ही gradient card में) -->
 <header class="app-header">
-  <div class="gda-logo-container">
-    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
-    <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+  <div class="header-top">
+    <div class="gda-logo-container">
+      <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+      <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+    </div>
+    <div class="clock-pill"><span id="clockDisplay">11:32</span></div>
   </div>
-  <div style="color:#fff; font-size:12px; background:rgba(255,255,255,0.15); padding:6px 12px; border-radius:30px;">
-    <span id="clockDisplay">11:32</span>
+  <div class="sub-header">
+    <span><i class="material-symbols-outlined">account_circle</i> Babul • <span id="greetDate">29 Jul</span></span>
+    <span><i class="material-symbols-outlined">location_on</i> Garhwa</span>
   </div>
 </header>
-
-<!-- SUB HEADER -->
-<div class="sub-header">
-  <span><i class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">account_circle</i> Babul • <span id="greetDate">29 Jul</span></span>
-  <span><i class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">location_on</i> Garhwa</span>
-</div>
 
 <div class="container">
 
@@ -388,7 +413,7 @@
   <div class="due-section">
     <div class="due-head">
       <h3>💰 Daily Collection - Aaj Ka Collection</h3>
-      <span style="font-size:11px; background:#0F172A; color:#fff; padding:5px 10px; border-radius:20px;" id="dueTotalBadge">₹0</span>
+      <span style="font-size:11px; background:#3A1C62; color:#fff; padding:5px 10px; border-radius:20px;" id="dueTotalBadge">₹0</span>
     </div>
     <div id="pendingDueList">
       <p style="text-align:center; padding:20px; color:#94A3B8; font-size:12px;">⏳ Loading daily collection list...</p>
