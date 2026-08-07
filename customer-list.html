@@ -1,18 +1,338 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Customers - GDA Finance</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"><style>:root{--primary:#3A1C62;--pink:#E91E63;--gold:#FFC107;--bg:#F8FAFF;--muted:#64748B;--line:#F1F5F9}*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{background:var(--bg);padding-bottom:85px}.app-header{background:linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);padding:18px 16px 20px;border-radius:0 0 26px 26px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}.gda-logo-container{display:flex;align-items:center;gap:13px}.gda-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#E91E63,#FF5A8A);display:flex;justify-content:center;align-items:center}.gda-logo-icon.material-symbols-outlined{font-size:28px;color:#fff}.gda-logo-text h1{margin:0;font-size:27px;font-weight:800;color:#fff}.gda-logo-text p{font-size:10.5px;font-weight:700;letter-spacing:3.2px;color:var(--gold);text-transform:uppercase}.container{padding:14px;max-width:600px;margin:0 auto}.filterTabs{display:flex;gap:8px;margin-bottom:12px}.tabBtn{padding:11px 18px;border-radius:30px;border:1.5px solid #E2E8F0;background:#fff;font-weight:700;color:var(--muted);cursor:pointer}.tabBtn.active{background:var(--primary);color:#fff}.searchWrap{position:relative;margin-bottom:14px}.searchWrap input{width:100%;padding:14px 14px 14px 42px;border-radius:14px;border:1.5px solid #E9D5FF;background:#fff;outline:none}.searchWrap.icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}.custCard{background:#fff;border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;border:1px solid #F1F5F9;margin-bottom:10px}.custTop{display:flex;gap:12px;align-items:center;cursor:pointer}.custTop img{width:56px;height:56px;border-radius:16px;object-fit:cover;background:#F1F5F9}.actions{display:flex;gap:6px}.btn{flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;border:none;cursor:pointer}.btnCollect{background:#0F172A;color:#fff}.btnDel{background:#FFF1F2;color:#E11D48;border:1px solid #FFE4E6}.btnEdit{background:#FFFBEB;color:#92400E;border:1px solid #FEF3C7}.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100}.nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px}.nav-item.active{color:var(--pink)}.nav-item.material-symbols-outlined{font-size:24px}</style></head><body>
-<header class="app-header"><div class="gda-logo-container"><div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div><div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div></div><a href="index.html" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;">тЖР Back</a></header>
-<div class="container"><div class="filterTabs"><button class="tabBtn active" id="btnActive">Active Accounts</button><button class="tabBtn" id="btnClosed">Closed Accounts</button></div><div class="searchWrap"><span class="material-symbols-outlined icon">search</span><input id="searchInp" placeholder="Search name, mobile, code..."></div><div id="listContainer"><p style="text-align:center;padding:20px;">тП│ Loading...</p></div></div>
-<nav class="bottom-nav"><a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a><a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a><a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a><a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a><a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a></nav>
-<script type="module">
-import { db, auth } from "./firebase.js";
-import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-const listContainer=document.getElementById("listContainer"),searchInp=document.getElementById("searchInp"),ADMIN_PASSWORD="GDA@2026";
-let allCustomers=[];
-async function load(){const snap=await getDocs(collection(db,"customers"));allCustomers=snap.docs.map(d=>({id:d.id,...d.data()}));render(allCustomers.filter(c=>c.status!=="Closed"));}
-function render(data){if(data.length===0){listContainer.innerHTML="<p style='text-align:center;padding:20px;'>рдХреЛрдИ рдХрд╕реНрдЯрдорд░ рдирд╣реАрдВ</p>";return;}listContainer.innerHTML="";data.forEach(cust=>{const div=document.createElement("div");div.className="custCard";const img=(cust.photoUrl&&cust.photoUrl.startsWith('http'))?cust.photoUrl:'https://via.placeholder.com/55';div.innerHTML=`<div class="custTop"><img src="${img}" onerror="this.src='https://via.placeholder.com/55'"><div><h4 style="font-size:14px;font-weight:800;">${cust.name||"N/A"}</h4><p style="font-size:11px;color:#64748B;">ЁЯУ▒ ${cust.mobile||""}</p><p style="font-size:11px;color:#64748B;">ЁЯТ░ тВ╣${cust.loanAmount||0} | ${cust.customerCode||""}</p></div></div><div class="actions"><a href="collection.html?id=${cust.id}" class="btn btnCollect">Collect</a><button class="btn btnDel">Del</button><button class="btn btnEdit">Edit</button></div>`;div.querySelector(".custTop").onclick=()=>location.href=`statement.html?id=${cust.id}`;div.querySelector(".btnDel").onclick=e=>{e.stopPropagation();const p=prompt("DELETE Password:");if(p!==ADMIN_PASSWORD){if(p!==null)alert("тЭМ рдЧрд▓рдд рдкрд╛рд╕рд╡рд░реНрдб");return;}if(confirm("Delete?"))deleteDoc(doc(db,"customers",cust.id)).then(()=>load());};
-// тЬЕ рдЗрд╕ рд▓рд╛рдЗрди рдореЗрдВ рдмрджрд▓рд╛рд╡ рдХрд┐рдпрд╛ рдЧрдпрд╛ рд╣реИ тАУ рдЕрдм `edit.html` рдЦреБрд▓реЗрдЧрд╛
-div.querySelector(".btnEdit").onclick=e=>{e.stopPropagation();const p=prompt("Admin Password:");if(p===ADMIN_PASSWORD)location.href=`edit.html?id=${cust.id}`;else if(p!==null)alert("тЭМ рдЧрд▓рдд рдкрд╛рд╕рд╡рд░реНрдб");};listContainer.appendChild(div);});}
-let mode="Active";document.getElementById("btnActive").onclick=function(){mode="Active";this.classList.add("active");document.getElementById("btnClosed").classList.remove("active");render(allCustomers.filter(c=>c.status!=="Closed"));};document.getElementById("btnClosed").onclick=function(){mode="Closed";this.classList.add("active");document.getElementById("btnActive").classList.remove("active");render(allCustomers.filter(c=>c.status==="Closed"));};searchInp.addEventListener("input",e=>{const t=e.target.value.toLowerCase();const base=mode==="Active"?allCustomers.filter(c=>c.status!=="Closed"):allCustomers.filter(c=>c.status==="Closed");render(base.filter(c=>(c.name&&c.name.toLowerCase().includes(t))||(c.mobile&&c.mobile.includes(t))||(c.customerCode&&c.customerCode.toLowerCase().includes(t))));});
-onAuthStateChanged(auth,u=>{if(!u)location.href="login.html";else load();});document.getElementById("logoutBtn").onclick=async e=>{e.preventDefault();await signOut(auth);location.href="login.html";};
-</script></body></html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Customers - GDA Finance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3A1C62;
+            --pink: #E91E63;
+            --gold: #FFC107;
+            --bg: #F8FAFF;
+            --muted: #64748B;
+            --line: #F1F5F9
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif
+        }
+        body {
+            background: var(--bg);
+            padding-bottom: 85px
+        }
+        .app-header {
+            background: linear-gradient(135deg, #2A1742 0%, #3A1C62 50%, #4C2A7A 100%);
+            padding: 18px 16px 20px;
+            border-radius: 0 0 26px 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 20
+        }
+        .gda-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 13px
+        }
+        .gda-logo-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #E91E63, #FF5A8A);
+            display: flex;
+            justify-content: center;
+            align-items: center
+        }
+        .gda-logo-icon.material-symbols-outlined {
+            font-size: 28px;
+            color: #fff
+        }
+        .gda-logo-text h1 {
+            margin: 0;
+            font-size: 27px;
+            font-weight: 800;
+            color: #fff
+        }
+        .gda-logo-text p {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 3.2px;
+            color: var(--gold);
+            text-transform: uppercase
+        }
+        .container {
+            padding: 14px;
+            max-width: 600px;
+            margin: 0 auto
+        }
+        .filterTabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px
+        }
+        .tabBtn {
+            padding: 11px 18px;
+            border-radius: 30px;
+            border: 1.5px solid #E2E8F0;
+            background: #fff;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer
+        }
+        .tabBtn.active {
+            background: var(--primary);
+            color: #fff
+        }
+        .searchWrap {
+            position: relative;
+            margin-bottom: 14px
+        }
+        .searchWrap input {
+            width: 100%;
+            padding: 14px 14px 14px 42px;
+            border-radius: 14px;
+            border: 1.5px solid #E9D5FF;
+            background: #fff;
+            outline: none
+        }
+        .searchWrap.icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted)
+        }
+        .custCard {
+            background: #fff;
+            border-radius: 20px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #F1F5F9;
+            margin-bottom: 10px
+        }
+        .custTop {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            cursor: pointer
+        }
+        .custTop img {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            object-fit: cover;
+            background: #F1F5F9
+        }
+        .actions {
+            display: flex;
+            gap: 6px
+        }
+        .btn {
+            flex: 1;
+            padding: 9px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+            border: none;
+            cursor: pointer
+        }
+        .btnCollect {
+            background: #0F172A;
+            color: #fff
+        }
+        .btnDel {
+            background: #FFF1F2;
+            color: #E11D48;
+            border: 1px solid #FFE4E6
+        }
+        .btnEdit {
+            background: #FFFBEB;
+            color: #92400E;
+            border: 1px solid #FEF3C7
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 68px;
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: center;
+            border-top: 1px solid #F3E8FF;
+            z-index: 100
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #A8A0B5;
+            font-size: 10px;
+            font-weight: 600;
+            gap: 3px
+        }
+        .nav-item.active {
+            color: var(--pink)
+        }
+        .nav-item.material-symbols-outlined {
+            font-size: 24px
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="gda-logo-container">
+            <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+            <div class="gda-logo-text">
+                <h1>GDA</h1>
+                <p>Finance Services</p>
+            </div>
+        </div>
+        <a href="index.html" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;">← Back</a>
+    </header>
+
+    <div class="container">
+        <div class="filterTabs">
+            <button class="tabBtn active" id="btnActive">Active Accounts</button>
+            <button class="tabBtn" id="btnClosed">Closed Accounts</button>
+        </div>
+
+        <div class="searchWrap">
+            <span class="material-symbols-outlined icon">search</span>
+            <input id="searchInp" placeholder="Search name, mobile, code...">
+        </div>
+
+        <div id="listContainer">
+            <p style="text-align:center;padding:20px;">⏳ Loading...</p>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+        <a href="customer-list.html" class="nav-item active"><span class="material-symbols-outlined">group</span>Customers</a>
+        <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+        <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+        <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </nav>
+
+    <script type="module">
+        import { db, auth } from "./firebase.js";
+        import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+        const listContainer = document.getElementById("listContainer"),
+            searchInp = document.getElementById("searchInp"),
+            ADMIN_PASSWORD = "GDA@2026";
+
+        let allCustomers = [];
+
+        async function load() {
+            const snap = await getDocs(collection(db, "customers"));
+            allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            render(allCustomers.filter(c => c.status !== "Closed"));
+        }
+
+        function render(data) {
+            if (data.length === 0) {
+                listContainer.innerHTML = "<p style='text-align:center;padding:20px;'>कोई कस्टमर नहीं</p>";
+                return;
+            }
+            listContainer.innerHTML = "";
+            data.forEach(cust => {
+                const div = document.createElement("div");
+                div.className = "custCard";
+                const img = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl :
+                    'https://via.placeholder.com/55';
+                div.innerHTML = `
+                <div class="custTop">
+                  <img src="${img}" onerror="this.src='https://via.placeholder.com/55'">
+                  <div>
+                    <h4 style="font-size:14px;font-weight:800;">${cust.name || "N/A"}</h4>
+                    <p style="font-size:11px;color:#64748B;">📱 ${cust.mobile || ""}</p>
+                    <p style="font-size:11px;color:#64748B;">💰 ₹${cust.loanAmount || 0} | ${cust.customerCode || ""}</p>
+                  </div>
+                </div>
+                <div class="actions">
+                  <a href="collection.html?id=${cust.id}" class="btn btnCollect">Collect</a>
+                  <button class="btn btnDel">Del</button>
+                  <button class="btn btnEdit">Edit</button>
+                </div>
+              `;
+
+                div.querySelector(".custTop").onclick = () => location.href = `statement.html?id=${cust.id}`;
+
+                div.querySelector(".btnDel").onclick = e => {
+                    e.stopPropagation();
+                    const p = prompt("DELETE Password:");
+                    if (p !== ADMIN_PASSWORD) {
+                        if (p !== null) alert("❌ गलत पासवर्ड");
+                        return;
+                    }
+                    if (confirm("Delete?")) deleteDoc(doc(db, "customers", cust.id)).then(() => load());
+                };
+
+                // ✅ Edit button – opens edit.html
+                div.querySelector(".btnEdit").onclick = e => {
+                    e.stopPropagation();
+                    const p = prompt("Admin Password:");
+                    if (p === ADMIN_PASSWORD) location.href = `edit.html?id=${cust.id}`;
+                    else if (p !== null) alert("❌ गलत पासवर्ड");
+                };
+
+                listContainer.appendChild(div);
+            });
+        }
+
+        let mode = "Active";
+        document.getElementById("btnActive").onclick = function() {
+            mode = "Active";
+            this.classList.add("active");
+            document.getElementById("btnClosed").classList.remove("active");
+            render(allCustomers.filter(c => c.status !== "Closed"));
+        };
+        document.getElementById("btnClosed").onclick = function() {
+            mode = "Closed";
+            this.classList.add("active");
+            document.getElementById("btnActive").classList.remove("active");
+            render(allCustomers.filter(c => c.status === "Closed"));
+        };
+
+        searchInp.addEventListener("input", e => {
+            const t = e.target.value.toLowerCase();
+            const base = mode === "Active" ?
+                allCustomers.filter(c => c.status !== "Closed") :
+                allCustomers.filter(c => c.status === "Closed");
+            render(base.filter(c =>
+                (c.name && c.name.toLowerCase().includes(t)) ||
+                (c.mobile && c.mobile.includes(t)) ||
+                (c.customerCode && c.customerCode.toLowerCase().includes(t))
+            ));
+        });
+
+        onAuthStateChanged(auth, u => {
+            if (!u) location.href = "login.html";
+            else load();
+        });
+
+        document.getElementById("logoutBtn").onclick = async e => {
+            e.preventDefault();
+            await signOut(auth);
+            location.href = "login.html";
+        };
+    </script>
+
+</body>
+</html>
