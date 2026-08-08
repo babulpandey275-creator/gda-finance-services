@@ -40,9 +40,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             const custDoc = await getDoc(doc(db, "customers", selectedId));
             if (custDoc.exists()) {
                 const data = custDoc.data();
-                // 🔥 FIX: Dono field support karega
                 const dailyEmi = Number(data.dailyEmi || data.dailyCollection || 0);
-                const totalTarget = Number(data.totalCollection || data.totalPayable || 0);
+                const loanAmount = Number(data.loanAmount || 0);
+                const planDuration = Number(data.planDuration || data.duration || 60);
+                // 🔥 FIX: totalPayable missing ho to baaki pages jaisa hi fallback (loanAmount*1.2 ya planDuration*dailyEmi)
+                const totalTarget = Number(data.totalCollection || data.totalPayable || Math.max(loanAmount * 1.2, planDuration * dailyEmi) || 0);
                 const collectedSoFar = Number(data.totalCollected || 0);
                 const remaining = Math.max(0, totalTarget - collectedSoFar);
                 const paidDays = Number(data.paidDays || 0);
@@ -91,18 +93,25 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const custRef = doc(db, "customers", selectedId);
                 const snap = await getDoc(custRef);
                 const data = snap.data();
+                const newTotalCollected = Number(data.totalCollected || 0) + amount;
 
                 await updateDoc(custRef, {
-                    totalCollected: Number(data.totalCollected || 0) + amount,
+                    totalCollected: newTotalCollected,
                     paidDays: Number(data.paidDays || 0) + 1
                 });
 
-                alert("✅ पैसा सफलतापूर्वक जमा हो गया!");
+                // 📲 Optional WhatsApp Receipt — chahen to bhej sakte hain, na chahein to seedha aage badh jayega
+                const sendReceipt = confirm(`✅ ₹${amount} जमा हो गया!\n\nक्या ${data.name} को WhatsApp पर receipt भेजना चाहेंगे?`);
+                if (sendReceipt && data.mobile) {
+                    const msg = `Namaste ${data.name} ji,%0A%0AAapka aaj ka payment *Rs. ${amount}* GDA Finance Services ko safaltapoorvak mil gaya hai.%0A%0AAb tak kul jama: Rs. ${newTotalCollected}%0A%0ADhanyawad,%0AGDA Finance Services`;
+                    window.open(`https://wa.me/91${data.mobile}?text=${msg}`, '_blank');
+                }
+
                 window.location.href = "customer-list.html";
             } catch (err) {
                 alert("⚠️ Error: " + err.message);
                 submitCollectionBtn.disabled = false;
-                submitCollectionBtn.innerText = "Submit Collection";
+                submitCollectionBtn.innerText = "📥 Post Payment Record";
             }
         };
     }
