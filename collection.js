@@ -43,7 +43,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const dailyEmi = Number(data.dailyEmi || data.dailyCollection || 0);
                 const loanAmount = Number(data.loanAmount || 0);
                 const planDuration = Number(data.planDuration || data.duration || 60);
-                // 🔥 FIX: totalPayable missing ho to baaki pages jaisa hi fallback (loanAmount*1.2 ya planDuration*dailyEmi)
                 const totalTarget = Number(data.totalCollection || data.totalPayable || Math.max(loanAmount * 1.2, planDuration * dailyEmi) || 0);
                 const collectedSoFar = Number(data.totalCollected || 0);
                 const remaining = Math.max(0, totalTarget - collectedSoFar);
@@ -72,7 +71,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 submitCollectionBtn.disabled = true;
                 submitCollectionBtn.innerText = "⏳ Saving...";
 
-                // 🔥 FIX: Same din double payment block
                 const dupQuery = query(collection(db, "collections"), where("customerId", "==", selectedId), where("date", "==", date));
                 const dupSnap = await getDocs(dupQuery);
                 if(!dupSnap.empty){
@@ -100,12 +98,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     paidDays: Number(data.paidDays || 0) + 1
                 });
 
-                // 📲 Optional WhatsApp Receipt — chahen to bhej sakte hain, na chahein to seedha aage badh jayega
-                const sendReceipt = confirm(`✅ ₹${amount} जमा हो गया!\n\nक्या ${data.name} को WhatsApp पर receipt भेजना चाहेंगे?`);
-                if (sendReceipt && data.mobile) {
-                    const msg = `Namaste ${data.name} ji,%0A%0AAapka aaj ka payment *Rs. ${amount}* GDA Finance Services ko safaltapoorvak mil gaya hai.%0A%0AAb tak kul jama: Rs. ${newTotalCollected}%0A%0ADhanyawad,%0AGDA Finance Services`;
-                    window.open(`https://wa.me/91${data.mobile}?text=${msg}`, '_blank');
-                }
+                alert(`✅ ₹${amount} जमा हो गया!`);
 
                 window.location.href = "customer-list.html";
             } catch (err) {
