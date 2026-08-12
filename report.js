@@ -210,7 +210,8 @@ function calculateTotalDue(customers, targetDateStr) {
   const targetDate = new Date(targetDateStr);
   let totalDue = 0;
   customers.forEach(cust => {
-    if (cust.status === "Closed") return;
+    // 🔥 FIX: Settled accounts भी Total Due से हट जाएँ (पहले सिर्फ Closed हटता था)
+    if (cust.status === "Closed" || cust.status === "Settled") return;
     const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
     if (dailyEmi <= 0) return;
 
@@ -310,6 +311,7 @@ async function renderReport() {
     const custSnap = await getDocs(collection(db, "customers"));
     let lifetimeDisbursementUptoTarget = 0;
     let lifetimeInterestUptoTarget = 0;
+    let lifetimeWriteOffUptoTarget = 0; // 🔥 Settled/Closed accounts में जो interest छोड़ा गया
     let rangeDisbursementSum = 0;
     let rangeInterestSum = 0;
     let rangeAccountsCount = 0;
@@ -320,6 +322,7 @@ async function renderReport() {
     custSnap.forEach(doc => {
       const cust = doc.data();
       const loanAmt = Number(cust.loanAmount || 0);
+      const isSettledCust = (cust.status === 'Settled' || cust.status === 'Closed');
       allCustomers.push({ ...cust, id: doc.id });
 
       let loanDateStr = '';
@@ -345,6 +348,14 @@ async function renderReport() {
       if (loanDateStr && loanDateStr <= targetDate) {
         lifetimeDisbursementUptoTarget += loanAmt;
         lifetimeInterestUptoTarget += (loanAmt * 0.20);
+
+        // 🔥 FIX: Settle करते वक्त जो amount छोड़ा गया, उसे "Portfolio" से हमेशा के लिए हटा दें
+        // वरना settled loan का बचा हुआ हिस्सा हमेशा "outstanding portfolio" जैसा दिखता रहेगा
+        if (isSettledCust) {
+          const expectedTotalForCust = Math.max(loanAmt * 1.2, Number(cust.planDuration || cust.duration || 60) * Number(cust.dailyEmi || cust.emi || 0));
+          const collectedForCust = Number(cust.totalCollected || 0);
+          lifetimeWriteOffUptoTarget += Math.max(0, expectedTotalForCust - collectedForCust);
+        }
       }
       if (loanDateStr && loanDateStr >= startDateStr && loanDateStr <= endDateStr) {
         rangeDisbursementSum += loanAmt;
@@ -361,7 +372,7 @@ async function renderReport() {
     const totalOverdue = calculateTotalDue(allCustomers, targetDate);
 
     const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
-    const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget);
+    const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget - lifetimeWriteOffUptoTarget);
     const netProfitSum = rangeInterestSum - expensesSum;
     const netProfitSumPrev = rangeInterestSumPrev - expensesSumPrev;
 
