@@ -328,7 +328,8 @@
         const cust = doc.data();
         
         // Skip closed accounts
-        if (cust.status === "Closed") return;
+        // 🔥 FIX: Settled accounts भी Due List से हट जाएँ (पहले सिर्फ Closed हटता था)
+        if (cust.status === "Closed" || cust.status === "Settled") return;
 
         const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
         if (dailyEmi <= 0) return;
