@@ -77,10 +77,13 @@ function renderProfile(cust, logs) {
   const totalPaid = Number(cust.totalCollected || 0);
   const paidDays = Number(cust.paidDays || 0);
   const loanAmount = Number(cust.loanAmount || 0);
-  const dueInfo = calculateDueWithOverdue(cust);
-  const remaining = dueInfo.totalDue;
-  const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
   const isSettled = (cust.status === 'Settled' || cust.status === 'Closed');
+  const dueInfo = calculateDueWithOverdue(cust);
+  // 🔥 FIX: Settle हो चुके account पर "Remaining" ₹0 दिखेगा (officially बंद है)
+  // पर कितना amount छोड़ा गया वो record के लिए अलग से दिखेगा
+  const writeOffAmount = isSettled ? dueInfo.totalDue : 0;
+  const remaining = isSettled ? 0 : dueInfo.totalDue;
+  const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
 
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
@@ -103,7 +106,7 @@ function renderProfile(cust, logs) {
         <div class="info-item"><div class="label">Loan Date</div><div class="value">${cust.loanDate || cust.startDate || 'N/A'}</div></div>
         <div class="info-item"><div class="label">Daily EMI</div><div class="value">₹${dailyEmi}</div></div>
         <div class="info-item"><div class="label">Plan Duration</div><div class="value">${planDur} Days</div></div>
-        <div class="info-item"><div class="label">Remaining</div><div class="value" style="color:#DC2626;">₹${remaining.toLocaleString('en-IN')}</div>${dueInfo.overdueInterest > 0 ? `<div style="font-size:10px;color:#DC2626;font-weight:700;margin-top:2px;">⚠️ +₹${Math.round(dueInfo.overdueInterest).toLocaleString('en-IN')} Overdue (${dueInfo.extraDays} din)</div>` : ''}</div>
+        <div class="info-item"><div class="label">Remaining</div><div class="value" style="color:${isSettled ? '#059669' : '#DC2626'};">₹${remaining.toLocaleString('en-IN')}</div>${!isSettled && dueInfo.overdueInterest > 0 ? `<div style="font-size:10px;color:#DC2626;font-weight:700;margin-top:2px;">⚠️ +₹${Math.round(dueInfo.overdueInterest).toLocaleString('en-IN')} Overdue (${dueInfo.extraDays} din)</div>` : ''}${isSettled && writeOffAmount > 0 ? `<div style="font-size:10px;color:#B45309;font-weight:700;margin-top:2px;">ℹ️ ₹${Math.round(writeOffAmount).toLocaleString('en-IN')} settlement में छोड़ा गया</div>` : ''}</div>
         <div class="info-item"><div class="label">Paid Days</div><div class="value">${paidDays} Days</div></div>
         <div class="info-item"><div class="label">Total Collected</div><div class="value">₹${totalPaid.toLocaleString('en-IN')}</div></div>
       </div>
@@ -360,8 +363,10 @@ async function generatePDF(cust, logs) {
     y += boxH + 4;
 
     // ---- REMAINING BALANCE (highlight, जैसे app screen पर दिखता है) ----
+    const isSettledPdf = (cust.status === 'Settled' || cust.status === 'Closed');
     const dueInfoPdf = calculateDueWithOverdue(cust);
-    const remaining = dueInfoPdf.totalDue;
+    const remaining = isSettledPdf ? 0 : dueInfoPdf.totalDue;
+    const writeOffPdf = isSettledPdf ? dueInfoPdf.totalDue : 0;
 
     doc.setFillColor(remaining > 0 ? 254 : 236, remaining > 0 ? 242 : 253, remaining > 0 ? 242 : 245);
     doc.setDrawColor(remaining > 0 ? 220 : 180, remaining > 0 ? 38 : 220, remaining > 0 ? 38 : 150);
@@ -373,11 +378,19 @@ async function generatePDF(cust, logs) {
       remaining > 0 ? `REMAINING BALANCE: Rs. ${remaining.toLocaleString('en-IN')}` : 'ACCOUNT FULLY SETTLED',
       pageW / 2, y + 8, { align: 'center' }
     );
-    if (dueInfoPdf.overdueInterest > 0) {
+    if (!isSettledPdf && dueInfoPdf.overdueInterest > 0) {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.text(
         `(Includes overdue interest: Rs. ${Math.round(dueInfoPdf.overdueInterest).toLocaleString('en-IN')} for ${dueInfoPdf.extraDays} extra days)`,
+        pageW / 2, y + 14, { align: 'center' }
+      );
+      y += 24;
+    } else if (isSettledPdf && writeOffPdf > 0) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `(Settled with Rs. ${Math.round(writeOffPdf).toLocaleString('en-IN')} waived off)`,
         pageW / 2, y + 14, { align: 'center' }
       );
       y += 24;
