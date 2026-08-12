@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 GDA FINANCE - REPORT ENGINE
+// 🚀 GDA FINANCE - REPORT ENGINE (DEBUG VERSION)
 // ============================================================
 
 import { db, auth } from "./firebase.js";
@@ -7,9 +7,9 @@ import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstati
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 // ============================================================
-// ADMIN LOCK LOGIC
+// ADMIN LOCK LOGIC (with Debugging)
 // ============================================================
-const ADMIN_PASSWORD = "GDA@2026";
+const ADMIN_PASSWORD = "GDA@2026"; // ✅ सही पासवर्ड (Case-Sensitive)
 const lockOverlay = document.getElementById('lockOverlay');
 const appContent = document.getElementById('appContent');
 const lockPassword = document.getElementById('lockPassword');
@@ -25,7 +25,7 @@ function checkLock() {
   } else {
     lockOverlay.classList.remove('hidden');
     appContent.style.display = 'none';
-    lockPassword.value = '';
+    lockPassword.value = ''; // Clear input
     lockPassword.focus();
   }
 }
@@ -77,7 +77,8 @@ function updateTabUI(activeBtn) {
 }
 
 // ============================================================
-// 🔄 LOADING STATE
+// 🔄 LOADING STATE — data आने तक boxes धुंधले रहेंगे, पुराने
+// numbers अचानक बदलते नहीं दिखेंगे
 // ============================================================
 function setLoading(isLoading) {
   document.querySelectorAll('.grid .box').forEach(box => {
@@ -109,6 +110,7 @@ function getPreviousRange(mode, targetDateStr) {
   if (mode === "Yearly") {
     return { startDateStr: `${yyyy - 1}-01-01`, endDateStr: `${yyyy - 1}-12-31` };
   }
+  // Quarterly
   const q = Math.floor(mm / 3);
   const prevQ = q - 1;
   const py = prevQ < 0 ? yyyy - 1 : yyyy;
@@ -168,14 +170,19 @@ function renderTrendChart(dailyTotals) {
       const x = padding + i * (barW + barGap);
       const y = cssH - barH - 20;
 
+      // Simple rectangle bar (roundRect कुछ पुराने Android WebView में
+      // सपोर्ट नहीं होता, इसलिए plain fillRect इस्तेमाल किया — हर
+      // device पर काम करेगा)
       ctx.fillStyle = val > 0 ? '#3A1C62' : '#E2E8F0';
       ctx.fillRect(x, y, barW, barH);
 
+      // Day label
       ctx.fillStyle = '#94A3B8';
       ctx.font = '9px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(dailyTotals[i].label, x + barW / 2, cssH - 6);
 
+      // Value label (सिर्फ अगर 0 से ज़्यादा हो)
       if (val > 0) {
         ctx.fillStyle = '#0F172A';
         ctx.font = 'bold 8.5px Inter, sans-serif';
@@ -188,7 +195,16 @@ function renderTrendChart(dailyTotals) {
 }
 
 // ============================================================
-// TOTAL DUE CALCULATION
+// 💰 OVERDUE RATE — Plan खत्म होने के बाद Daily EMI का %
+// ============================================================
+function getOverdueRate(planDur) {
+  if (planDur <= 60) return 0.10;
+  if (planDur <= 80) return 0.20;
+  return 0.30;
+}
+
+// ============================================================
+// TOTAL DUE CALCULATION (अब Overdue Interest भी शामिल)
 // ============================================================
 function calculateTotalDue(customers, targetDateStr) {
   const targetDate = new Date(targetDateStr);
@@ -200,14 +216,23 @@ function calculateTotalDue(customers, targetDateStr) {
 
     const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
     let diffDays = Math.floor((targetDate - loanDate) / (1000 * 60 * 60 * 24));
-    let daysElapsed = Math.max(0, diffDays) + 1;
+    let daysElapsedRaw = Math.max(0, diffDays) + 1;
     const planDur = Number(cust.planDuration || cust.duration || 60);
+    let daysElapsed = daysElapsedRaw;
     if (daysElapsed > planDur) daysElapsed = planDur;
 
     const expectedAmt = daysElapsed * dailyEmi;
     const totalPaid = Number(cust.totalCollected || 0);
-    const currentDue = Math.max(0, expectedAmt - totalPaid);
-    totalDue += currentDue;
+    const baseDue = Math.max(0, expectedAmt - totalPaid);
+
+    let overdueInterest = 0;
+    if (daysElapsedRaw > planDur && baseDue > 0) {
+      const extraDays = daysElapsedRaw - planDur;
+      const rate = getOverdueRate(planDur);
+      overdueInterest = extraDays * (dailyEmi * rate);
+    }
+
+    totalDue += Math.max(0, baseDue + overdueInterest);
   });
   return totalDue;
 }
@@ -431,6 +456,7 @@ async function restoreBackup(file) {
     return;
   }
 
+  // Restore se pehle current data ki ek safety copy download kar lo
   statusDiv.innerText = '⏳ Safety backup le rahe hain (restore se pehle)...';
   statusDiv.style.color = '#f59e0b';
   await downloadBackup();
@@ -494,12 +520,14 @@ function initReport() {
     }
   });
 
+  // Tabs
   btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReport(); };
   btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReport(); };
   btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReport(); };
   btnYearly.onclick = () => { currentMode = "Yearly"; updateTabUI(btnYearly); renderReport(); };
   reportDatePicker.onchange = () => renderReport();
 
+  // Logout
   document.getElementById("logoutBtn").onclick = async (e) => {
     e.preventDefault();
     sessionStorage.removeItem('reportUnlocked');
@@ -507,6 +535,7 @@ function initReport() {
     location.href = "login.html";
   };
 
+  // Backup & Restore
   document.getElementById('backupDownloadBtn').addEventListener('click', downloadBackup);
   document.getElementById('restoreFileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
