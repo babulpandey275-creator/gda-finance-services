@@ -317,6 +317,13 @@
       let totalCount = 0;
       let totalSum = 0;
 
+      // 💰 Plan खत्म होने के बाद Overdue Daily Charge (Daily EMI का %)
+      function getOverdueRate(planDur) {
+        if (planDur <= 60) return 0.10;
+        if (planDur <= 80) return 0.20;
+        return 0.30; // 120 Days ya उससे ज़्यादा
+      }
+
       querySnapshot.forEach((doc) => {
         const cust = doc.data();
         
@@ -329,33 +336,49 @@
         // Calculate days elapsed from loan date to target date
         const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
         let diffDays = Math.floor((targetDate - loanDate) / (1000 * 60 * 60 * 24));
-        let daysElapsed = Math.max(0, diffDays) + 1; // +1 to include today
+        let daysElapsedRaw = Math.max(0, diffDays) + 1; // +1 to include today
 
-        // Cap at plan duration
+        // Plan duration
         const planDur = Number(cust.planDuration || cust.duration || 60);
+        let daysElapsed = daysElapsedRaw;
         if (daysElapsed > planDur) daysElapsed = planDur;
 
-        // Expected amount vs paid
+        // Expected amount vs paid (plan के अंदर)
         const expectedAmt = daysElapsed * dailyEmi;
         const totalPaid = Number(cust.totalCollected || 0);
-        const currentDue = Math.max(0, expectedAmt - totalPaid);
+        const baseDue = Math.max(0, expectedAmt - totalPaid);
+
+        // 🔥 Plan खत्म होने के बाद अतिरिक्त दिनों पर Overdue Interest
+        let overdueInterest = 0;
+        let extraDays = 0;
+        if (daysElapsedRaw > planDur) {
+          extraDays = daysElapsedRaw - planDur;
+          const rate = getOverdueRate(planDur);
+          overdueInterest = extraDays * (dailyEmi * rate);
+        }
+
+        const currentDue = Math.max(0, baseDue + overdueInterest);
 
         // Show only if due > 0
         if (currentDue > 0) {
           totalCount++;
           totalSum += currentDue;
 
-          const missedDays = Math.floor(currentDue / dailyEmi);
+          const missedDays = Math.floor(baseDue / dailyEmi);
           const name = cust.name || "N/A";
           const code = cust.customerCode || "GDA";
           const mobile = cust.mobile || "";
 
-          // WhatsApp reminder message (pre-filled)
+          // WhatsApp reminder message (pre-filled) — overdue interest भी बताया गया है अगर लगा हो
+          const overdueLine = overdueInterest > 0
+            ? `⚠️ Plan (${planDur} din) khatam hone ke ${extraDays} din baad se overdue interest bhi jud gaya hai: Rs. ${Math.round(overdueInterest).toLocaleString('en-IN')}%0A`
+            : '';
           const waMsg =
             `Namaste ${name} ji,%0A%0A` +
             `Aapke GDA Finance Services loan (Code: ${code}) me *Rs. ${currentDue.toLocaleString('en-IN')}* ka payment abhi baki hai.%0A` +
-            `(${missedDays} din ka collection pending hai)%0A%0A` +
-            `Kripya jald se jald apna daily EMI Rs. ${dailyEmi} jama karayein.%0A%0A` +
+            `(${missedDays} din ka collection pending hai)%0A` +
+            overdueLine +
+            `%0AKripya jald se jald apna daily EMI Rs. ${dailyEmi} jama karayein.%0A%0A` +
             `Dhanyawad,%0AGDA Finance Services`;
           const waLink = mobile ? `https://wa.me/91${mobile}?text=${waMsg}` : "#";
 
@@ -367,7 +390,8 @@
                   <small>📱 ${mobile} | EMI: ₹${dailyEmi}</small>
                   <div class="badge-group">
                     <span class="badge badge-red">${missedDays} Din Baki</span>
-                    <span class="badge badge-black">${daysElapsed} Days Total</span>
+                    <span class="badge badge-black">${daysElapsedRaw} Days Total</span>
+                    ${overdueInterest > 0 ? `<span class="badge" style="background:#7C2D12;color:#fff;">⚠️ +₹${Math.round(overdueInterest)} Overdue</span>` : ''}
                     <span class="badge badge-blue">Paid: ₹${totalPaid}</span>
                   </div>
                 </div>
