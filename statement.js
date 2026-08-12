@@ -1,6 +1,6 @@
 import { db, auth } from "./firebase.js";
 import { 
-  doc, getDoc, updateDoc, deleteDoc, 
+  doc, getDoc, updateDoc, deleteDoc, addDoc,
   collection, query, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
@@ -46,6 +46,7 @@ function renderProfile(cust, logs) {
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
+  // 🔥 डॉक्यूमेंट फोटो – अगर URL है तो दिखाएँ, वरना placeholder
   const aadharPhoto = cust.aadharPhoto || cust.aadharPhotoUrl || '';
   const panPhoto = cust.panPhoto || cust.panPhotoUrl || '';
   const voterPhoto = cust.voterPhoto || cust.voterPhotoUrl || '';
@@ -68,6 +69,7 @@ function renderProfile(cust, logs) {
         <div class="info-item"><div class="label">Total Collected</div><div class="value">₹${totalPaid.toLocaleString('en-IN')}</div></div>
       </div>
 
+      <!-- KYC DETAILS -->
       <div class="kyc-section">
         <h4>🔐 KYC VERIFICATION DETAILS</h4>
         <div class="kyc-row"><span>Aadhar Number</span><b>${aadharValue}</b></div>
@@ -76,6 +78,7 @@ function renderProfile(cust, logs) {
         <div class="kyc-row"><span>Status</span><b style="color:${isSettled ? '#059669' : '#DC2626'};">${cust.status || 'Active'}</b></div>
       </div>
 
+      <!-- ===== 📁 KYC DOCUMENTS (NEW) ===== -->
       <div class="kyc-section" style="margin-top:12px; background:#F8FAFF; border-color:#E2E8F0;">
         <h4 style="color:#3A1C62;">📁 KYC DOCUMENTS</h4>
         <div class="doc-grid">
@@ -94,6 +97,7 @@ function renderProfile(cust, logs) {
         </div>
       </div>
 
+      <!-- ACTION BUTTONS -->
       <div class="action-bar">
         <button class="action-btn whatsapp" id="whatsappBtn">💬 WhatsApp</button>
         <button class="action-btn pdf" id="pdfBtn">📄 PDF</button>
@@ -101,9 +105,18 @@ function renderProfile(cust, logs) {
         <button class="action-btn settle ${isSettled ? 'settled' : ''}" id="settleBtn" ${isSettled ? 'disabled' : ''}>
           ${isSettled ? '✅ Settled' : '⚖️ Settle'}
         </button>
+        ${isSettled ? `<button class="action-btn noc" id="nocBtn">📃 NOC</button>` : ''}
+        ${isSettled ? `<button class="action-btn renew" id="renewBtn">🔄 Renew</button>` : ''}
       </div>
     </div>
 
+    <!-- LOAN CYCLE HISTORY -->
+    <div class="loan-history-section">
+      <h3>🔁 Loan Cycle History</h3>
+      <div id="loanHistoryList"><p class="history-empty">⏳ Loading...</p></div>
+    </div>
+
+    <!-- EMI LOGS TABLE -->
     <div class="table-wrap">
       <h3>📋 RECEIVED INSTALLMENTS (EMI LOGS)</h3>
       <table>
@@ -128,9 +141,14 @@ function renderProfile(cust, logs) {
   loadingMsg.style.display = 'none';
   profileContent.style.display = 'block';
 
+  // Attach Event Listeners
   document.getElementById('whatsappBtn')?.addEventListener('click', () => shareWhatsApp(cust));
   document.getElementById('pdfBtn')?.addEventListener('click', () => generatePDF(cust, logs));
   document.getElementById('settleBtn')?.addEventListener('click', () => handleSettle(cust));
+  document.getElementById('nocBtn')?.addEventListener('click', () => generateNOC(cust));
+  document.getElementById('renewBtn')?.addEventListener('click', () => handleRenewLoan(cust));
+
+  loadLoanHistory();
 
   document.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
@@ -174,7 +192,7 @@ function loadImageAsBase64(url) {
         canvas.getContext('2d').drawImage(img, 0, 0);
         resolve(canvas.toDataURL('image/jpeg', 0.85));
       } catch (e) {
-        resolve(null);
+        resolve(null); // CORS ने canvas को "taint" कर दिया — फोटो skip
       }
     };
     img.onerror = () => resolve(null);
@@ -182,6 +200,7 @@ function loadImageAsBase64(url) {
   });
 }
 
+// पेज खत्म होने वाला हो तो नया पेज जोड़ना (हर सेक्शन के लिए reusable)
 function ensureSpace(doc, y, needed, margin) {
   if (y + needed > 275) {
     doc.addPage();
@@ -191,7 +210,8 @@ function ensureSpace(doc, y, needed, margin) {
 }
 
 // ============================================================
-// 📄 PDF GENERATION – emoji हटाए गए, photo embed, total summary, page number जोड़े
+// 📄 PDF GENERATION – emoji हटाए गए (jsPDF में emoji glyph सपोर्ट नहीं है,
+// पहले ये खाली बॉक्स बनकर आते थे), photo embed, total summary, page number जोड़े
 // ============================================================
 async function generatePDF(cust, logs) {
   const pdfBtn = document.getElementById('pdfBtn');
@@ -207,9 +227,11 @@ async function generatePDF(cust, logs) {
     const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
     const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
+    // Customer photo पहले से load कर लें (network call है, इसलिए PDF बनने से पहले)
     const photoUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : null;
     const photoBase64 = await loadImageAsBase64(photoUrl);
 
+    // ---- HEADER ----
     doc.setFillColor(26, 35, 53);
     doc.rect(margin, y, pageW - (margin * 2), 28, 'F');
     doc.setTextColor(255, 255, 255);
@@ -222,6 +244,7 @@ async function generatePDF(cust, logs) {
     doc.text('Digital Loan Distribution & Micro Finance System', pageW / 2, y + 22, { align: 'center' });
     y += 32;
 
+    // ---- TITLE ----
     doc.setTextColor(26, 35, 53);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -232,6 +255,7 @@ async function generatePDF(cust, logs) {
     doc.line(margin + 20, y, pageW - margin - 20, y);
     y += 10;
 
+    // ---- CUSTOMER DETAILS BOX (साथ में फोटो, अगर load हो पाई हो) ----
     const boxH = 52;
     doc.setFillColor(248, 250, 255);
     doc.setDrawColor(200, 200, 210);
@@ -247,7 +271,9 @@ async function generatePDF(cust, logs) {
         doc.addImage(photoBase64, 'JPEG', photoX, photoY, photoSize, photoSize);
         doc.setDrawColor(220, 220, 220);
         doc.rect(photoX, photoY, photoSize, photoSize);
-      } catch (e) {}
+      } catch (e) {
+        // Photo add fail hua to bina photo ke aage badho, PDF nahi rukega
+      }
     }
 
     doc.setTextColor(80, 80, 80);
@@ -271,6 +297,7 @@ async function generatePDF(cust, logs) {
       doc.text(f.label + ':', leftX, yy);
       doc.setTextColor(26, 35, 53);
       doc.setFont('helvetica', 'bold');
+      // लंबी value box से बाहर न जाए
       const val = doc.splitTextToSize(String(f.value), 55)[0];
       doc.text(val, leftX + 28, yy);
     });
@@ -293,6 +320,7 @@ async function generatePDF(cust, logs) {
 
     y += boxH + 4;
 
+    // ---- REMAINING BALANCE (highlight, जैसे app screen पर दिखता है) ----
     const planDur = Number(cust.planDuration || cust.duration || 60);
     const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
     const totalPaid = Number(cust.totalCollected || 0);
@@ -312,6 +340,7 @@ async function generatePDF(cust, logs) {
     );
     y += 18;
 
+    // ---- KYC DETAILS BOX ----
     y = ensureSpace(doc, y, 30, margin);
     doc.setFillColor(255, 251, 235);
     doc.setDrawColor(220, 180, 80);
@@ -332,6 +361,7 @@ async function generatePDF(cust, logs) {
     doc.text(addressLines[0] || '', margin + 8, kycY + 8);
     y += 34;
 
+    // ---- DOCUMENTS STATUS ----
     y = ensureSpace(doc, y, 30, margin);
     doc.setTextColor(26, 35, 53);
     doc.setFontSize(10);
@@ -351,6 +381,7 @@ async function generatePDF(cust, logs) {
     doc.text(`Voter ID: ${cust.voterPhoto ? 'Uploaded' : 'Not Uploaded'}`, margin + 4, y);
     y += 12;
 
+    // ---- EMI LOGS TABLE ----
     y = ensureSpace(doc, y, 20, margin);
     doc.setTextColor(26, 35, 53);
     doc.setFontSize(11);
@@ -396,6 +427,7 @@ async function generatePDF(cust, logs) {
         const amountNum = Number(log.amount || log.collectionAmount || 0);
         logsTotal += amountNum;
 
+        // हर row से पहले चेक करें पेज में जगह है या नहीं; न हो तो नया पेज + header दोबारा
         if (y + 7 > 270) {
           doc.addPage();
           y = margin;
@@ -416,6 +448,7 @@ async function generatePDF(cust, logs) {
         y += 7;
       });
 
+      // ---- TOTAL SUMMARY ROW ----
       y = ensureSpace(doc, y, 10, margin);
       doc.setDrawColor(26, 35, 53);
       doc.setLineWidth(0.3);
@@ -428,6 +461,7 @@ async function generatePDF(cust, logs) {
       y += 10;
     }
 
+    // ---- FOOTER + PAGE NUMBERS on every page ----
     const now = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
@@ -449,6 +483,179 @@ async function generatePDF(cust, logs) {
     alert('PDF banane me error aayi: ' + err.message);
   } finally {
     if (pdfBtn) { pdfBtn.disabled = false; pdfBtn.textContent = '📄 PDF'; }
+  }
+}
+
+// ============================================================
+// 📃 LOAN CLOSURE CERTIFICATE (NOC) — सिर्फ Settled loan के लिए
+// ============================================================
+function generateNOC(cust) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210;
+  const margin = 20;
+  let y = margin;
+
+  // Header
+  doc.setFillColor(26, 35, 53);
+  doc.rect(margin, y, pageW - (margin * 2), 26, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(17);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GDA FINANCE SERVICES', pageW / 2, y + 11, { align: 'center' });
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(200, 200, 200);
+  doc.text('Digital Loan Distribution & Micro Finance System', pageW / 2, y + 19, { align: 'center' });
+  y += 40;
+
+  // Title
+  doc.setTextColor(5, 150, 105);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('NO DUES CERTIFICATE (NOC)', pageW / 2, y, { align: 'center' });
+  y += 4;
+  doc.setDrawColor(5, 150, 105);
+  doc.setLineWidth(0.6);
+  doc.line(margin + 30, y, pageW - margin - 30, y);
+  y += 16;
+
+  // Body text
+  const settlementDate = cust.settlementDate || new Date().toISOString().split('T')[0];
+  doc.setTextColor(30, 30, 40);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+
+  const paragraph =
+    `This is to certify that Mr./Mrs. ${cust.name || 'N/A'} (Customer Code: ${cust.customerCode || 'GDA'}), ` +
+    `residing at ${cust.address || 'N/A'}, holding Mobile Number ${cust.mobile || 'N/A'}, had taken a loan of ` +
+    `Rs. ${Number(cust.loanAmount || 0).toLocaleString('en-IN')} from GDA Finance Services on ${cust.loanDate || 'N/A'}.`;
+  const paragraph2 =
+    `We hereby confirm that the borrower has repaid the entire loan amount along with applicable interest in full, ` +
+    `and there are NO DUES pending against this loan account as of ${settlementDate}.`;
+
+  const lines1 = doc.splitTextToSize(paragraph, pageW - margin * 2);
+  doc.text(lines1, margin, y);
+  y += lines1.length * 6 + 6;
+
+  const lines2 = doc.splitTextToSize(paragraph2, pageW - margin * 2);
+  doc.text(lines2, margin, y);
+  y += lines2.length * 6 + 16;
+
+  // Details box
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(167, 243, 208);
+  doc.rect(margin, y, pageW - margin * 2, 36, 'FD');
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(5, 150, 105);
+  const boxY = y + 10;
+  doc.text(`Loan Amount: Rs. ${Number(cust.loanAmount || 0).toLocaleString('en-IN')}`, margin + 8, boxY);
+  doc.text(`Total Paid: Rs. ${Number(cust.totalCollected || 0).toLocaleString('en-IN')}`, margin + 8, boxY + 9);
+  doc.text(`Settlement Date: ${settlementDate}`, margin + 8, boxY + 18);
+  y += 46;
+
+  // Footer / Signature
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 110);
+  doc.text('This is a system-generated certificate and does not require a physical signature.', margin, y);
+  y += 20;
+  doc.setDrawColor(15, 23, 42);
+  doc.line(margin, y, margin + 60, y);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Branch Manager (Authorized)', margin, y + 6);
+  doc.text('GDA Finance Services', margin, y + 12);
+
+  doc.save(`${(cust.name || 'Customer').replace(/[^a-zA-Z0-9]/g, '_')}_NOC_Certificate.pdf`);
+}
+
+// ============================================================
+// 🔁 LOAN CYCLE HISTORY — पुराने बंद हो चुके loans दिखाना
+// ============================================================
+async function loadLoanHistory() {
+  const listEl = document.getElementById('loanHistoryList');
+  if (!listEl) return;
+  try {
+    const histSnap = await getDocs(collection(db, "customers", currentCustomerId, "loanHistory"));
+    if (histSnap.empty) {
+      listEl.innerHTML = `<p class="history-empty">कोई पुराना loan cycle नहीं मिला — यह पहला loan है।</p>`;
+      return;
+    }
+    let cycles = [];
+    histSnap.forEach(d => cycles.push(d.data()));
+    cycles.sort((a, b) => new Date(b.closedOn || 0) - new Date(a.closedOn || 0));
+
+    listEl.innerHTML = cycles.map((c, idx) => `
+      <div class="history-cycle">
+        <div class="hc-row"><span>Cycle</span><b>#${cycles.length - idx}</b></div>
+        <div class="hc-row"><span>Loan Amount</span><b>₹${Number(c.loanAmount || 0).toLocaleString('en-IN')}</b></div>
+        <div class="hc-row"><span>Loan Date</span><b>${c.loanDate || 'N/A'}</b></div>
+        <div class="hc-row"><span>Total Paid</span><b>₹${Number(c.totalCollected || 0).toLocaleString('en-IN')}</b></div>
+        <div class="hc-row"><span>Closed On</span><b>${c.closedOn || 'N/A'}</b></div>
+      </div>
+    `).join('');
+  } catch (err) {
+    listEl.innerHTML = `<p class="history-empty">History लोड नहीं हो पाई।</p>`;
+    console.error(err);
+  }
+}
+
+// ============================================================
+// 🔄 RENEW LOAN — पुराना settled loan history में save करके नया शुरू करना
+// ============================================================
+async function handleRenewLoan(cust) {
+  const pass = prompt("🔑 नया Loan Cycle शुरू करने के लिए Admin Password डालें:");
+  if (pass !== ADMIN_PASSWORD) {
+    if (pass !== null) alert("❌ गलत पासवर्ड!");
+    return;
+  }
+
+  const newAmountStr = prompt(`नया Loan Amount डालें (पिछला था ₹${cust.loanAmount || 0}):`, cust.loanAmount || '');
+  if (newAmountStr === null) return;
+  const newAmount = Number(newAmountStr);
+  if (!newAmount || newAmount < 500) {
+    alert("❌ सही Loan Amount डालें (कम से कम ₹500)।");
+    return;
+  }
+  const newDurationStr = prompt("Plan Duration (Days) डालें:", cust.planDuration || 60);
+  if (newDurationStr === null) return;
+  const newDuration = Number(newDurationStr) || 60;
+
+  if (!confirm(`नया loan cycle शुरू करें?\n\nLoan: ₹${newAmount}\nDuration: ${newDuration} Days\n\nपुराना cycle "Loan History" में save हो जाएगा।`)) return;
+
+  try {
+    // पुराना cycle history में archive करना
+    await addDoc(collection(db, "customers", currentCustomerId, "loanHistory"), {
+      loanAmount: cust.loanAmount || 0,
+      loanDate: cust.loanDate || cust.startDate || '',
+      planDuration: cust.planDuration || cust.duration || 60,
+      dailyEmi: cust.dailyEmi || cust.emi || 0,
+      totalCollected: cust.totalCollected || 0,
+      paidDays: cust.paidDays || 0,
+      closedOn: new Date().toISOString().split('T')[0]
+    });
+
+    // नया cycle शुरू करना
+    const newDailyEmi = Math.round((newAmount * 1.2) / newDuration);
+    const custRef = doc(db, "customers", currentCustomerId);
+    await updateDoc(custRef, {
+      loanAmount: newAmount,
+      planDuration: newDuration,
+      dailyEmi: newDailyEmi,
+      totalCollected: 0,
+      paidDays: 0,
+      loanDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
+      status: 'Active',
+      settlementDate: null
+    });
+
+    alert("✅ नया Loan Cycle शुरू हो गया!");
+    window.location.reload();
+  } catch (err) {
+    alert("❌ Error: " + err.message);
   }
 }
 
