@@ -30,6 +30,45 @@ function getCustomerIdFromUrl() {
 }
 
 // ============================================================
+// 💰 OVERDUE INTEREST — Plan खत्म होने के बाद बचे पैसे पर लगेगा
+// 60 din plan -> Daily EMI ka 10%/din, 80 din -> 20%/din, 120 din -> 30%/din
+// ============================================================
+function getOverdueRate(planDur) {
+  if (planDur <= 60) return 0.10;
+  if (planDur <= 80) return 0.20;
+  return 0.30;
+}
+
+function calculateDueWithOverdue(cust) {
+  const planDur = Number(cust.planDuration || cust.duration || 60);
+  const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
+  const totalPaid = Number(cust.totalCollected || 0);
+  const loanAmount = Number(cust.loanAmount || 0);
+
+  const baseTotal = Math.max(loanAmount * 1.2, planDur * dailyEmi);
+  const baseRemaining = Math.max(0, baseTotal - totalPaid);
+
+  const loanDate = new Date(cust.loanDate || cust.startDate || new Date());
+  const today = new Date();
+  let daysElapsedRaw = Math.max(0, Math.floor((today - loanDate) / (1000 * 60 * 60 * 24))) + 1;
+
+  let overdueInterest = 0;
+  let extraDays = 0;
+  if (daysElapsedRaw > planDur && baseRemaining > 0) {
+    extraDays = daysElapsedRaw - planDur;
+    const rate = getOverdueRate(planDur);
+    overdueInterest = extraDays * (dailyEmi * rate);
+  }
+
+  return {
+    baseRemaining,
+    overdueInterest,
+    extraDays,
+    totalDue: Math.max(0, baseRemaining + overdueInterest)
+  };
+}
+
+// ============================================================
 // 🖥️ RENDER PROFILE (अब डॉक्यूमेंट्स के साथ)
 // ============================================================
 function renderProfile(cust, logs) {
@@ -38,8 +77,8 @@ function renderProfile(cust, logs) {
   const totalPaid = Number(cust.totalCollected || 0);
   const paidDays = Number(cust.paidDays || 0);
   const loanAmount = Number(cust.loanAmount || 0);
-  const expectedTotal = Math.max(loanAmount * 1.2, planDur * dailyEmi);
-  const remaining = Math.max(0, expectedTotal - totalPaid);
+  const dueInfo = calculateDueWithOverdue(cust);
+  const remaining = dueInfo.totalDue;
   const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
   const isSettled = (cust.status === 'Settled' || cust.status === 'Closed');
 
@@ -64,7 +103,7 @@ function renderProfile(cust, logs) {
         <div class="info-item"><div class="label">Loan Date</div><div class="value">${cust.loanDate || cust.startDate || 'N/A'}</div></div>
         <div class="info-item"><div class="label">Daily EMI</div><div class="value">₹${dailyEmi}</div></div>
         <div class="info-item"><div class="label">Plan Duration</div><div class="value">${planDur} Days</div></div>
-        <div class="info-item"><div class="label">Remaining</div><div class="value" style="color:#DC2626;">₹${remaining.toLocaleString('en-IN')}</div></div>
+        <div class="info-item"><div class="label">Remaining</div><div class="value" style="color:#DC2626;">₹${remaining.toLocaleString('en-IN')}</div>${dueInfo.overdueInterest > 0 ? `<div style="font-size:10px;color:#DC2626;font-weight:700;margin-top:2px;">⚠️ +₹${Math.round(dueInfo.overdueInterest).toLocaleString('en-IN')} Overdue (${dueInfo.extraDays} din)</div>` : ''}</div>
         <div class="info-item"><div class="label">Paid Days</div><div class="value">${paidDays} Days</div></div>
         <div class="info-item"><div class="label">Total Collected</div><div class="value">₹${totalPaid.toLocaleString('en-IN')}</div></div>
       </div>
@@ -321,16 +360,12 @@ async function generatePDF(cust, logs) {
     y += boxH + 4;
 
     // ---- REMAINING BALANCE (highlight, जैसे app screen पर दिखता है) ----
-    const planDur = Number(cust.planDuration || cust.duration || 60);
-    const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
-    const totalPaid = Number(cust.totalCollected || 0);
-    const loanAmount = Number(cust.loanAmount || 0);
-    const expectedTotal = Math.max(loanAmount * 1.2, planDur * dailyEmi);
-    const remaining = Math.max(0, expectedTotal - totalPaid);
+    const dueInfoPdf = calculateDueWithOverdue(cust);
+    const remaining = dueInfoPdf.totalDue;
 
     doc.setFillColor(remaining > 0 ? 254 : 236, remaining > 0 ? 242 : 253, remaining > 0 ? 242 : 245);
     doc.setDrawColor(remaining > 0 ? 220 : 180, remaining > 0 ? 38 : 220, remaining > 0 ? 38 : 150);
-    doc.rect(margin, y, pageW - (margin * 2), 12, 'FD');
+    doc.rect(margin, y, pageW - (margin * 2), dueInfoPdf.overdueInterest > 0 ? 18 : 12, 'FD');
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(remaining > 0 ? 185 : 5, remaining > 0 ? 28 : 120, remaining > 0 ? 28 : 70);
@@ -338,7 +373,17 @@ async function generatePDF(cust, logs) {
       remaining > 0 ? `REMAINING BALANCE: Rs. ${remaining.toLocaleString('en-IN')}` : 'ACCOUNT FULLY SETTLED',
       pageW / 2, y + 8, { align: 'center' }
     );
-    y += 18;
+    if (dueInfoPdf.overdueInterest > 0) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `(Includes overdue interest: Rs. ${Math.round(dueInfoPdf.overdueInterest).toLocaleString('en-IN')} for ${dueInfoPdf.extraDays} extra days)`,
+        pageW / 2, y + 14, { align: 'center' }
+      );
+      y += 24;
+    } else {
+      y += 18;
+    }
 
     // ---- KYC DETAILS BOX ----
     y = ensureSpace(doc, y, 30, margin);
