@@ -1,563 +1,244 @@
-// ============================================================
-// 🚀 GDA FINANCE - REPORT ENGINE (DEBUG VERSION)
-// ============================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reports - GDA Finance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --paper:#FAF6EE; --paper-line:#E5DAC0;
+      --card:#FFFFFF; --card-border:#EEE6D3;
+      --ink:#221733; --muted:#8B7FA0;
+      --plum:#3A1C62; --plum-deep:#2A1742;
+      --gold:#C8892C; --gold-bg:#FBEED2;
+      --success:#16A34A; --success-bg:#E9F9EF;
+      --danger:#DC2626; --danger-bg:#FDECEC;
+      --shadow:rgba(58,28,98,0.06);
+    }
+    [data-theme="dark"]{
+      --paper:#15101F; --paper-line:#382C50;
+      --card:#201934; --card-border:#362A4E;
+      --ink:#F3EDFF; --muted:#A99DC6;
+      --gold:#F0BF5C; --gold-bg:#3A2E14;
+      --success-bg:#12301F; --danger-bg:#3A1518;
+      --shadow:rgba(0,0,0,0.35);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body{background:var(--paper);min-height:100vh;padding-bottom:85px;transition:background .25s;}
 
-import { db, auth } from "./firebase.js";
-import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    /* HEADER */
+    .app-header{
+      background: linear-gradient(150deg,var(--plum-deep) 0%,var(--plum) 55%,#4C2A7A 100%);
+      padding:18px 16px 20px;border-radius:0 0 28px 28px;
+      display:flex;justify-content:space-between;align-items:center;
+      box-shadow:0 14px 34px rgba(42,23,66,0.32);position:sticky;top:0;z-index:20;
+    }
+    .gda-logo-container{display:flex;align-items:center;gap:12px;}
+    .gda-logo-icon{
+      width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#E91E63,#FF6F91);
+      display:flex;align-items:center;justify-content:center;
+      border:2px solid rgba(255,255,255,0.28);
+    }
+    .gda-logo-icon .material-symbols-outlined{font-size:25px;color:#fff;font-variation-settings:'FILL' 1;}
+    .gda-logo-text h1{font-family:'Fraunces',serif;font-size:23px;font-weight:800;line-height:1;color:#fff;}
+    .gda-logo-text p{margin-top:3px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:2.6px;color:#F0BF5C;}
+    .header-right{display:flex;align-items:center;gap:8px;}
+    .back-btn{background:rgba(255,255,255,0.13);color:#fff;border:1px solid rgba(255,255,255,0.16);padding:8px 13px;border-radius:12px;font-size:12px;font-weight:600;text-decoration:none;}
+    #themeToggle{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;}
+    #themeToggle .material-symbols-outlined{font-size:18px;}
 
-// ============================================================
-// ADMIN LOCK LOGIC (with Debugging)
-// ============================================================
-const ADMIN_PASSWORD = "GDA@2026"; // ✅ सही पासवर्ड (Case-Sensitive)
-const lockOverlay = document.getElementById('lockOverlay');
-const appContent = document.getElementById('appContent');
-const lockPassword = document.getElementById('lockPassword');
-const unlockBtn = document.getElementById('unlockBtn');
-const lockError = document.getElementById('lockError');
+    .container{padding:14px;max-width:600px;margin:0 auto;}
+    .controls{
+      background:var(--card);padding:16px;border-radius:20px;
+      box-shadow:0 8px 22px var(--shadow);border:1px solid var(--card-border);margin-bottom:14px;
+      position:relative;overflow:hidden;
+    }
+    .controls::before{
+      content:"";position:absolute;top:0;left:0;right:0;height:4px;
+      background:repeating-linear-gradient(90deg,var(--gold) 0 10px,transparent 10px 18px);opacity:.5;
+    }
+    .dateRow{display:flex;gap:10px;align-items:end;margin-bottom:12px;}
+    .dateRow label{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+    .dateRow input{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--paper);color:var(--ink);font-size:13px;font-weight:600;outline:none;}
+    .btnExp{background:var(--plum);color:#fff;padding:11px 15px;border-radius:12px;text-decoration:none;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;}
+    .tabs{display:flex;gap:5px;background:var(--paper);padding:4px;border-radius:12px;border:1px solid var(--card-border);}
+    .tab{flex:1;padding:9px;border:none;border-radius:8px;background:transparent;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;}
+    .tab.active{background:var(--plum);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 
-function checkLock() {
-  const unlocked = sessionStorage.getItem('reportUnlocked');
-  if (unlocked === 'true') {
-    lockOverlay.classList.add('hidden');
-    appContent.style.display = 'block';
-    initReport();
-  } else {
-    lockOverlay.classList.remove('hidden');
-    appContent.style.display = 'none';
-    lockPassword.value = ''; // Clear input
-    lockPassword.focus();
-  }
-}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .box{
+      background:var(--card);padding:16px 14px;border-radius:18px;
+      border:1px solid var(--card-border);box-shadow:0 5px 16px var(--shadow);
+      position:relative;overflow:hidden;
+    }
+    .box.full{grid-column:span 2;}
+    .box p{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;}
+    .box h3{font-family:'Fraunces',serif;font-size:19px;font-weight:800;color:var(--ink);}
+    .box.green h3{color:var(--success);} .box.green{background:var(--success-bg);}
+    .box.red h3{color:var(--danger);} .box.red{background:var(--danger-bg);}
+    .box.dark{background:linear-gradient(135deg,var(--plum-deep),#1E3A8A);border:none;}
+    .box.dark p{color:#C9B8E8;} .box.dark h3{color:#fff;}
+    .box.loading h3{opacity:0.35;}
+    .delta{display:inline-block;font-size:10.5px;font-weight:700;margin-top:4px;padding:2px 7px;border-radius:8px;}
+    .delta.up{color:var(--success);background:var(--success-bg);}
+    .delta.down{color:var(--danger);background:var(--danger-bg);}
+    .delta.flat{color:var(--muted);background:var(--paper);}
+    .trend-box canvas{width:100%;height:110px;margin-top:6px;}
+    .trend-box .trend-empty{font-size:12px;color:var(--muted);padding:16px 0;text-align:center;}
 
-function unlock() {
-  const entered = lockPassword.value.trim();
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:66px;background:var(--card);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid var(--card-border);z-index:100;}
+    .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--muted);font-size:9.5px;font-weight:600;gap:3px;}
+    .nav-item.active{color:#E91E63;font-weight:700;}
+    .nav-item .material-symbols-outlined{font-size:22px;}
 
-  if (entered === ADMIN_PASSWORD) {
-    sessionStorage.setItem('reportUnlocked', 'true');
-    lockOverlay.classList.add('hidden');
-    appContent.style.display = 'block';
-    initReport();
-  } else {
-    lockError.style.display = 'block';
-    lockPassword.value = '';
-    lockPassword.focus();
-  }
-}
+    /* ===== ADMIN LOCK OVERLAY ===== */
+    #lockOverlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(20,12,32,0.78);backdrop-filter:blur(10px);
+      display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;
+    }
+    #lockOverlay.hidden{display:none;}
+    .lock-box{
+      background:var(--card);border-radius:26px;padding:38px 28px;max-width:400px;width:100%;
+      text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.35);border:1px solid var(--card-border);
+    }
+    .lock-box .lock-icon{
+      width:64px;height:64px;border-radius:50%;background:var(--gold-bg);border:1.5px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;
+    }
+    .lock-box h2{font-family:'Fraunces',serif;font-size:21px;font-weight:800;color:var(--ink);margin-bottom:6px;}
+    .lock-box p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+    .lock-box input{
+      width:100%;padding:14px 16px;border:2px solid var(--card-border);background:var(--paper);color:var(--ink);
+      border-radius:14px;font-size:16px;outline:none;margin-bottom:14px;text-align:center;letter-spacing:4px;
+    }
+    .lock-box input:focus{border-color:var(--plum);box-shadow:0 0 0 4px rgba(58,28,98,0.1);}
+    .lock-box .btn-unlock{width:100%;padding:14px;background:var(--plum);color:#fff;border:none;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer;}
+    .lock-box .btn-unlock:active{transform:scale(0.96);}
+    .lock-box .error-msg{color:var(--danger);font-size:13px;font-weight:600;margin-top:10px;display:none;}
 
-lockPassword.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') unlock();
-});
-unlockBtn.addEventListener('click', unlock);
+    /* ===== BACKUP SECTION ===== */
+    .backup-section{margin-top:20px;}
+    .backup-section .box{border:2px dashed var(--gold);background:var(--gold-bg);padding:20px;}
+    .backup-section .box .title{font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .backup-section .box .title .material-symbols-outlined{font-size:20px;}
+    .backup-actions{display:flex;flex-wrap:wrap;gap:12px;}
+    .backup-actions button, .backup-actions label{
+      flex:1;min-width:150px;padding:14px 20px;border:none;border-radius:12px;
+      font-weight:700;font-size:14px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;
+    }
+    .backup-actions button:active, .backup-actions label:active{transform:scale(0.96);}
+    .btn-download{background:var(--plum);color:#fff;}
+    .btn-restore{background:var(--danger);color:#fff;}
+    .backup-status{margin-top:12px;font-size:13px;font-weight:600;display:none;padding:8px 12px;background:var(--card);border-radius:8px;border:1px solid var(--card-border);color:var(--ink);}
+  </style>
+</head>
+<body>
 
-// ============================================================
-// DOM Elements for Report
-// ============================================================
-const totalPortfolio = document.getElementById("totalPortfolio");
-const disbursement = document.getElementById("disbursement");
-const collectionEl = document.getElementById("collection");
-const interestIncome = document.getElementById("interestIncome");
-const totalExpensesEl = document.getElementById("totalExpenses");
-const netProfit = document.getElementById("netProfit");
-const totalDue = document.getElementById("totalDue");
-const newAccounts = document.getElementById("newAccounts");
-const reportDatePicker = document.getElementById("reportDatePicker");
-const btnDaily = document.getElementById("btnDaily");
-const btnMonthly = document.getElementById("btnMonthly");
-const btnQuarterly = document.getElementById("btnQuarterly");
-const btnYearly = document.getElementById("btnYearly");
+<!-- ===== ADMIN LOCK OVERLAY ===== -->
+<div id="lockOverlay">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <h2>Admin Access Required</h2>
+    <p>Enter the admin password to view reports</p>
+    <input type="password" id="lockPassword" placeholder="Enter password" autofocus>
+    <button class="btn-unlock" id="unlockBtn">Unlock Reports</button>
+    <div class="error-msg" id="lockError">❌ Incorrect password. Try again.</div>
+  </div>
+</div>
 
-let currentMode = "Monthly";
-const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-if (reportDatePicker) reportDatePicker.value = todayIST;
+<!-- ===== MAIN APP ===== -->
+<div id="appContent" style="display:none;">
+  <header class="app-header">
+    <div class="gda-logo-container">
+      <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+      <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
+    </div>
+    <div class="header-right">
+      <button id="themeToggle" aria-label="Toggle dark mode"><span class="material-symbols-outlined" id="themeIcon">dark_mode</span></button>
+      <a href="index.html" class="back-btn">← Back</a>
+    </div>
+  </header>
 
-function updateTabUI(activeBtn) {
-  [btnDaily, btnMonthly, btnQuarterly, btnYearly].forEach(btn => btn?.classList.remove("active"));
-  if (activeBtn) activeBtn.classList.add("active");
-}
+  <div class="container">
+    <div class="controls">
+      <div class="dateRow">
+        <div style="flex:1"><label>Select Date</label><br><input type="date" id="reportDatePicker"></div>
+        <a href="expense-manager.html" class="btnExp"><span class="material-symbols-outlined" style="font-size:18px;">add</span> Expense</a>
+      </div>
+      <div class="tabs">
+        <button class="tab" id="btnDaily">Daily</button>
+        <button class="tab active" id="btnMonthly">Monthly</button>
+        <button class="tab" id="btnQuarterly">Quarterly</button>
+        <button class="tab" id="btnYearly">Yearly</button>
+      </div>
+    </div>
 
-// ============================================================
-// 🔄 LOADING STATE — data आने तक boxes धुंधले रहेंगे, पुराने
-// numbers अचानक बदलते नहीं दिखेंगे
-// ============================================================
-function setLoading(isLoading) {
-  document.querySelectorAll('.grid .box').forEach(box => {
-    box.classList.toggle('loading', isLoading);
-  });
-}
+    <div class="grid">
+      <div class="box full dark"><p>Total Portfolio (Market Running)</p><h3 id="totalPortfolio">₹0</h3></div>
+      <div class="box"><p>Disbursement</p><h3 id="disbursement">₹0</h3><span class="delta" id="deltaDisbursement" style="display:none;"></span></div>
+      <div class="box green"><p>Collection</p><h3 id="collection">₹0</h3><span class="delta" id="deltaCollection" style="display:none;"></span></div>
+      <div class="box green"><p>Interest Income</p><h3 id="interestIncome">₹0</h3></div>
+      <div class="box red"><p>Total Expenses</p><h3 id="totalExpenses">₹0</h3></div>
+      <div class="box green"><p>Net Profit</p><h3 id="netProfit">₹0</h3><span class="delta" id="deltaNetProfit" style="display:none;"></span></div>
+      <div class="box red"><p>Total Due</p><h3 id="totalDue">₹0</h3></div>
+      <div class="box"><p>New Accounts</p><h3 id="newAccounts">0</h3></div>
+      <div class="box full trend-box"><p>Last 7 Days Collection Trend</p><canvas id="trendChart"></canvas></div>
+    </div>
 
-// ============================================================
-// 📆 पिछले period की तारीख-रेंज निकालना (तुलना के लिए)
-// ============================================================
-function getPreviousRange(mode, targetDateStr) {
-  const d = new Date(targetDateStr);
-  const yyyy = d.getFullYear();
-  const mm = d.getMonth();
+    <!-- ===== BACKUP & RESTORE ===== -->
+    <div class="backup-section">
+      <div class="box full">
+        <div class="title"><span class="material-symbols-outlined">backup</span> Data Management (Backup & Restore)</div>
+        <div class="backup-actions">
+          <button id="backupDownloadBtn" class="btn-download"><span class="material-symbols-outlined" style="font-size:20px;">download</span> Download Backup (JSON)</button>
+          <label for="restoreFileInput" class="btn-restore"><span class="material-symbols-outlined" style="font-size:20px;">upload_file</span> Upload & Restore Backup</label>
+          <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
+        </div>
+        <div id="backupStatus" class="backup-status"></div>
+      </div>
+    </div>
+  </div>
 
-  if (mode === "Daily") {
-    const prev = new Date(d);
-    prev.setDate(prev.getDate() - 1);
-    const s = prev.toISOString().split('T')[0];
-    return { startDateStr: s, endDateStr: s };
-  }
-  if (mode === "Monthly") {
-    const prevMonthDate = new Date(yyyy, mm - 1, 1);
-    const py = prevMonthDate.getFullYear();
-    const pm = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
-    const lastDay = new Date(py, prevMonthDate.getMonth() + 1, 0).getDate();
-    return { startDateStr: `${py}-${pm}-01`, endDateStr: `${py}-${pm}-${String(lastDay).padStart(2, '0')}` };
-  }
-  if (mode === "Yearly") {
-    return { startDateStr: `${yyyy - 1}-01-01`, endDateStr: `${yyyy - 1}-12-31` };
-  }
-  // Quarterly
-  const q = Math.floor(mm / 3);
-  const prevQ = q - 1;
-  const py = prevQ < 0 ? yyyy - 1 : yyyy;
-  const qStart = ((prevQ + 4) % 4) * 3;
-  const qEndMonth = qStart + 2;
-  const lastDay = new Date(py, qEndMonth + 1, 0).getDate();
-  return { startDateStr: `${py}-${String(qStart + 1).padStart(2, '0')}-01`, endDateStr: `${py}-${String(qEndMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` };
-}
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+    <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+    <a href="collection.html" class="nav-item"><span class="material-symbols-outlined">paid</span>Collect</a>
+    <a href="report.html" class="nav-item active"><span class="material-symbols-outlined">analytics</span>Reports</a>
+    <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+  </nav>
+</div>
 
-// ============================================================
-// 📊 Delta badge (▲/▼ %) दिखाना
-// ============================================================
-function renderDelta(elId, current, previous) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  if (previous <= 0) { el.style.display = 'none'; return; }
-  const pct = ((current - previous) / previous) * 100;
-  el.style.display = 'inline-block';
-  if (Math.abs(pct) < 1) {
-    el.className = 'delta flat';
-    el.innerText = '● Same as before';
-  } else if (pct > 0) {
-    el.className = 'delta up';
-    el.innerText = `▲ ${pct.toFixed(0)}% vs pichla period`;
-  } else {
-    el.className = 'delta down';
-    el.innerText = `▼ ${Math.abs(pct).toFixed(0)}% vs pichla period`;
-  }
-}
+<!-- 🌙 DARK MODE TOGGLE -->
+<script>
+  (function () {
+    const root = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeIcon');
+    const saved = localStorage.getItem('gdaTheme');
 
-// ============================================================
-// 📈 पिछले 7 दिन का Collection Trend — छोटा canvas chart
-// ============================================================
-function renderTrendChart(dailyTotals) {
-  try {
-    const canvas = document.getElementById('trendChart');
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    const dpr = window.devicePixelRatio || 1;
-    const cssW = canvas.clientWidth || parent.clientWidth || 300;
-    const cssH = 110;
-    canvas.width = cssW * dpr;
-    canvas.height = cssH * dpr;
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, cssW, cssH);
-
-    const values = dailyTotals.map(d => d.total);
-    const maxVal = Math.max(...values, 1);
-    const padding = 8;
-    const barGap = 8;
-    const barW = (cssW - padding * 2 - barGap * (values.length - 1)) / values.length;
-
-    values.forEach((val, i) => {
-      const barH = Math.max(2, (val / maxVal) * (cssH - 34));
-      const x = padding + i * (barW + barGap);
-      const y = cssH - barH - 20;
-
-      // Simple rectangle bar (roundRect कुछ पुराने Android WebView में
-      // सपोर्ट नहीं होता, इसलिए plain fillRect इस्तेमाल किया — हर
-      // device पर काम करेगा)
-      ctx.fillStyle = val > 0 ? '#3A1C62' : '#E2E8F0';
-      ctx.fillRect(x, y, barW, barH);
-
-      // Day label
-      ctx.fillStyle = '#94A3B8';
-      ctx.font = '9px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(dailyTotals[i].label, x + barW / 2, cssH - 6);
-
-      // Value label (सिर्फ अगर 0 से ज़्यादा हो)
-      if (val > 0) {
-        ctx.fillStyle = '#0F172A';
-        ctx.font = 'bold 8.5px Inter, sans-serif';
-        ctx.fillText(`₹${Math.round(val / 1000)}k`, x + barW / 2, y - 4);
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        icon.innerText = 'light_mode';
+      } else {
+        root.removeAttribute('data-theme');
+        icon.innerText = 'dark_mode';
       }
+    }
+    applyTheme(saved || 'light');
+
+    toggleBtn.addEventListener('click', () => {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const next = isDark ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('gdaTheme', next);
     });
-  } catch (err) {
-    console.error('Trend chart render error:', err);
-  }
-}
+  })();
+</script>
 
-// ============================================================
-// 💰 OVERDUE RATE — Plan खत्म होने के बाद Daily EMI का %
-// ============================================================
-function getOverdueRate(planDur) {
-  if (planDur <= 60) return 0.10;
-  if (planDur <= 80) return 0.20;
-  return 0.30;
-}
-
-// ============================================================
-// TOTAL DUE CALCULATION (अब Overdue Interest भी शामिल)
-// ============================================================
-function calculateTotalDue(customers, targetDateStr) {
-  const targetDate = new Date(targetDateStr);
-  let totalDue = 0;
-  customers.forEach(cust => {
-    // 🔥 FIX: Settled accounts भी Total Due से हट जाएँ (पहले सिर्फ Closed हटता था)
-    if (cust.status === "Closed" || cust.status === "Settled") return;
-    const dailyEmi = Number(cust.dailyEmi || cust.emi || 0);
-    if (dailyEmi <= 0) return;
-
-    const loanDate = new Date(cust.loanDate || cust.startDate || targetDateStr);
-    let diffDays = Math.floor((targetDate - loanDate) / (1000 * 60 * 60 * 24));
-    let daysElapsedRaw = Math.max(0, diffDays) + 1;
-    const planDur = Number(cust.planDuration || cust.duration || 60);
-    let daysElapsed = daysElapsedRaw;
-    if (daysElapsed > planDur) daysElapsed = planDur;
-
-    const expectedAmt = daysElapsed * dailyEmi;
-    const totalPaid = Number(cust.totalCollected || 0);
-    const baseDue = Math.max(0, expectedAmt - totalPaid);
-
-    let overdueInterest = 0;
-    if (daysElapsedRaw > planDur && baseDue > 0) {
-      const extraDays = daysElapsedRaw - planDur;
-      const rate = getOverdueRate(planDur);
-      overdueInterest = extraDays * (dailyEmi * rate);
-    }
-
-    totalDue += Math.max(0, baseDue + overdueInterest);
-  });
-  return totalDue;
-}
-
-// ============================================================
-// RENDER REPORT
-// ============================================================
-async function renderReport() {
-  const targetDate = reportDatePicker ? reportDatePicker.value : todayIST;
-  let startDateStr = "0000-00-00", endDateStr = targetDate;
-  const parsedDate = new Date(targetDate);
-  const yyyy = parsedDate.getFullYear();
-  const mm = String(parsedDate.getMonth() + 1).padStart(2, '0');
-
-  if (currentMode === "Daily") {
-    startDateStr = targetDate;
-  } else if (currentMode === "Monthly") {
-    startDateStr = `${yyyy}-${mm}-01`;
-    const lastDay = new Date(yyyy, parsedDate.getMonth() + 1, 0).getDate();
-    endDateStr = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
-  } else if (currentMode === "Yearly") {
-    startDateStr = `${yyyy}-01-01`;
-    endDateStr = `${yyyy}-12-31`;
-  } else if (currentMode === "Quarterly") {
-    const q = Math.floor(parsedDate.getMonth() / 3);
-    const qStart = q * 3;
-    startDateStr = `${yyyy}-${String(qStart + 1).padStart(2, '0')}-01`;
-    const qEndMonth = qStart + 2;
-    const lastDay = new Date(yyyy, qEndMonth + 1, 0).getDate();
-    endDateStr = `${yyyy}-${String(qEndMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-  }
-
-  const { startDateStr: prevStart, endDateStr: prevEnd } = getPreviousRange(currentMode, targetDate);
-
-  setLoading(true);
-
-  try {
-    // --- Expenses ---
-    let expensesSum = 0;
-    let expensesSumPrev = 0;
-    const expSnap = await getDocs(collection(db, "expenses"));
-    expSnap.forEach(doc => {
-      const data = doc.data();
-      const amt = Number(data.amount || 0);
-      if (data.date && data.date >= startDateStr && data.date <= endDateStr) expensesSum += amt;
-      if (data.date && data.date >= prevStart && data.date <= prevEnd) expensesSumPrev += amt;
-    });
-
-    // --- Collections ---
-    let lifetimeCollectionUptoTarget = 0;
-    let rangeCollectionSum = 0;
-    let rangeCollectionSumPrev = 0;
-    const last7 = [];
-    for (let i = 6; i >= 0; i--) {
-      const dt = new Date(targetDate);
-      dt.setDate(dt.getDate() - i);
-      const key = dt.toISOString().split('T')[0];
-      const label = dt.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3);
-      last7.push({ key, label, total: 0 });
-    }
-    const last7Map = {};
-    last7.forEach(d => { last7Map[d.key] = d; });
-
-    const colSnap = await getDocs(collection(db, "collections"));
-    colSnap.forEach(doc => {
-      const data = doc.data();
-      const amt = Number(data.amount || 0);
-      if (data.date && data.date <= targetDate) lifetimeCollectionUptoTarget += amt;
-      if (data.date && data.date >= startDateStr && data.date <= endDateStr) rangeCollectionSum += amt;
-      if (data.date && data.date >= prevStart && data.date <= prevEnd) rangeCollectionSumPrev += amt;
-      if (data.date && last7Map[data.date]) last7Map[data.date].total += amt;
-    });
-
-    // --- Customers ---
-    const custSnap = await getDocs(collection(db, "customers"));
-    let lifetimeDisbursementUptoTarget = 0;
-    let lifetimeInterestUptoTarget = 0;
-    let lifetimeWriteOffUptoTarget = 0; // 🔥 Settled/Closed accounts में जो interest छोड़ा गया
-    let rangeDisbursementSum = 0;
-    let rangeInterestSum = 0;
-    let rangeAccountsCount = 0;
-    let rangeDisbursementSumPrev = 0;
-    let rangeInterestSumPrev = 0;
-    const allCustomers = [];
-
-    custSnap.forEach(doc => {
-      const cust = doc.data();
-      const loanAmt = Number(cust.loanAmount || 0);
-      const isSettledCust = (cust.status === 'Settled' || cust.status === 'Closed');
-      allCustomers.push({ ...cust, id: doc.id });
-
-      let loanDateStr = '';
-      if (cust.loanDate) {
-        if (typeof cust.loanDate === 'string') {
-          loanDateStr = cust.loanDate;
-        } else if (cust.loanDate.toDate) {
-          loanDateStr = cust.loanDate.toDate().toISOString().split('T')[0];
-        } else if (cust.loanDate instanceof Date) {
-          loanDateStr = cust.loanDate.toISOString().split('T')[0];
-        }
-      }
-      if (!loanDateStr && cust.startDate) {
-        if (typeof cust.startDate === 'string') {
-          loanDateStr = cust.startDate;
-        } else if (cust.startDate.toDate) {
-          loanDateStr = cust.startDate.toDate().toISOString().split('T')[0];
-        } else if (cust.startDate instanceof Date) {
-          loanDateStr = cust.startDate.toISOString().split('T')[0];
-        }
-      }
-
-      if (loanDateStr && loanDateStr <= targetDate) {
-        lifetimeDisbursementUptoTarget += loanAmt;
-        lifetimeInterestUptoTarget += (loanAmt * 0.20);
-
-        // 🔥 FIX: Settle करते वक्त जो amount छोड़ा गया, उसे "Portfolio" से हमेशा के लिए हटा दें
-        // वरना settled loan का बचा हुआ हिस्सा हमेशा "outstanding portfolio" जैसा दिखता रहेगा
-        if (isSettledCust) {
-          const expectedTotalForCust = Math.max(loanAmt * 1.2, Number(cust.planDuration || cust.duration || 60) * Number(cust.dailyEmi || cust.emi || 0));
-          const collectedForCust = Number(cust.totalCollected || 0);
-          lifetimeWriteOffUptoTarget += Math.max(0, expectedTotalForCust - collectedForCust);
-        }
-      }
-      if (loanDateStr && loanDateStr >= startDateStr && loanDateStr <= endDateStr) {
-        rangeDisbursementSum += loanAmt;
-        rangeInterestSum += (loanAmt * 0.20);
-        if (cust.status !== "Closed") rangeAccountsCount++;
-      }
-      if (loanDateStr && loanDateStr >= prevStart && loanDateStr <= prevEnd) {
-        rangeDisbursementSumPrev += loanAmt;
-        rangeInterestSumPrev += (loanAmt * 0.20);
-      }
-    });
-
-    // Total Due
-    const totalOverdue = calculateTotalDue(allCustomers, targetDate);
-
-    const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
-    const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget - lifetimeWriteOffUptoTarget);
-    const netProfitSum = rangeInterestSum - expensesSum;
-    const netProfitSumPrev = rangeInterestSumPrev - expensesSumPrev;
-
-    // Render UI
-    if (totalPortfolio) totalPortfolio.innerText = `₹${Math.round(portfolioRemaining).toLocaleString('en-IN')}`;
-    if (disbursement) disbursement.innerText = `₹${Math.round(rangeDisbursementSum).toLocaleString('en-IN')}`;
-    if (collectionEl) collectionEl.innerText = `₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')}`;
-    if (interestIncome) interestIncome.innerText = `₹${Math.round(rangeInterestSum).toLocaleString('en-IN')}`;
-    if (totalExpensesEl) totalExpensesEl.innerText = `₹${Math.round(expensesSum).toLocaleString('en-IN')}`;
-    if (netProfit) netProfit.innerText = `₹${Math.round(netProfitSum).toLocaleString('en-IN')}`;
-    if (totalDue) totalDue.innerText = `₹${Math.round(totalOverdue).toLocaleString('en-IN')}`;
-    if (newAccounts) newAccounts.innerText = rangeAccountsCount;
-
-    renderDelta('deltaDisbursement', rangeDisbursementSum, rangeDisbursementSumPrev);
-    renderDelta('deltaCollection', rangeCollectionSum, rangeCollectionSumPrev);
-    renderDelta('deltaNetProfit', netProfitSum, netProfitSumPrev);
-
-    renderTrendChart(last7);
-
-  } catch (err) {
-    console.error("Report render error:", err);
-  } finally {
-    setLoading(false);
-  }
-}
-
-// ============================================================
-// BACKUP & RESTORE
-// ============================================================
-async function downloadBackup() {
-  const statusDiv = document.getElementById("backupStatus");
-  statusDiv.style.display = 'block';
-  statusDiv.innerText = '⏳ Preparing backup... Please wait.';
-  statusDiv.style.color = '#f59e0b';
-
-  try {
-    const collections = ['customers', 'collections', 'expenses', 'metadata'];
-    let backupData = {};
-
-    for (const colName of collections) {
-      const snapshot = await getDocs(collection(db, colName));
-      backupData[colName] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      }));
-    }
-
-    backupData._backupInfo = {
-      generatedAt: new Date().toISOString(),
-      version: 'GDA_Backup_v1',
-      totalCustomers: backupData.customers?.length || 0,
-      totalCollections: backupData.collections?.length || 0
-    };
-
-    const jsonStr = JSON.stringify(backupData, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const dateStr = new Date().toISOString().slice(0, 10);
-    a.download = `GDA_Backup_${dateStr}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    statusDiv.innerText = `✅ Backup successful! (${backupData._backupInfo.totalCustomers} customers, ${backupData._backupInfo.totalCollections} collections)`;
-    statusDiv.style.color = '#10b981';
-    setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
-
-  } catch (err) {
-    console.error('Backup Error:', err);
-    statusDiv.innerText = '❌ Error: ' + err.message;
-    statusDiv.style.color = '#d32f2f';
-  }
-}
-
-async function restoreBackup(file) {
-  const statusDiv = document.getElementById("backupStatus");
-  statusDiv.style.display = 'block';
-
-  if (!file) {
-    statusDiv.innerText = '❌ No file selected!';
-    statusDiv.style.color = '#d32f2f';
-    return;
-  }
-
-  if (!confirm("⚠️ WARNING: This will OVERWRITE all existing data in Firestore!\n\nAapka current data pehle safety ke liye download ho jayega, uske baad restore shuru hoga.\n\nContinue karein?")) {
-    statusDiv.innerText = '⏹️ Restore cancelled.';
-    statusDiv.style.color = '#64748B';
-    setTimeout(() => { statusDiv.style.display = 'none'; }, 2000);
-    return;
-  }
-
-  // Restore se pehle current data ki ek safety copy download kar lo
-  statusDiv.innerText = '⏳ Safety backup le rahe hain (restore se pehle)...';
-  statusDiv.style.color = '#f59e0b';
-  await downloadBackup();
-
-  try {
-    statusDiv.innerText = '⏳ Reading backup file...';
-    statusDiv.style.color = '#f59e0b';
-    const text = await file.text();
-    const backupData = JSON.parse(text);
-
-    if (!backupData.customers || !backupData.collections) {
-      throw new Error('Invalid backup file! Missing required collections.');
-    }
-
-    statusDiv.innerText = '⏳ Restoring data... This may take a few moments.';
-
-    const collections = ['customers', 'collections', 'expenses', 'metadata'];
-    let totalWritten = 0;
-
-    for (const colName of collections) {
-      if (!backupData[colName]) continue;
-      const docs = backupData[colName];
-      let batch = writeBatch(db);
-      let batchCount = 0;
-      for (let i = 0; i < docs.length; i++) {
-        const docData = docs[i];
-        const docRef = doc(db, colName, docData.id);
-        const { id, ...rest } = docData;
-        batch.set(docRef, rest, { merge: true });
-        batchCount++;
-        totalWritten++;
-        if (batchCount === 500 || i === docs.length - 1) {
-          await batch.commit();
-          batch = writeBatch(db);
-          batchCount = 0;
-        }
-      }
-    }
-
-    statusDiv.innerText = `✅ Restore successful! ${totalWritten} documents updated.`;
-    statusDiv.style.color = '#10b981';
-    alert(`✅ Restore complete!\n${totalWritten} documents restored.\nPlease refresh the page to see the updated data.`);
-    window.location.reload();
-
-  } catch (err) {
-    console.error('Restore Error:', err);
-    statusDiv.innerText = '❌ Restore failed: ' + err.message;
-    statusDiv.style.color = '#d32f2f';
-  }
-}
-
-// ============================================================
-// INITIALIZATION
-// ============================================================
-function initReport() {
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      location.href = "login.html";
-    } else {
-      renderReport();
-    }
-  });
-
-  // Tabs
-  btnDaily.onclick = () => { currentMode = "Daily"; updateTabUI(btnDaily); renderReport(); };
-  btnMonthly.onclick = () => { currentMode = "Monthly"; updateTabUI(btnMonthly); renderReport(); };
-  btnQuarterly.onclick = () => { currentMode = "Quarterly"; updateTabUI(btnQuarterly); renderReport(); };
-  btnYearly.onclick = () => { currentMode = "Yearly"; updateTabUI(btnYearly); renderReport(); };
-  reportDatePicker.onchange = () => renderReport();
-
-  // Logout
-  document.getElementById("logoutBtn").onclick = async (e) => {
-    e.preventDefault();
-    sessionStorage.removeItem('reportUnlocked');
-    await signOut(auth);
-    location.href = "login.html";
-  };
-
-  // Backup & Restore
-  document.getElementById('backupDownloadBtn').addEventListener('click', downloadBackup);
-  document.getElementById('restoreFileInput').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      restoreBackup(file);
-    }
-    e.target.value = '';
-  });
-}
-
-// ============================================================
-// START – LOCK CHECK
-// ============================================================
-checkLock();
+<script type="module" src="report.js"></script>
+</body>
+</html>
