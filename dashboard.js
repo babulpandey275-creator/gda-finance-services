@@ -53,6 +53,7 @@ export async function loadDashboard() {
         let active = 0;
         let totalDemand = 0;
         const dueCustomers = []; // जिन्होंने आज नहीं दिया
+        const renewalCandidates = []; // 🔥 जिनका Plan अगले 7 दिन में खत्म होने वाला है
 
         custSnap.forEach(doc => {
             const cust = doc.data();
@@ -74,7 +75,38 @@ export async function loadDashboard() {
                     emi: dailyEmi
                 });
             }
+
+            // ---- 🔥 Renewal Due Soon Check (Settled को छोड़कर) ----
+            if (cust.status !== 'Settled') {
+                const planDur = Number(cust.planDuration || cust.duration || 60);
+                const loanDate = new Date(cust.loanDate || cust.startDate || todayIST);
+                const today = new Date();
+                const daysElapsed = Math.max(0, Math.floor((today - loanDate) / (1000 * 60 * 60 * 24))) + 1;
+                const daysLeft = planDur - daysElapsed;
+
+                if (daysLeft >= 0 && daysLeft <= 7) {
+                    const loanAmount = Number(cust.loanAmount || 0);
+                    const totalPaid = Number(cust.totalCollected || 0);
+                    const expectedTotal = Math.max(loanAmount * 1.2, planDur * dailyEmi);
+                    const remaining = Math.max(0, expectedTotal - totalPaid);
+                    const fullyPaid = remaining <= 0;
+
+                    renewalCandidates.push({
+                        id: doc.id,
+                        name: cust.name || "N/A",
+                        code: cust.customerCode || "GDA",
+                        mobile: cust.mobile || "",
+                        daysLeft,
+                        fullyPaid,
+                        remaining,
+                        emi: dailyEmi
+                    });
+                }
+            }
         });
+
+        // सबसे जल्दी खत्म होने वाला सबसे ऊपर
+        renewalCandidates.sort((a, b) => a.daysLeft - b.daysLeft);
 
         // ---- 3. Calculate Today's Overdue ----
         const overdueToday = Math.max(0, totalDemand - todayCollected);
@@ -108,6 +140,51 @@ export async function loadDashboard() {
                         </div>
                     </div>
                 `).join('');
+            }
+        }
+
+        // ---- 6. Render Loan Renewal Due Soon ----
+        const renewalSection = document.getElementById("renewalSection");
+        const renewalList = document.getElementById("renewalList");
+        const renewalCountBadge = document.getElementById("renewalCountBadge");
+        if (renewalSection && renewalList) {
+            if (renewalCandidates.length === 0) {
+                renewalSection.style.display = "none";
+            } else {
+                renewalSection.style.display = "block";
+                if (renewalCountBadge) renewalCountBadge.innerText = renewalCandidates.length;
+                renewalList.innerHTML = renewalCandidates.map(c => {
+                    const dayLabel = c.daysLeft === 0 ? "आज खत्म" : `${c.daysLeft} din baaki`;
+                    if (c.fullyPaid) {
+                        return `
+                        <div class="renewal-item">
+                            <div class="r-info">
+                                <h4>${c.name} <small style="color:#64748B;">(${c.code})</small></h4>
+                                <small>${dayLabel}</small>
+                                <span class="renewal-badge ready">✅ Poora Paid — Renew Ready</span>
+                            </div>
+                            <div class="r-action">
+                                <a class="act-renew" href="statement.html?id=${c.id}">Renew</a>
+                            </div>
+                        </div>`;
+                    } else {
+                        const msg = encodeURIComponent(
+                            `Namaste ${c.name} ji,\n\nAapke GDA Finance Services loan ka plan ${dayLabel === "आज खत्म" ? "aaj khatam ho raha hai" : `sirf ${c.daysLeft} din mein khatam ho raha hai`}.\nAbhi ₹${c.remaining.toLocaleString('en-IN')} baki hai.\n\nKripya jald se jald payment poora kar dein.\n\nDhanyawad,\nGDA Finance Services`
+                        );
+                        const waLink = c.mobile ? `https://wa.me/91${c.mobile}?text=${msg}` : "#";
+                        return `
+                        <div class="renewal-item">
+                            <div class="r-info">
+                                <h4>${c.name} <small style="color:#64748B;">(${c.code})</small></h4>
+                                <small>${dayLabel} · ⚠️ ₹${c.remaining.toLocaleString('en-IN')} baki</small>
+                                <span class="renewal-badge pending">⚠️ Payment Baki</span>
+                            </div>
+                            <div class="r-action">
+                                <a class="act-remind" href="${waLink}" target="_blank">💬 Remind</a>
+                            </div>
+                        </div>`;
+                    }
+                }).join('');
             }
         }
 
