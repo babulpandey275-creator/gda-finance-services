@@ -113,7 +113,14 @@ async function loadFilteredHistory(startStr, endStr, rangeLabel) {
             if (!data.date) return;
             const normDate = normalizeDate(data.date);
             if (normDate && normDate >= startStr && normDate <= endStr) {
-                logArray.push({ id: docSnap.id, ...data, normDate });
+                const linked = customerMap[data.customerId] || {};
+                logArray.push({
+                    id: docSnap.id,
+                    ...data,
+                    normDate,
+                    resolvedName: data.customerName || linked.name || "Unknown Customer",
+                    resolvedMobile: data.customerMobile || data.mobile || linked.mobile || "Not Recorded"
+                });
                 totalAmount += Number(data.amount || 0);
             }
         });
@@ -132,12 +139,10 @@ async function loadFilteredHistory(startStr, endStr, rangeLabel) {
         logArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
         logArray.forEach((collect) => {
-            const linkedCustomer = customerMap[collect.customerId] || {};
-
             let finalDateDisplay = collect.date || (collect.createdAt ? collect.createdAt.split("T")[0] : "-");
-            let finalNameDisplay = collect.customerName || linkedCustomer.name || "Unknown Customer";
-            let finalMobileDisplay = collect.customerMobile || collect.mobile || linkedCustomer.mobile || "Not Recorded";
-            let memberIdDisplay = collect.customerCode || collect.memberId || linkedCustomer.customerCode || linkedCustomer.memberId || "";
+            let finalNameDisplay = collect.resolvedName;
+            let finalMobileDisplay = collect.resolvedMobile;
+            let memberIdDisplay = collect.customerCode || collect.memberId || (customerMap[collect.customerId] || {}).customerCode || (customerMap[collect.customerId] || {}).memberId || "";
             let paymentMode = collect.mode || "Cash";
             let transactionNote = collect.note || "EMI Collection";
 
@@ -230,8 +235,8 @@ function generateCollectionPDF() {
             doc.setFontSize(8.5);
         }
 
-        const name = collect.customerName || 'N/A';
-        const mobile = collect.customerMobile || collect.mobile || 'N/A';
+        const name = collect.resolvedName || 'N/A';
+        const mobile = collect.resolvedMobile || 'N/A';
         const mode = collect.mode || 'Cash';
         const amt = Number(collect.amount || 0);
         const dateDisp = collect.date || '-';
