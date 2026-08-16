@@ -188,6 +188,32 @@
       font-size:9.5px; font-weight:700; margin-top:4px;
     }
 
+    /* ===== ⏰ LOAN RENEWAL DUE SOON ===== */
+    #renewalSection { display:none; }
+    .renewal-head {
+      padding: 13px 16px; display:flex; justify-content:space-between; align-items:center;
+      background: var(--gold-bg); border-bottom: 1px dashed var(--gold);
+    }
+    .renewal-head h3 { font-size:12px; font-weight:800; color:var(--gold); }
+    .renewal-item {
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 12px 16px; border-bottom: 1px dashed var(--paper-line); gap:10px;
+    }
+    .renewal-item:last-child { border-bottom:none; }
+    .renewal-item .r-info h4 { font-size:12.5px; font-weight:800; color:var(--ink); }
+    .renewal-item .r-info small { font-size:10.5px; color:var(--muted); display:block; margin-top:2px; }
+    .renewal-badge {
+      font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:3px;
+    }
+    .renewal-badge.ready { background:var(--success-bg, #E9F9EF); color:var(--success, #16A34A); }
+    .renewal-badge.pending { background:var(--danger-bg, #FDECEC); color:var(--danger, #DC2626); }
+    .renewal-item .r-action a {
+      display:inline-block; padding:6px 11px; border-radius:8px; text-decoration:none;
+      font-size:10px; font-weight:800; text-align:center; white-space:nowrap;
+    }
+    .r-action a.act-renew { background:var(--success, #16A34A); color:#fff; }
+    .r-action a.act-remind { background:#25D366; color:#fff; }
+
     /* ===== BOTTOM NAV ===== */
     .bottom-nav {
       position: fixed; bottom:0; left:0; right:0; height:66px;
@@ -268,6 +294,15 @@
       </div>
       <div class="row-value plain" id="txtTodayDemand">₹0</div>
     </div>
+  </div>
+
+  <!-- ⏰ LOAN RENEWAL DUE SOON -->
+  <div class="due-section" id="renewalSection">
+    <div class="renewal-head">
+      <h3>⏰ Loan Renewal Due Soon (अगले 7 दिन)</h3>
+      <span style="font-size:11px; background:var(--gold); color:#fff; padding:5px 10px; border-radius:20px; font-weight:700;" id="renewalCountBadge">0</span>
+    </div>
+    <div id="renewalList"></div>
   </div>
 
   <!-- QUICK NAVIGATION -->
