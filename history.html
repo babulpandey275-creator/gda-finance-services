@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         /* ===== नया (New) – Company Header के लिए CSS – बाकी सब आपके style.css पर निर्भर (Dependent) ===== */
         .company-header {
@@ -120,6 +121,49 @@
             .filter-bar .total-amount { margin-left: 0; width: 100%; text-align: center; }
         }
 
+        /* ===== नया — Daily/Weekly/Monthly Mode Tabs ===== */
+        .mode-tabs { display:flex; gap:6px; width:100%; margin-bottom:4px; }
+        .mode-tab {
+            flex:1; padding:9px; border-radius:8px; border:1.5px solid #E2E8F0;
+            background:#fff; font-weight:700; font-size:12.5px; color:#64748B; cursor:pointer;
+        }
+        .mode-tab.active { background: var(--primary, #0B3D91); color:#fff; border-color: var(--primary, #0B3D91); }
+        .btn-pdf-download {
+            background:#DC2626; color:#fff; border:none; padding:8px 16px; border-radius:6px;
+            font-weight:600; cursor:pointer; font-size:14px;
+            display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .btn-pdf-download:active { transform: scale(0.96); }
+
+        /* ===== 🌙 DARK MODE ===== */
+        #themeToggle {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #fff; margin-right: 8px;
+        }
+        #themeToggle .material-symbols-outlined { font-size: 19px; }
+
+        [data-theme="dark"] {
+            --bg: #15101F;
+            --card: #201934;
+            --text: #F3EDFF;
+            --text-light: #A99DC6;
+        }
+        [data-theme="dark"] .table-responsive { background: var(--card); }
+        [data-theme="dark"] td { border-bottom: 1px solid #362A4E; color: var(--text); }
+        [data-theme="dark"] th { background: #241B3A; }
+        [data-theme="dark"] .bottom-nav { background: var(--card); box-shadow: 0 -4px 20px rgba(0,0,0,0.4); }
+        [data-theme="dark"] .filter-bar { background: #241B3A; border-color: #362A4E; }
+        [data-theme="dark"] .filter-bar input[type="date"],
+        [data-theme="dark"] .filter-bar input[type="month"] { background: #15101F; color: #F3EDFF; border-color: #362A4E; }
+        [data-theme="dark"] .total-amount { background: #362A4E; color: #F0BF5C; }
+        [data-theme="dark"] .mode-tab { background: #201934; color: #A99DC6; border-color: #362A4E; }
+        [data-theme="dark"] .mode-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        [data-theme="dark"] .dashboard-card { background: var(--card); border-color: #362A4E; }
+        [data-theme="dark"] .footer { color: var(--text-light); }
+        [data-theme="dark"] table span.badge { background: #362A4E !important; color: #F3EDFF !important; }
+
         body {
             display: flex;
             flex-direction: column;
@@ -144,7 +188,12 @@
                 <p>Finance Services</p>
             </div>
         </div>
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button id="themeToggle" aria-label="Toggle dark mode">
+                <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+            </button>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
     </header>
 
     <!-- Sidebar (बिल्कुल वैसा ही) -->
@@ -168,10 +217,17 @@
                     <i class="fas fa-list-check" style="color: var(--primary);"></i> Recent Transactions 
                 </h2> 
 
-                <!-- Date Filter Bar (पहले जैसा ही) -->
+                <!-- Date Filter Bar (Daily/Weekly/Monthly) -->
                 <div class="filter-bar">
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" id="modeDaily">📅 Daily</button>
+                        <button class="mode-tab" id="modeWeekly">🗓️ Weekly</button>
+                        <button class="mode-tab" id="modeMonthly">📆 Monthly</button>
+                    </div>
                     <input type="date" id="historyDatePicker">
+                    <input type="month" id="historyMonthPicker" style="display:none;">
                     <button class="btn-today" id="btnToday"><i class="fas fa-calendar-check"></i> Today</button>
+                    <button class="btn-pdf-download" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> PDF Report</button>
                     <span class="total-amount" id="totalAmountLabel">₹0</span>
                 </div>
 
@@ -215,6 +271,34 @@
         <a href="collection.html"><i class="fas fa-hand-holding-usd"></i><span>Collect</span></a> 
         <a href="report.html"><i class="fas fa-chart-line"></i><span>Reports</span></a> 
     </div> 
+
+    <!-- 🌙 DARK MODE TOGGLE -->
+    <script>
+      (function () {
+        const root = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeIcon');
+        const saved = localStorage.getItem('gdaTheme');
+
+        function applyTheme(theme) {
+          if (theme === 'dark') {
+            root.setAttribute('data-theme', 'dark');
+            icon.innerText = 'light_mode';
+          } else {
+            root.removeAttribute('data-theme');
+            icon.innerText = 'dark_mode';
+          }
+        }
+        applyTheme(saved || 'light');
+
+        toggleBtn.addEventListener('click', () => {
+          const isDark = root.getAttribute('data-theme') === 'dark';
+          const next = isDark ? 'light' : 'dark';
+          applyTheme(next);
+          localStorage.setItem('gdaTheme', next);
+        });
+      })();
+    </script>
 
     <!-- 🔥 JS – `history.js` (जो आपने पहले (Earlier) अपडेट (Update) किया था – वही (Same) रहेगा) -->
     <script type="module" src="history.js"></script> 
