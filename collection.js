@@ -9,6 +9,23 @@ window.addEventListener('DOMContentLoaded', async () => {
     const collectAmount = document.getElementById("collectAmount");
     const collectionDate = document.getElementById("collectionDate");
     const submitCollectionBtn = document.getElementById("submitCollectionBtn");
+    const modeCashBtn = document.getElementById("modeCashBtn");
+    const modeUpiBtn = document.getElementById("modeUpiBtn");
+
+    // 💳 Payment Mode Toggle (डिफ़ॉल्ट: Cash)
+    let selectedMode = "Cash";
+    if (modeCashBtn && modeUpiBtn) {
+        modeCashBtn.addEventListener("click", () => {
+            selectedMode = "Cash";
+            modeCashBtn.classList.add("active");
+            modeUpiBtn.classList.remove("active");
+        });
+        modeUpiBtn.addEventListener("click", () => {
+            selectedMode = "UPI";
+            modeUpiBtn.classList.add("active");
+            modeCashBtn.classList.remove("active");
+        });
+    }
     const detailsBox = document.getElementById("customerDetailsBox");
     const txtEmi = document.getElementById("txtEmi");
     const txtRemaining = document.getElementById("txtRemaining");
@@ -43,6 +60,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const dailyEmi = Number(data.dailyEmi || data.dailyCollection || 0);
                 const loanAmount = Number(data.loanAmount || 0);
                 const planDuration = Number(data.planDuration || data.duration || 60);
+                // 🔥 FIX: totalPayable missing ho to baaki pages jaisa hi fallback (loanAmount*1.2 ya planDuration*dailyEmi)
                 const totalTarget = Number(data.totalCollection || data.totalPayable || Math.max(loanAmount * 1.2, planDuration * dailyEmi) || 0);
                 const collectedSoFar = Number(data.totalCollected || 0);
                 const remaining = Math.max(0, totalTarget - collectedSoFar);
@@ -71,6 +89,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 submitCollectionBtn.disabled = true;
                 submitCollectionBtn.innerText = "⏳ Saving...";
 
+                // 🔥 FIX: Same din double payment block
                 const dupQuery = query(collection(db, "collections"), where("customerId", "==", selectedId), where("date", "==", date));
                 const dupSnap = await getDocs(dupQuery);
                 if(!dupSnap.empty){
@@ -84,6 +103,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     customerId: selectedId,
                     amount: amount,
                     date: date,
+                    mode: selectedMode,
                     note: "EMI Received",
                     timestamp: new Date()
                 });
