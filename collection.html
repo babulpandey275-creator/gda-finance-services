@@ -59,6 +59,16 @@ body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
 .btn-submit:disabled{background:#E2E8F0;color:#94A3B8;box-shadow:none;}
 .btn-link{display:block;text-align:center;margin-top:14px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;}
 
+/* ===== 💳 PAYMENT MODE TOGGLE (Cash / UPI) ===== */
+.mode-toggle{display:flex;gap:10px;}
+.mode-btn{
+  flex:1;padding:13px;border-radius:14px;border:1.5px solid #E9D5FF;
+  background:#FCF8FF;font-size:14px;font-weight:800;color:var(--muted);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.mode-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.mode-btn.active.upi{background:#0F9D58;border-color:#0F9D58;}
+
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #F3E8FF;z-index:100;}
 .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:#A8A0B5;font-size:10px;font-weight:600;gap:3px;}
 .navItem.active .material-symbols-outlined{color:var(--pink);} .nav-item.active{color:var(--pink);font-weight:700;}
@@ -92,6 +102,14 @@ body{background:var(--bg);min-height:100vh;padding-bottom:85px;}
     <div class="form-group">
       <label>Amount to Collect (₹)</label>
       <input type="number" id="collectAmount" placeholder="Enter installment amount">
+    </div>
+
+    <div class="form-group">
+      <label>Payment Mode</label>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" id="modeCashBtn">💵 Cash</button>
+        <button type="button" class="mode-btn upi" id="modeUpiBtn">📲 UPI</button>
+      </div>
     </div>
 
     <div id="customerDetailsBox" class="details-box">
