@@ -14,6 +14,7 @@
     .header p { font-size:11px; font-weight:700; color:#64748B; letter-spacing:2.5px; text-transform:uppercase; margin-top:4px; }
     .bond-title { text-align:center; font-size:15px; font-weight:800; color:#0F172A; margin:12px 0 18px; background:#F8FAFF; padding:8px; border-radius:8px; }
     
+    /* Photo Box */
     .photo-box { 
       float:right; width:100px; height:120px; border:2px solid #E2E8F0; border-radius:10px; 
       overflow:hidden; margin-left:16px; margin-bottom:10px; 
@@ -34,20 +35,22 @@
     .terms ol { font-size:11px; color:#334155; line-height:1.7; padding-left:18px; }
     .terms ol li { margin-bottom:6px; }
     
+    /* ✅ STAMP AREA - अब आपकी असली इमेज दिखेगी */
     .stamp-area { text-align:center; margin-top:30px; }
     .stamp-area p { font-size:12px; font-weight:700; color:#1E3A8A; margin-bottom:8px; }
     .stamp { 
       width:130px; height:130px; border:2.5px solid #5B21B6; border-radius:50%; 
       margin:0 auto; display:flex; align-items:center; justify-content:center; 
-      background:#fff; overflow:hidden;
+      background:#fff; overflow:hidden; /* 🔥 नई लाइन: ताकि इमेज बाहर न जाए */ 
     }
     .stamp img {
       width:100%; 
       height:100%; 
-      object-fit:contain;
-      padding:8px;
+      object-fit:contain; /* पूरी इमेज दिखेगी, कटेगी नहीं */
+      padding:8px; /* थोड़ा बॉर्डर का गैप */
       background:#fff;
     }
+    /* Backup text, अगर इमेज न लोड हो तो */
     .stamp .fallback-text {
       display: none;
       font-size:10px; font-weight:800; color:#5B21B6; text-align:center; line-height:1.4;
@@ -140,6 +143,17 @@
       </div>
     </div>
 
+    <!-- CUSTOMER THUMB IMPRESSION -->
+    <div class="sign-block" id="thumbBlock">
+      <p>Customer Thumb Impression (अंगूठा निशानी)</p>
+      <canvas id="thumbPad"></canvas>
+      <p class="sig-hint">अंगूठा यहाँ रखें और हल्का घुमाएं</p>
+      <div class="sig-actions" id="thumbActions">
+        <button type="button" class="btn-sig-clear" id="thumbClearBtn">Clear</button>
+        <button type="button" class="btn-sig-save" id="thumbSaveBtn">Save Thumb Impression</button>
+      </div>
+    </div>
+
     <!-- COMPANY STAMP -->
     <div class="sign-block">
       <p>For GDA Finance Services</p>
@@ -159,6 +173,7 @@
 </div>
 
 <script type="module">
+  // ---------- FIREBASE IMPORT ----------
   import { db } from "./firebase.js";
   import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
@@ -179,6 +194,7 @@
       }
       const c = docSnap.data();
 
+      // --- FILL DATA ---
       document.getElementById("bName").innerText = c.name || '-';
       document.getElementById("bCode").innerText = c.customerCode || customerId.substring(0,6).toUpperCase();
       document.getElementById("bMobile").innerText = c.mobile || '-';
@@ -193,6 +209,7 @@
       document.getElementById("bEmi").innerText = `₹${Number(c.dailyEmi || c.emi || 0)}`;
       document.getElementById("bTotal").innerText = `₹${Math.round(amt * 1.2).toLocaleString('en-IN')}`;
 
+      // --- PHOTO HANDLER (10+ Keys support) ---
       const photoEl = document.getElementById("bondPhoto");
       const placeholder = document.getElementById("photoPlaceholder");
       const keys = ['photoUrl','photo','customerPhoto','imageUrl','profilePic','custPhoto','customerImage','image','photoURL','imgUrl'];
@@ -212,16 +229,25 @@
         placeholder.innerText = (c.name || 'C').charAt(0).toUpperCase();
       }
 
+      // --- WHATSAPP ---
       document.getElementById("btnWhatsApp").addEventListener('click', () => {
         const msg = `*GDA FINANCE - LOAN BOND*%0A%0A👤 Name: ${c.name}%0A🆔 Code: ${c.customerCode}%0A📞 Mobile: ${c.mobile}%0A📅 Loan Date: ${c.loanDate}%0A💰 Loan: ₹${amt}%0A📆 Duration: ${c.planDuration || 60} Days%0A💵 EMI: ₹${c.dailyEmi || c.emi || 0}%0A🆔 Aadhar: ${c.aadhar || c.aadhaar || 'N/A'}%0A📇 PAN: ${c.pan || 'N/A'}%0A🏠 Address: ${c.address || 'N/A'}`;
         window.open(`https://wa.me/91${c.mobile}?text=${msg}`, '_blank');
       });
 
+      // --- CUSTOMER SIGNATURE / THUMB IMPRESSION ---
       currentCustomerData = c;
       if (c.signatureData) {
         renderSavedSignature(c.signatureData, c.signatureDate || '');
       } else {
         bindSignaturePad();
+      }
+
+      // --- CUSTOMER THUMB IMPRESSION ---
+      if (c.thumbData) {
+        renderSavedThumb(c.thumbData, c.thumbDate || '');
+      } else {
+        bindThumbPad();
       }
 
     } catch (err) {
@@ -230,9 +256,15 @@
   }
 
   // ============================================================
-  // ✍️ SIGNATURE PAD LOGIC
+  // ✍️ SIGNATURE PAD LOGIC (एक ही, साफ़ implementation)
   // ============================================================
-  const ADMIN_PASSWORD = "GDA@2026";
+  let ADMIN_PASSWORD = "GDA@2026"; // fallback अगर Firestore से नया password न मिले
+  (async () => {
+    try {
+      const snap = await getDoc(doc(db, "metadata", "settings"));
+      if (snap.exists() && snap.data().adminPassword) ADMIN_PASSWORD = snap.data().adminPassword;
+    } catch (e) { console.error("Admin password fetch failed:", e); }
+  })();
   const sigBlock = document.getElementById("sigBlock");
   let currentCustomerData = null;
   let drawing = false;
@@ -333,6 +365,111 @@
         </div>
       `;
       bindSignaturePad();
+    });
+  }
+
+  // ============================================================
+  // 👆 THUMB IMPRESSION PAD LOGIC (Signature pad जैसा ही, अलग canvas)
+  // ============================================================
+  const thumbBlock = document.getElementById("thumbBlock");
+  let drawingThumb = false;
+  let hasDrawnThumb = false;
+
+  function bindThumbPad() {
+    const canvas = document.getElementById("thumbPad");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    hasDrawnThumb = false;
+    drawingThumb = false;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(30,58,138,0.75)';
+    }
+    resizeCanvas();
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    }
+    function startDraw(e) {
+      e.preventDefault();
+      drawingThumb = true;
+      hasDrawnThumb = true;
+      const p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+    function moveDraw(e) {
+      if (!drawingThumb) return;
+      e.preventDefault();
+      const p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+    function endDraw() { drawingThumb = false; }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', moveDraw);
+    window.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', moveDraw, { passive: false });
+    canvas.addEventListener('touchend', endDraw);
+
+    document.getElementById("thumbClearBtn").addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawnThumb = false;
+    });
+
+    document.getElementById("thumbSaveBtn").addEventListener('click', async () => {
+      if (!hasDrawnThumb) {
+        alert("पहले अंगूठा लगाएं, फिर Save दबाएं।");
+        return;
+      }
+      const dataUrl = canvas.toDataURL('image/png');
+      const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      try {
+        await updateDoc(doc(db, "customers", customerId), {
+          thumbData: dataUrl,
+          thumbDate: todayStr
+        });
+        renderSavedThumb(dataUrl, todayStr);
+      } catch (err) {
+        alert("Thumb impression save nahi hui: " + err.message);
+      }
+    });
+  }
+
+  function renderSavedThumb(dataUrl, dateStr) {
+    thumbBlock.innerHTML = `
+      <p>Customer Thumb Impression (अंगूठा निशानी)</p>
+      <div class="sig-saved-box"><img src="${dataUrl}" alt="Customer Thumb Impression"></div>
+      <div class="sig-saved-meta">✅ Taken on ${dateStr}</div>
+      <button type="button" class="btn-resign" id="rethumbBtn">Re-take (Admin only)</button>
+    `;
+    document.getElementById("rethumbBtn").addEventListener('click', () => {
+      const pass = prompt("🔑 Admin Password (dobara thumb lene ke liye):");
+      if (pass === null) return;
+      if (pass !== ADMIN_PASSWORD) { alert("❌ Galat password!"); return; }
+      if (!confirm("Purana thumb impression hata kar naya lena hai?")) return;
+      thumbBlock.innerHTML = `
+        <p>Customer Thumb Impression (अंगूठा निशानी)</p>
+        <canvas id="thumbPad"></canvas>
+        <p class="sig-hint">अंगूठा यहाँ रखें और हल्का घुमाएं</p>
+        <div class="sig-actions">
+          <button type="button" class="btn-sig-clear" id="thumbClearBtn">Clear</button>
+          <button type="button" class="btn-sig-save" id="thumbSaveBtn">Save Thumb Impression</button>
+        </div>
+      `;
+      bindThumbPad();
     });
   }
 
