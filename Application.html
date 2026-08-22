@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Applications - GDA Finance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+    body { background:#F8FAFF; min-height:100vh; padding-bottom:85px; }
+
+    .app-header {
+      background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
+      padding: 18px 16px 20px; border-radius:0 0 26px 26px;
+      display:flex; justify-content:space-between; align-items:center;
+      position:sticky; top:0; z-index:20; box-shadow:0 12px 32px rgba(58,28,98,0.28);
+    }
+    .gda-logo-container { display:flex; align-items:center; gap:13px; }
+    .gda-logo-icon {
+      width:44px; height:44px; border-radius:14px;
+      background:linear-gradient(135deg,#E91E63,#FF5A8A);
+      display:flex; justify-content:center; align-items:center;
+      border:2px solid rgba(255,255,255,0.3);
+    }
+    .gda-logo-icon .material-symbols-outlined { font-size:24px; color:#fff; }
+    .gda-logo-text h1 { margin:0; font-size:19px; font-weight:800; color:#fff; }
+    .gda-logo-text p { margin-top:2px; font-size:9.5px; font-weight:700; letter-spacing:2px; color:#FFC107; text-transform:uppercase; }
+    .back-btn { background:rgba(255,255,255,0.14); color:#fff; padding:9px 14px; border-radius:12px; text-decoration:none; font-size:12px; border:1px solid rgba(255,255,255,0.18); }
+
+    .container { padding:14px; max-width:600px; margin:0 auto; }
+    .count-bar { font-size:13px; font-weight:700; color:#3A1C62; margin-bottom:12px; }
+
+    .app-card {
+      background:#fff; border-radius:18px; padding:16px; margin-bottom:14px;
+      border:1px solid #F1F5F9; box-shadow:0 6px 18px rgba(0,0,0,0.05);
+    }
+    .app-card .top-row { display:flex; gap:12px; align-items:center; margin-bottom:10px; }
+    .app-card img.avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:2px solid #E9D5FF; background:#F1F5F9; }
+    .app-card h4 { font-size:15px; color:#0F172A; }
+    .app-card .mobile { font-size:12px; color:#64748B; }
+    .app-card .applied-at { font-size:10.5px; color:#94A3B8; margin-top:2px; }
+
+    .doc-links { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+    .doc-links a {
+      font-size:11px; font-weight:700; color:#3A1C62; background:#F8FAFF;
+      border:1px solid #E9D5FF; padding:6px 10px; border-radius:8px; text-decoration:none;
+    }
+
+    .actions { display:flex; gap:10px; margin-top:10px; }
+    .btn-approve { flex:2; background:#16A34A; color:#fff; border:none; padding:11px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; }
+    .btn-delete { flex:1; background:#FDECEC; color:#DC2626; border:none; padding:11px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; }
+
+    .empty-msg { text-align:center; padding:60px 20px; color:#94A3B8; font-size:14px; }
+
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0; height:66px; background:#fff;
+      display:grid; grid-template-columns:repeat(5,1fr); align-items:center;
+      border-top:1px solid #F1F5F9; z-index:100;
+    }
+    .nav-item { display:flex; flex-direction:column; align-items:center; text-decoration:none; color:#94A3B8; font-size:9.5px; font-weight:600; gap:3px; }
+    .nav-item.active { color:#E91E63; font-weight:700; }
+    .nav-item .material-symbols-outlined { font-size:22px; }
+
+    /* ===== APPROVE MODAL ===== */
+    #approveModal {
+      position:fixed; inset:0; background:rgba(20,12,32,0.55); display:none;
+      align-items:flex-end; justify-content:center; z-index:200;
+    }
+    #approveModal .sheet {
+      background:#fff; width:100%; max-width:500px; border-radius:24px 24px 0 0;
+      padding:22px; box-shadow:0 -10px 30px rgba(0,0,0,0.2);
+    }
+    #approveModal h3 { font-size:17px; color:#0F172A; margin-bottom:14px; }
+    #approveModal .form-group { margin-bottom:14px; }
+    #approveModal label { display:block; font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; }
+    #approveModal input, #approveModal select { width:100%; padding:12px 14px; border:1.5px solid #E2E8F0; border-radius:12px; font-size:14px; outline:none; }
+    #approveModal .row-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    #approveModal .modal-actions { display:flex; gap:10px; margin-top:16px; }
+    #approveModal .btn-confirm { flex:2; background:#3A1C62; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; }
+    #approveModal .btn-cancel { flex:1; background:#F1F5F9; color:#475569; border:none; padding:14px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="gda-logo-container">
+    <div class="gda-logo-icon"><span class="material-symbols-outlined">assignment_ind</span></div>
+    <div class="gda-logo-text"><h1>Applications</h1><p>Pending Reviews</p></div>
+  </div>
+  <a href="index.html" class="back-btn">← Back</a>
+</header>
+
+<div class="container">
+  <div class="count-bar" id="countBar">Loading...</div>
+  <div id="appList"></div>
+</div>
+
+<!-- ===== APPROVE MODAL ===== -->
+<div id="approveModal">
+  <div class="sheet">
+    <h3 id="modalCustomerName">Approve Application</h3>
+    <div class="row-grid">
+      <div class="form-group">
+        <label>Loan Amount (₹)</label>
+        <input type="number" id="modalLoanAmount" min="500">
+      </div>
+      <div class="form-group">
+        <label>Plan Duration</label>
+        <select id="modalLoanPlan">
+          <option value="60">60 Days</option>
+          <option value="80">80 Days</option>
+          <option value="120">120 Days</option>
+        </select>
+      </div>
+    </div>
+    <div class="row-grid">
+      <div class="form-group"><label>Total Payable</label><input type="text" id="modalTotalPayable" readonly></div>
+      <div class="form-group"><label>Daily EMI</label><input type="text" id="modalDailyEmi" readonly></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
+      <button class="btn-confirm" id="modalConfirmBtn">✅ Approve & Create Customer</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item"><span class="material-symbols-outlined">home</span>Home</a>
+  <a href="customer-list.html" class="nav-item"><span class="material-symbols-outlined">group</span>Customers</a>
+  <a href="applications.html" class="nav-item active"><span class="material-symbols-outlined">assignment_ind</span>Applications</a>
+  <a href="report.html" class="nav-item"><span class="material-symbols-outlined">analytics</span>Reports</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="color:#DC2626;"><span class="material-symbols-outlined">logout</span>Logout</a>
+</nav>
+
+<script type="module" src="applications.js"></script>
+</body>
+</html>
