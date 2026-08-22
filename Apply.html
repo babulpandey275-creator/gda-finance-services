@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Loan Application - GDA Finance Services</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+    body { background:#F8FAFF; min-height:100vh; padding:0 0 30px; }
+
+    .top-banner {
+      background: linear-gradient(135deg,#2A1742 0%,#3A1C62 50%,#4C2A7A 100%);
+      padding: 26px 20px 30px; text-align:center; border-radius:0 0 26px 26px;
+      box-shadow:0 12px 32px rgba(58,28,98,0.28);
+    }
+    .top-banner h1 { font-family:'Fraunces',serif; color:#fff; font-size:22px; font-weight:800; }
+    .top-banner p { color:#F0BF5C; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+
+    .card { max-width:500px; margin:-14px auto 0; background:#fff; border-radius:24px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.08); border:1px solid #F1F5F9; }
+    .intro { font-size:13px; color:#64748B; margin-bottom:18px; line-height:1.5; }
+
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+    .form-group input, .form-group textarea { width:100%; padding:12px 14px; border:1.5px solid #E2E8F0; border-radius:12px; font-size:14px; background:#fff; outline:none; }
+    .form-group input:focus, .form-group textarea:focus { border-color:#3A1C62; box-shadow:0 0 0 4px rgba(58,28,98,0.08); }
+    .row-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+    .photo-picker { display:flex; gap:10px; margin:8px 0 16px; }
+    .photo-picker button {
+      flex:1; padding:10px; border-radius:12px; border:1.5px solid #E2E8F0;
+      background:#fff; font-weight:700; font-size:13px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .photo-picker button:active { transform:scale(0.96); background:#F8FAFF; }
+    .photo-picker button.camera { background:#1B5E20; color:#fff; border-color:#1B5E20; }
+
+    .photo-preview { display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; background:#F8FAFF; border-radius:12px; }
+    .photo-preview img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #1B5E20; background:#fff; }
+
+    .doc-upload-box {
+      border:2px dashed #E2E8F0; border-radius:12px; padding:12px; text-align:center;
+      background:#F8FAFF; cursor:pointer; margin-bottom:12px;
+    }
+    .doc-upload-box .preview { width:100%; max-height:120px; object-fit:cover; border-radius:8px; display:none; }
+    .doc-upload-box .placeholder { color:#94A3B8; font-size:12px; font-weight:600; }
+    .doc-upload-box .placeholder .material-symbols-outlined { font-size:32px; display:block; margin:0 auto 4px; }
+    .doc-upload-box input[type="file"] { display:none; }
+    .doc-label { font-size:11px; font-weight:700; color:#3A1C62; display:flex; align-items:center; gap:6px; margin-top:6px; }
+
+    .btn {
+      width:100%; padding:14px; background:linear-gradient(135deg,#3A1C62,#5B2C98);
+      color:#fff; border:none; border-radius:14px; font-weight:800; font-size:16px;
+      cursor:pointer; box-shadow:0 8px 20px rgba(58,28,98,0.25);
+    }
+    .btn:active { transform:scale(0.98); }
+    .btn:disabled { background:#E2E8F0; color:#94A3B8; box-shadow:none; }
+
+    .field-error { color:#DC2626; font-size:10.5px; font-weight:600; margin-top:4px; display:none; }
+    .form-group.invalid input, .form-group.invalid textarea { border-color:#DC2626; }
+    .form-group.invalid .field-error { display:block; }
+
+    /* ===== SUCCESS SCREEN ===== */
+    #successScreen { display:none; max-width:500px; margin:40px auto; text-align:center; padding:0 20px; }
+    #successScreen .icon { font-size:60px; }
+    #successScreen h2 { font-family:'Fraunces',serif; font-size:22px; color:#0F172A; margin:14px 0 8px; }
+    #successScreen p { color:#64748B; font-size:14px; line-height:1.6; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  <h1>GDA FINANCE SERVICES</h1>
+  <p>Loan Application Form</p>
+</div>
+
+<div class="card" id="applyCard">
+  <p class="intro">कृपया नीचे अपनी जानकारी और दस्तावेज़ भरें। हमारी टीम जल्द ही आपसे संपर्क करेगी।</p>
+
+  <form id="applyForm">
+    <div class="photo-preview">
+      <img id="photoPreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 70'%3E%3Ccircle cx='35' cy='35' r='35' fill='%23F1F5F9'/%3E%3Ctext x='35' y='44' font-size='26' text-anchor='middle'%3E%F0%9F%93%B7%3C/text%3E%3C/svg%3E" alt="Photo">
+      <div>
+        <span>📸 अपनी फोटो</span><br>
+        <small style="color:#64748B;">Camera या Gallery चुनें</small>
+      </div>
+      <input type="file" id="customerPhotoCamera" accept="image/*" capture="environment" style="display:none;">
+      <input type="file" id="customerPhotoGallery" accept="image/*" style="display:none;">
+    </div>
+    <div class="photo-picker">
+      <button class="camera" type="button" onclick="document.getElementById('customerPhotoCamera').click();">
+        <span class="material-symbols-outlined" style="font-size:20px;">photo_camera</span> Camera
+      </button>
+      <button class="gallery" type="button" onclick="document.getElementById('customerPhotoGallery').click();">
+        <span class="material-symbols-outlined" style="font-size:20px;">photo_library</span> Gallery
+      </button>
+    </div>
+
+    <div class="form-group"><label>पूरा नाम (Full Name)</label><input type="text" id="customerName" required></div>
+    <div class="form-group" id="mobileGroup">
+      <label>मोबाइल नंबर (Mobile Number)</label>
+      <input type="tel" id="mobile" maxlength="10" required>
+      <div class="field-error">10 अंकों का सही मोबाइल नंबर डालें (6-9 से शुरू)</div>
+    </div>
+    <div class="form-group"><label>पिता/पति का नाम (Guardian Name)</label><input type="text" id="guardianName"></div>
+
+    <div class="row-grid">
+      <div class="form-group" id="aadhaarGroup">
+        <label>आधार नंबर</label>
+        <input type="text" id="aadhaar" placeholder="12 digits" maxlength="12">
+        <div class="field-error">Aadhaar 12 अंकों का होना चाहिए</div>
+      </div>
+      <div class="form-group" id="panGroup">
+        <label>PAN नंबर</label>
+        <input type="text" id="panNumber" style="text-transform:uppercase;" maxlength="10" placeholder="ABCDE1234F">
+        <div class="field-error">सही PAN फॉर्मेट डालें (जैसे ABCDE1234F)</div>
+      </div>
+    </div>
+    <div class="form-group"><label>पूरा पता (Address)</label><textarea id="address" rows="2" required></textarea></div>
+
+    <div style="margin:18px 0; border-top:2px dashed #E9D5FF; padding-top:16px;">
+      <p style="font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:12px;">📁 दस्तावेज़ (KYC Documents)</p>
+
+      <div class="doc-upload-box" onclick="document.getElementById('aadharInput').click()">
+        <img class="preview" id="aadharPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">credit_card</span> आधार कार्ड अपलोड करें</span>
+        <input type="file" id="aadharInput" accept="image/*" style="display:none;">
+        <div class="doc-label">🆔 Aadhar Card</div>
+      </div>
+
+      <div class="doc-upload-box" onclick="document.getElementById('panInput').click()">
+        <img class="preview" id="panPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">description</span> PAN कार्ड अपलोड करें</span>
+        <input type="file" id="panInput" accept="image/*" style="display:none;">
+        <div class="doc-label">📇 PAN Card</div>
+      </div>
+
+      <div class="doc-upload-box" onclick="document.getElementById('voterInput').click()">
+        <img class="preview" id="voterPreview" src="">
+        <span class="placeholder"><span class="material-symbols-outlined">how_to_vote</span> वोटर आईडी अपलोड करें (वैकल्पिक)</span>
+        <input type="file" id="voterInput" accept="image/*" style="display:none;">
+        <div class="doc-label">🗳️ Voter ID Card (Optional)</div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="applyBtn">📤 Application भेजें</button>
+  </form>
+</div>
+
+<div id="successScreen">
+  <div class="icon">✅</div>
+  <h2>Application भेज दी गई है!</h2>
+  <p>आपकी जानकारी हमें सफलतापूर्वक मिल गई है। हमारी टीम आपकी जानकारी जांचने के बाद जल्द ही आपसे संपर्क करेगी।<br><br>धन्यवाद 🙏<br><b>GDA Finance Services</b></p>
+</div>
+
+<script type="module" src="apply.js"></script>
+</body>
+</html>
