@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Reports - GDA Finance</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Inter:wght@500;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root{
       --paper:#FAF6EE; --paper-line:#E5DAC0;
@@ -173,6 +174,36 @@
         <button class="tab active" id="btnMonthly">Monthly</button>
         <button class="tab" id="btnQuarterly">Quarterly</button>
         <button class="tab" id="btnYearly">Yearly</button>
+      </div>
+      <button id="downloadReportPdfBtn" style="width:100%;margin-top:12px;padding:13px;background:var(--plum);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span class="material-symbols-outlined" style="font-size:19px;">picture_as_pdf</span> Download Summary Report (PDF)
+      </button>
+    </div>
+
+    <!-- ===== 💵 DAILY CASH BOOK (सिर्फ Daily tab में दिखेगा) ===== -->
+    <div class="controls" id="cashBookCard" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="material-symbols-outlined" style="color:var(--plum);">account_balance_wallet</span>
+        <span style="font-weight:800;font-size:14px;color:var(--ink);">आज की Cash Book</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Opening Balance (₹)</label><br>
+          <input type="number" id="cbOpeningBalance" placeholder="0" style="width:100%;padding:10px 12px;border:1.5px solid var(--card-border);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);margin-top:4px;">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button id="cbSaveBtn" style="width:100%;padding:10.5px;background:var(--plum);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;">💾 Save Opening</button>
+        </div>
+      </div>
+
+      <div style="background:var(--paper);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--ink);line-height:2;">
+        <div style="display:flex;justify-content:space-between;"><span>Opening Balance</span><b id="cbOpening">₹0</b></div>
+        <div style="display:flex;justify-content:space-between;color:var(--success);"><span>(+) आज का Collection</span><b id="cbCollection">₹0</b></div>
+        <div style="display:flex;justify-content:space-between;color:var(--danger);"><span>(-) आज का Disbursement</span><b id="cbDisbursement">₹0</b></div>
+        <div style="display:flex;justify-content:space-between;color:var(--danger);"><span>(-) आज का Expense</span><b id="cbExpense">₹0</b></div>
+        <hr style="border:none;border-top:1.5px dashed var(--card-border);margin:6px 0;">
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--plum);"><span>💰 Cash In Hand (Closing)</span><b id="cbClosing">₹0</b></div>
       </div>
     </div>
 
