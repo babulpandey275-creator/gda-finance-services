@@ -3,7 +3,7 @@
 // ============================================================
 
 import { db, auth } from "./firebase.js";
-import { collection, getDocs, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { collection, getDocs, doc, setDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 // ============================================================
@@ -68,6 +68,7 @@ const btnQuarterly = document.getElementById("btnQuarterly");
 const btnYearly = document.getElementById("btnYearly");
 
 let currentMode = "Monthly";
+let lastReportSnapshot = null; // 📄 PDF export ke liye last calculated report data
 const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 if (reportDatePicker) reportDatePicker.value = todayIST;
 
@@ -118,6 +119,25 @@ function getPreviousRange(mode, targetDateStr) {
   const qEndMonth = qStart + 2;
   const lastDay = new Date(py, qEndMonth + 1, 0).getDate();
   return { startDateStr: `${py}-${String(qStart + 1).padStart(2, '0')}-01`, endDateStr: `${py}-${String(qEndMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` };
+}
+
+// ============================================================
+// 🏷️ PDF/Report ke liye readable period label (jaise "August 2026")
+// ============================================================
+function getPeriodLabel(mode, startDateStr, endDateStr) {
+  const startD = new Date(startDateStr);
+  if (mode === "Daily") {
+    return startD.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+  if (mode === "Monthly") {
+    return startD.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  }
+  if (mode === "Yearly") {
+    return `Year ${startD.getFullYear()}`;
+  }
+  // Quarterly
+  const endD = new Date(endDateStr);
+  return `${startD.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })} – ${endD.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}`;
 }
 
 // ============================================================
@@ -318,6 +338,7 @@ async function renderReport() {
     let rangeDisbursementSumPrev = 0;
     let rangeInterestSumPrev = 0;
     const allCustomers = [];
+    const rangeDisbursedList = []; // 📄 Is period me disburse hue loans (PDF table ke liye)
 
     custSnap.forEach(doc => {
       const cust = doc.data();
@@ -361,6 +382,13 @@ async function renderReport() {
         rangeDisbursementSum += loanAmt;
         rangeInterestSum += (loanAmt * 0.20);
         if (cust.status !== "Closed") rangeAccountsCount++;
+        rangeDisbursedList.push({
+          name: cust.name || "N/A",
+          code: cust.customerCode || "",
+          mobile: cust.mobile || "",
+          loanAmt,
+          loanDateStr
+        });
       }
       if (loanDateStr && loanDateStr >= prevStart && loanDateStr <= prevEnd) {
         rangeDisbursementSumPrev += loanAmt;
@@ -392,11 +420,291 @@ async function renderReport() {
 
     renderTrendChart(last7);
 
+    // 📄 PDF export ke liye is calculation ka snapshot save kar lena
+    rangeDisbursedList.sort((a, b) => (a.loanDateStr || "").localeCompare(b.loanDateStr || ""));
+    lastReportSnapshot = {
+      mode: currentMode,
+      periodLabel: getPeriodLabel(currentMode, startDateStr, endDateStr),
+      disbursement: rangeDisbursementSum,
+      disbursementPrev: rangeDisbursementSumPrev,
+      collection: rangeCollectionSum,
+      collectionPrev: rangeCollectionSumPrev,
+      interestIncome: rangeInterestSum,
+      expenses: expensesSum,
+      netProfit: netProfitSum,
+      totalDue: totalOverdue,
+      newAccounts: rangeAccountsCount,
+      portfolioRemaining,
+      disbursedList: rangeDisbursedList
+    };
+
+    // 💵 CASH BOOK — सिर्फ Daily mode में दिखेगा
+    const cashBookCard = document.getElementById('cashBookCard');
+    if (currentMode === "Daily") {
+      if (cashBookCard) cashBookCard.style.display = "block";
+      await loadAndRenderCashBook(targetDate, rangeCollectionSum, rangeDisbursementSum, expensesSum);
+    } else {
+      if (cashBookCard) cashBookCard.style.display = "none";
+    }
+
   } catch (err) {
     console.error("Report render error:", err);
   } finally {
     setLoading(false);
   }
+}
+
+// ============================================================
+// 💵 DAILY CASH BOOK — Opening balance load/save + closing calculate
+// Firestore: cashbook/{dateStr} = { openingBalance }
+// ============================================================
+let currentCashBookDate = null;
+
+async function loadAndRenderCashBook(dateStr, collectionAmt, disbursementAmt, expenseAmt) {
+  currentCashBookDate = dateStr;
+  const openingInput = document.getElementById('cbOpeningBalance');
+  let openingBalance = 0;
+
+  try {
+    const cbSnap = await getDoc(doc(db, "cashbook", dateStr));
+    if (cbSnap.exists()) {
+      openingBalance = Number(cbSnap.data().openingBalance || 0);
+    } else {
+      // Agar aaj ke liye set nahi hai, to kal ka closing balance auto-suggest kar dein
+      const prevDate = new Date(dateStr);
+      prevDate.setDate(prevDate.getDate() - 1);
+      const prevDateStr = prevDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const prevSnap = await getDoc(doc(db, "cashbook", prevDateStr));
+      if (prevSnap.exists() && prevSnap.data().closingBalance != null) {
+        openingBalance = Number(prevSnap.data().closingBalance || 0);
+      }
+    }
+  } catch (err) {
+    console.error("Cash book load error:", err);
+  }
+
+  if (openingInput) openingInput.value = openingBalance || "";
+  renderCashBookNumbers(openingBalance, collectionAmt, disbursementAmt, expenseAmt);
+}
+
+function renderCashBookNumbers(openingBalance, collectionAmt, disbursementAmt, expenseAmt) {
+  const closing = openingBalance + collectionAmt - disbursementAmt - expenseAmt;
+  const fmt = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  set('cbOpening', fmt(openingBalance));
+  set('cbCollection', fmt(collectionAmt));
+  set('cbDisbursement', fmt(disbursementAmt));
+  set('cbExpense', fmt(expenseAmt));
+  set('cbClosing', fmt(closing));
+
+  // PDF ke liye bhi save kar lein
+  if (lastReportSnapshot) {
+    lastReportSnapshot.cashBook = {
+      opening: openingBalance,
+      collection: collectionAmt,
+      disbursement: disbursementAmt,
+      expense: expenseAmt,
+      closing
+    };
+  }
+}
+
+async function saveCashBookOpening() {
+  if (!currentCashBookDate || !lastReportSnapshot) return;
+  const openingInput = document.getElementById('cbOpeningBalance');
+  const openingBalance = Number(openingInput?.value || 0);
+  const cb = lastReportSnapshot.cashBook || {};
+  const closing = openingBalance + (cb.collection || 0) - (cb.disbursement || 0) - (cb.expense || 0);
+
+  const saveBtn = document.getElementById('cbSaveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = "⏳ Saving..."; }
+
+  try {
+    await setDoc(doc(db, "cashbook", currentCashBookDate), {
+      date: currentCashBookDate,
+      openingBalance,
+      closingBalance: closing,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    renderCashBookNumbers(openingBalance, cb.collection || 0, cb.disbursement || 0, cb.expense || 0);
+    if (saveBtn) { saveBtn.innerText = "✅ Saved!"; setTimeout(() => { saveBtn.innerText = "💾 Save Opening"; saveBtn.disabled = false; }, 1500); }
+  } catch (err) {
+    alert("❌ Error: " + err.message);
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = "💾 Save Opening"; }
+  }
+}
+
+// ============================================================
+// 📄 SUMMARY REPORT PDF (Disbursement, Collection, Profit, आदि)
+// Daily/Monthly/Quarterly/Yearly — jo bhi tab currently selected hai
+// ============================================================
+function generateSummaryReportPDF() {
+  if (!lastReportSnapshot) {
+    alert("❌ पहले report load होने दें, फिर PDF download करें।");
+    return;
+  }
+  const s = lastReportSnapshot;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210, pageH = 297, margin = 14;
+  let y = margin;
+
+  function drawHeader() {
+    doc.setFillColor(58, 28, 98);
+    doc.rect(0, 0, pageW, 26, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GDA FINANCE SERVICES', pageW / 2, 12, { align: 'center' });
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${s.mode} Business Summary Report`, pageW / 2, 19, { align: 'center' });
+    doc.setFontSize(8.5);
+    doc.text(`Period: ${s.periodLabel}`, pageW / 2, 24.5, { align: 'center' });
+    y = 34;
+  }
+
+  function drawSummaryCard(label, value, x, w, colorRGB) {
+    doc.setFillColor(248, 247, 251);
+    doc.setDrawColor(230, 226, 240);
+    doc.rect(x, y, w, 22, 'FD');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(120, 110, 140);
+    doc.text(label.toUpperCase(), x + 4, y + 7);
+    doc.setFontSize(12.5);
+    doc.setTextColor(colorRGB[0], colorRGB[1], colorRGB[2]);
+    doc.text(`Rs. ${Math.round(value).toLocaleString('en-IN')}`, x + 4, y + 16);
+  }
+
+  drawHeader();
+
+  // ---- SUMMARY CARDS GRID (2 columns) ----
+  const colW = (pageW - margin * 2 - 6) / 2;
+  const rows = [
+    ["Total Disbursement", s.disbursement, [58, 28, 98]],
+    ["Total Collection", s.collection, [5, 120, 70]],
+    ["Interest Income", s.interestIncome, [5, 120, 70]],
+    ["Total Expenses", s.expenses, [200, 40, 40]],
+    ["Net Profit", s.netProfit, s.netProfit >= 0 ? [5, 120, 70] : [200, 40, 40]],
+    ["Total Outstanding Due", s.totalDue, [200, 40, 40]]
+  ];
+  for (let i = 0; i < rows.length; i += 2) {
+    drawSummaryCard(rows[i][0], rows[i][1], margin, colW, rows[i][2]);
+    if (rows[i + 1]) drawSummaryCard(rows[i + 1][0], rows[i + 1][1], margin + colW + 6, colW, rows[i + 1][2]);
+    y += 26;
+  }
+
+  y += 2;
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 55, 75);
+  doc.text(`New Loan Accounts Opened: ${s.newAccounts}`, margin, y);
+  doc.text(`Portfolio Remaining (Outstanding): Rs. ${Math.round(s.portfolioRemaining).toLocaleString('en-IN')}`, margin, y + 6);
+  y += 16;
+
+  // ---- 💵 CASH BOOK SECTION (सिर्फ Daily mode में) ----
+  if (s.mode === "Daily" && s.cashBook) {
+    const cb = s.cashBook;
+    doc.setFillColor(250, 246, 238);
+    doc.setDrawColor(200, 137, 44);
+    doc.rect(margin, y, pageW - margin * 2, 42, 'FD');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(58, 28, 98);
+    doc.text('Cash Book (Cash In Hand)', margin + 5, y + 8);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(50, 45, 65);
+    const lineY = y + 16;
+    doc.text(`Opening Balance:  Rs. ${Math.round(cb.opening).toLocaleString('en-IN')}`, margin + 5, lineY);
+    doc.setTextColor(5, 120, 70);
+    doc.text(`(+) Collection:  Rs. ${Math.round(cb.collection).toLocaleString('en-IN')}`, margin + 5, lineY + 6);
+    doc.setTextColor(200, 40, 40);
+    doc.text(`(-) Disbursement:  Rs. ${Math.round(cb.disbursement).toLocaleString('en-IN')}`, margin + 5, lineY + 12);
+    doc.text(`(-) Expenses:  Rs. ${Math.round(cb.expense).toLocaleString('en-IN')}`, margin + 5, lineY + 18);
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(58, 28, 98);
+    doc.text(`Closing Cash In Hand: Rs. ${Math.round(cb.closing).toLocaleString('en-IN')}`, pageW - margin - 5, lineY + 12, { align: 'right' });
+
+    y += 48;
+  }
+
+  // ---- NEW DISBURSEMENTS TABLE ----
+  if (s.disbursedList.length > 0) {
+    if (y > pageH - 50) { doc.addPage(); y = margin; drawHeader(); }
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 40);
+    doc.text('New Disbursements This Period', margin, y);
+    y += 6;
+
+    doc.setFillColor(240, 240, 245);
+    doc.rect(margin, y, pageW - margin * 2, 8, 'F');
+    doc.setFontSize(8.5);
+    doc.text('#', margin + 2, y + 5.5);
+    doc.text('Date', margin + 10, y + 5.5);
+    doc.text('Customer', margin + 32, y + 5.5);
+    doc.text('Mobile', margin + 100, y + 5.5);
+    doc.text('Code', margin + 130, y + 5.5);
+    doc.text('Amount', pageW - margin - 2, y + 5.5, { align: 'right' });
+    y += 10;
+
+    doc.setFont('helvetica', 'normal');
+    s.disbursedList.forEach((d, idx) => {
+      if (y > pageH - 35) {
+        doc.addPage();
+        y = margin;
+        drawHeader();
+        doc.setFillColor(240, 240, 245);
+        doc.rect(margin, y, pageW - margin * 2, 8, 'F');
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text('#', margin + 2, y + 5.5);
+        doc.text('Date', margin + 10, y + 5.5);
+        doc.text('Customer', margin + 32, y + 5.5);
+        doc.text('Mobile', margin + 100, y + 5.5);
+        doc.text('Code', margin + 130, y + 5.5);
+        doc.text('Amount', pageW - margin - 2, y + 5.5, { align: 'right' });
+        y += 10;
+        doc.setFont('helvetica', 'normal');
+      }
+      if (idx % 2 === 0) {
+        doc.setFillColor(250, 250, 252);
+        doc.rect(margin, y - 4.5, pageW - margin * 2, 7, 'F');
+      }
+      doc.setFontSize(8.5);
+      doc.setTextColor(20, 20, 30);
+      doc.text(String(idx + 1), margin + 2, y);
+      doc.text(d.loanDateStr || '-', margin + 10, y);
+      doc.text((d.name.length > 26 ? d.name.slice(0, 24) + '..' : d.name), margin + 32, y);
+      doc.text(d.mobile || '-', margin + 100, y);
+      doc.text(d.code || '-', margin + 130, y);
+      doc.setTextColor(58, 28, 98);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Rs.${Math.round(d.loanAmt).toLocaleString('en-IN')}`, pageW - margin - 2, y, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(20, 20, 30);
+      y += 7;
+    });
+  }
+
+  // ---- SIGNATURE LINE ----
+  if (y > pageH - 30) { doc.addPage(); y = margin + 10; }
+  y += 14;
+  doc.setDrawColor(15, 23, 42);
+  doc.line(margin, y, margin + 60, y);
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Prepared By', margin, y + 5);
+  doc.line(pageW - margin - 60, y, pageW - margin, y);
+  doc.text('Verified By (Manager)', pageW - margin - 60, y + 5);
+
+  doc.save(`GDA_${s.mode}_Summary_Report_${s.periodLabel.replace(/\s|,/g, '_')}.pdf`);
 }
 
 // ============================================================
@@ -545,6 +853,14 @@ function initReport() {
     await signOut(auth);
     location.href = "login.html";
   };
+
+  // 📄 Summary Report PDF Download
+  const downloadReportPdfBtn = document.getElementById('downloadReportPdfBtn');
+  if (downloadReportPdfBtn) downloadReportPdfBtn.addEventListener('click', generateSummaryReportPDF);
+
+  // 💵 Cash Book — Save Opening Balance
+  const cbSaveBtn = document.getElementById('cbSaveBtn');
+  if (cbSaveBtn) cbSaveBtn.addEventListener('click', saveCashBookOpening);
 
   // Backup & Restore
   document.getElementById('backupDownloadBtn').addEventListener('click', downloadBackup);
