@@ -208,7 +208,10 @@ modalConfirmBtn.addEventListener("click", async () => {
       approvedAt: new Date().toISOString()
     });
 
-    alert(`✅ Customer ${uniqueCode} बन गया!`);
+    // 📄 Approval PDF banayein — WhatsApp pe customer ko bhejने के लिए
+    generateApprovalPDF(customerData);
+
+    alert(`✅ Customer ${uniqueCode} बन गया! Approval PDF download हो गई है — अब इसे WhatsApp पर customer को भेज दीजिए।`);
     approveModal.style.display = "none";
     selectedApp = null;
     loadApplications();
@@ -222,10 +225,137 @@ modalConfirmBtn.addEventListener("click", async () => {
 });
 
 // ==========================================================
+// 📄 APPROVAL PDF — Loan Sanction Slip
+// ==========================================================
+function generateApprovalPDF(cust) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210, margin = 16;
+  let y = 0;
+
+  doc.setFillColor(58, 28, 98);
+  doc.rect(0, 0, pageW, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GDA FINANCE SERVICES', pageW / 2, 14, { align: 'center' });
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Loan Approval / Sanction Slip', pageW / 2, 22, { align: 'center' });
+  y = 42;
+
+  doc.setTextColor(20, 20, 30);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  doc.text(`Date: ${today}`, pageW - margin, y, { align: 'right' });
+  y += 4;
+
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(22, 163, 74);
+  doc.roundedRect(margin, y, pageW - margin * 2, 14, 3, 3, 'FD');
+  doc.setTextColor(22, 163, 74);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('✔ Congratulations! Your Loan Has Been Approved', pageW / 2, y + 9, { align: 'center' });
+  y += 24;
+
+  function row(label, value, bold) {
+    doc.setTextColor(100, 100, 110);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(label, margin, y);
+    doc.setTextColor(20, 20, 30);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.text(String(value), pageW - margin, y, { align: 'right' });
+    y += 9;
+    doc.setDrawColor(240, 240, 245);
+    doc.line(margin, y - 5.5, pageW - margin, y - 5.5);
+  }
+
+  row('Customer Name', cust.name || '-', true);
+  row('Customer Code', cust.customerCode || '-', true);
+  row('Mobile Number', cust.mobile || '-');
+  row('Loan Amount', `Rs. ${Number(cust.loanAmount).toLocaleString('en-IN')}`, true);
+  row('Plan Duration', `${cust.planDuration} Days`);
+  row('Total Payable', `Rs. ${Math.round(cust.totalPayable).toLocaleString('en-IN')}`, true);
+  row('Daily EMI', `Rs. ${Math.round(cust.dailyEmi).toLocaleString('en-IN')}`, true);
+  row('Loan Start Date', cust.loanDate || '-');
+
+  y += 8;
+  doc.setFontSize(9);
+  doc.setTextColor(120, 120, 130);
+  doc.setFont('helvetica', 'italic');
+  doc.text('कृपया अपनी दैनिक किश्त समय पर जमा करें। किसी भी सहायता के लिए हमारी शाखा से संपर्क करें।', margin, y, { maxWidth: pageW - margin * 2 });
+  y += 16;
+
+  doc.setDrawColor(15, 23, 42);
+  doc.line(margin, y, margin + 55, y);
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Authorized Signatory', margin, y + 5);
+  doc.text('GDA Finance Services', margin, y + 10);
+
+  doc.save(`Loan_Approval_${cust.customerCode || cust.name}.pdf`);
+}
+
+// ==========================================================
+// 📄 REJECTION NOTICE PDF
+// ==========================================================
+function generateRejectionPDF(app) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210, margin = 16;
+  let y = 0;
+
+  doc.setFillColor(58, 28, 98);
+  doc.rect(0, 0, pageW, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GDA FINANCE SERVICES', pageW / 2, 14, { align: 'center' });
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Application Status Notice', pageW / 2, 22, { align: 'center' });
+  y = 42;
+
+  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  doc.setTextColor(20, 20, 30);
+  doc.setFontSize(11);
+  doc.text(`Date: ${today}`, pageW - margin, y, { align: 'right' });
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Dear ${app.name || 'Applicant'},`, margin, y);
+  y += 10;
+
+  const msg = `आपके द्वारा भेजी गई loan application (Mobile: ${app.mobile || '-'}) पर विचार करने के बाद, हम फिलहाल इसे आगे नहीं बढ़ा पा रहे हैं। अधिक जानकारी के लिए कृपया हमारी शाखा से संपर्क करें।`;
+  doc.setFontSize(11);
+  const lines = doc.splitTextToSize(msg, pageW - margin * 2);
+  doc.text(lines, margin, y);
+  y += lines.length * 6 + 14;
+
+  doc.setDrawColor(15, 23, 42);
+  doc.line(margin, y, margin + 55, y);
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.text('GDA Finance Services', margin, y + 5);
+
+  doc.save(`Application_Notice_${app.name || app.mobile}.pdf`);
+}
+
+// ==========================================================
 // DELETE — application ko poori tarah hata dena (fake/galat entry)
 // ==========================================================
 async function deleteApplication(app) {
   if (!confirm(`⚠️ क्या आप "${app.name}" की application हमेशा के लिए DELETE करना चाहते हैं?\n\nयह वापस नहीं आएगी। दोबारा जरूरत पड़ने पर customer को नया लिंक भेजना होगा।`)) return;
+
+  const wantPdf = confirm(`क्या आप "${app.name}" के लिए एक Notice PDF भी बनाना चाहते हैं जो आप customer को WhatsApp पर भेज सकें?`);
+  if (wantPdf) generateRejectionPDF(app);
+
   try {
     await deleteDoc(doc(db, "applications", app.id));
     loadApplications();
