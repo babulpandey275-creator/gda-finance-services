@@ -257,8 +257,8 @@ function ensureSpace(doc, y, needed, margin) {
 // 📄 PDF GENERATION – emoji हटाए गए (jsPDF में emoji glyph सपोर्ट नहीं है,
 // पहले ये खाली बॉक्स बनकर आते थे), photo embed, total summary, page number जोड़े
 // ============================================================
-async function generatePDF(cust, logs) {
-  const pdfBtn = document.getElementById('pdfBtn');
+async function generatePDF(cust, logs, externalBtn) {
+  const pdfBtn = externalBtn || document.getElementById('pdfBtn');
   if (pdfBtn) { pdfBtn.disabled = true; pdfBtn.textContent = '⏳ Generating...'; }
 
   try {
@@ -655,9 +655,17 @@ async function loadLoanHistory() {
         <div class="hc-row"><span>Loan Date</span><b>${c.loanDate || 'N/A'}</b></div>
         <div class="hc-row"><span>Total Paid</span><b>₹${Number(c.totalCollected || 0).toLocaleString('en-IN')}</b></div>
         <div class="hc-row"><span>Closed On</span><b>${c.closedOn || 'N/A'}</b></div>
-        ${idx === 0 ? `<button class="restore-cycle-btn" data-historyid="${c.historyId}" style="width:100%;margin-top:10px;padding:9px;background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">↩️ यह Cycle वापस करें (Undo Renew)</button>` : ''}
+        <button class="history-pdf-btn" data-historyid="${c.historyId}" style="width:100%;margin-top:10px;padding:9px;background:#FFF1F2;color:#DC2626;border:1px solid #FFE4E6;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">📄 इस पुराने Loan की PDF निकालें</button>
+        ${idx === 0 ? `<button class="restore-cycle-btn" data-historyid="${c.historyId}" style="width:100%;margin-top:8px;padding:9px;background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">↩️ यह Cycle वापस करें (Undo Renew)</button>` : ''}
       </div>
     `).join('');
+
+    listEl.querySelectorAll('.history-pdf-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = cycles.find(c => c.historyId === btn.dataset.historyid);
+        if (target) generateHistoricalCyclePDF(target, btn);
+      });
+    });
 
     const restoreBtn = listEl.querySelector('.restore-cycle-btn');
     if (restoreBtn) {
@@ -669,6 +677,48 @@ async function loadLoanHistory() {
   } catch (err) {
     listEl.innerHTML = `<p class="history-empty">History लोड नहीं हो पाई।</p>`;
     console.error(err);
+  }
+}
+
+// ============================================================
+// 📄 पुराने (Closed/Renewed) Loan Cycle की PDF निकालना
+// ============================================================
+async function generateHistoricalCyclePDF(cycle, btn) {
+  const originalText = btn ? btn.innerText : '';
+  if (btn) { btn.disabled = true; btn.innerText = '⏳ बन रहा है...'; }
+  try {
+    // उसी customer की सभी collections में से इसी cycle की अवधि (loanDate से closedOn तक) वाली निकालें
+    const q = query(collection(db, "collections"), where("customerId", "==", currentCustomerId));
+    const snap = await getDocs(q);
+    let allLogs = [];
+    snap.forEach(d => allLogs.push({ docId: d.id, ...d.data() }));
+
+    const startD = cycle.loanDate || '';
+    const endD = cycle.closedOn || '9999-12-31';
+    let cycleLogs = allLogs.filter(log => {
+      const d = log.date || log.collectionDate || '';
+      return d >= startD && d <= endD;
+    });
+    cycleLogs.sort((a, b) => new Date(b.date || b.collectionDate || 0) - new Date(a.date || a.collectionDate || 0));
+
+    // इस पुराने cycle जैसा दिखने वाला customer-object बनाएं (KYC details currentCustomer से लें)
+    const historicalCust = {
+      ...currentCustomer,
+      loanAmount: cycle.loanAmount || 0,
+      loanDate: cycle.loanDate || '',
+      planDuration: cycle.planDuration || 60,
+      dailyEmi: cycle.dailyEmi || 0,
+      totalCollected: cycle.totalCollected || 0,
+      paidDays: cycle.paidDays || 0,
+      status: 'Settled',
+      settlementDate: cycle.closedOn || ''
+    };
+
+    await generatePDF(historicalCust, cycleLogs, btn);
+  } catch (err) {
+    alert('❌ Error: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = originalText; }
   }
 }
 
@@ -871,6 +921,15 @@ async function loadStatement() {
     const logSnap = await getDocs(q);
     let logs = [];
     logSnap.forEach(d => logs.push({ docId: d.id, ...d.data() }));
+
+    // 🔥 सिर्फ मौजूदा (current) loan cycle की collections दिखाएं —
+    // जो collection loan शुरू होने की तारीख (loanDate) से पहले की है,
+    // वो पुराने/Renew हो चुके cycle की है, उसे यहाँ मत दिखाओ (History में देखें)
+    const cycleStartDate = currentCustomer.loanDate || currentCustomer.startDate || '';
+    if (cycleStartDate) {
+      logs = logs.filter(log => (log.date || log.collectionDate || '') >= cycleStartDate);
+    }
+
     logs.sort((a, b) => new Date(b.date || b.collectionDate || 0) - new Date(a.date || a.collectionDate || 0));
     renderProfile(currentCustomer, logs);
   } catch (err) {
