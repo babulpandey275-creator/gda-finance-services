@@ -1,6 +1,6 @@
 import { db, auth } from "./firebase.js";
 import { 
-  doc, getDoc, updateDoc, deleteDoc, addDoc,
+  doc, getDoc, updateDoc, deleteDoc, addDoc, deleteField,
   collection, query, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
@@ -149,6 +149,7 @@ function renderProfile(cust, logs) {
         </button>
         ${isSettled ? `<button class="action-btn noc" id="nocBtn">📃 NOC</button>` : ''}
         ${isSettled ? `<button class="action-btn renew" id="renewBtn">🔄 Renew</button>` : ''}
+        ${isSettled ? `<button class="action-btn" id="undoSettleBtn" style="background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;">↩️ Undo Settle</button>` : ''}
       </div>
     </div>
 
@@ -189,6 +190,7 @@ function renderProfile(cust, logs) {
   document.getElementById('settleBtn')?.addEventListener('click', () => handleSettle(cust));
   document.getElementById('nocBtn')?.addEventListener('click', () => generateNOC(cust));
   document.getElementById('renewBtn')?.addEventListener('click', () => handleRenewLoan(cust));
+  document.getElementById('undoSettleBtn')?.addEventListener('click', () => handleUndoSettle(cust));
 
   loadLoanHistory();
 
@@ -735,6 +737,33 @@ async function handleSettle(cust) {
     const custRef = doc(db, "customers", currentCustomerId);
     await updateDoc(custRef, { status: "Settled", settlementDate: new Date().toISOString().split('T')[0] });
     alert("✅ Customer Settled Successfully!");
+    window.location.reload();
+  } catch (err) {
+    alert("❌ Error: " + err.message);
+  }
+}
+
+// ============================================================
+// ↩️ UNDO SETTLE — galti se settle hue account ko wapas Active karna
+// ============================================================
+async function handleUndoSettle(cust) {
+  if (cust.status !== 'Settled' && cust.status !== 'Closed') {
+    alert('यह account settled नहीं है।');
+    return;
+  }
+  const pass = prompt("🔑 Admin Password to Undo Settle:");
+  if (pass !== ADMIN_PASSWORD) {
+    if (pass !== null) alert("❌ Wrong Password!");
+    return;
+  }
+  if (!confirm(`⚠️ Confirm: क्या आप ${cust.name} का Settlement हटाकर account वापस Active करना चाहते हैं?`)) return;
+  try {
+    const custRef = doc(db, "customers", currentCustomerId);
+    await updateDoc(custRef, {
+      status: "Active",
+      settlementDate: deleteField()
+    });
+    alert("✅ Account वापस Active हो गया!");
     window.location.reload();
   } catch (err) {
     alert("❌ Error: " + err.message);
