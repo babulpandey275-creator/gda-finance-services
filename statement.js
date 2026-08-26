@@ -85,6 +85,17 @@ function renderProfile(cust, logs) {
   const remaining = isSettled ? 0 : dueInfo.totalDue;
   const photo = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/70';
 
+  // 🔥 AUTO-CLOSE SAFETY NET — अगर पूरा loan भर चुका है (Remaining ₹0) पर
+  // status अभी भी "Active" है (पुराने collections से जो auto-close से पहले भरे गए थे),
+  // तो यहाँ भी खुद-ब-खुद उसे "Closed" कर दें
+  if (!isSettled && dueInfo.totalDue <= 0 && cust.status !== 'Active_Manual_Override') {
+    updateDoc(doc(db, "customers", currentCustomerId), {
+      status: "Closed",
+      settlementDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+    }).then(() => { window.location.reload(); }).catch(() => {});
+    return; // अभी के render को रोक दें, reload होते ही सही "Closed" स्टेट दिखेगी
+  }
+
   const aadharValue = getCustomerValue(cust, ['aadhar', 'aadhaar', 'aadharNumber', 'aadhaarNumber', 'aadharNo', 'aadhaarNo']);
   const panValue = getCustomerValue(cust, ['pan', 'panNumber', 'panCard', 'panNo']);
 
@@ -782,7 +793,12 @@ async function handleRenewLoan(cust) {
   if (newDurationStr === null) return;
   const newDuration = Number(newDurationStr) || 60;
 
-  if (!confirm(`नया loan cycle शुरू करें?\n\nLoan: ₹${newAmount}\nDuration: ${newDuration} Days\n\nपुराना cycle "Loan History" में save हो जाएगा।`)) return;
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const newLoanDateStr = prompt("नए Loan की Date डालें (YYYY-MM-DD):", todayStr);
+  if (newLoanDateStr === null) return;
+  const newLoanDate = /^\d{4}-\d{2}-\d{2}$/.test(newLoanDateStr) ? newLoanDateStr : todayStr;
+
+  if (!confirm(`नया loan cycle शुरू करें?\n\nLoan: ₹${newAmount}\nDuration: ${newDuration} Days\nLoan Date: ${newLoanDate}\n\nपुराना cycle "Loan History" में save हो जाएगा।`)) return;
 
   try {
     // पुराना cycle history में archive करना
@@ -805,7 +821,7 @@ async function handleRenewLoan(cust) {
       dailyEmi: newDailyEmi,
       totalCollected: 0,
       paidDays: 0,
-      loanDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
+      loanDate: newLoanDate,
       status: 'Active',
       settlementDate: null
     });
