@@ -645,7 +645,7 @@ async function loadLoanHistory() {
       return;
     }
     let cycles = [];
-    histSnap.forEach(d => cycles.push(d.data()));
+    histSnap.forEach(d => cycles.push({ historyId: d.id, ...d.data() }));
     cycles.sort((a, b) => new Date(b.closedOn || 0) - new Date(a.closedOn || 0));
 
     listEl.innerHTML = cycles.map((c, idx) => `
@@ -655,11 +655,59 @@ async function loadLoanHistory() {
         <div class="hc-row"><span>Loan Date</span><b>${c.loanDate || 'N/A'}</b></div>
         <div class="hc-row"><span>Total Paid</span><b>₹${Number(c.totalCollected || 0).toLocaleString('en-IN')}</b></div>
         <div class="hc-row"><span>Closed On</span><b>${c.closedOn || 'N/A'}</b></div>
+        ${idx === 0 ? `<button class="restore-cycle-btn" data-historyid="${c.historyId}" style="width:100%;margin-top:10px;padding:9px;background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">↩️ यह Cycle वापस करें (Undo Renew)</button>` : ''}
       </div>
     `).join('');
+
+    const restoreBtn = listEl.querySelector('.restore-cycle-btn');
+    if (restoreBtn) {
+      restoreBtn.addEventListener('click', () => {
+        const target = cycles.find(c => c.historyId === restoreBtn.dataset.historyid);
+        if (target) handleUndoRenew(target);
+      });
+    }
   } catch (err) {
     listEl.innerHTML = `<p class="history-empty">History लोड नहीं हो पाई।</p>`;
     console.error(err);
+  }
+}
+
+// ============================================================
+// ↩️ UNDO RENEW — galti se "Renew" hue naye cycle ko hataakar
+// purana cycle (uski asli remaining/paid amount ke saath) wapas laana
+// ============================================================
+async function handleUndoRenew(cycle) {
+  const pass = prompt("🔑 Admin Password to Undo Renew:");
+  if (pass !== ADMIN_PASSWORD) {
+    if (pass !== null) alert("❌ Wrong Password!");
+    return;
+  }
+  if (!confirm(
+    `⚠️ Confirm: क्या आप इस नए loan cycle (₹${currentCustomer?.loanAmount || 0}) को हटाकर पुराना cycle वापस लाना चाहते हैं?\n\n` +
+    `पुराना cycle वापस आएगा:\nLoan Amount: ₹${Number(cycle.loanAmount || 0).toLocaleString('en-IN')}\nTotal Paid: ₹${Number(cycle.totalCollected || 0).toLocaleString('en-IN')}\n\n` +
+    `नया cycle (अभी तक ₹${currentCustomer?.totalCollected || 0} ही collect हुआ है) हट जाएगा।`
+  )) return;
+
+  try {
+    const custRef = doc(db, "customers", currentCustomerId);
+    await updateDoc(custRef, {
+      loanAmount: cycle.loanAmount || 0,
+      loanDate: cycle.loanDate || '',
+      planDuration: cycle.planDuration || 60,
+      dailyEmi: cycle.dailyEmi || 0,
+      totalCollected: cycle.totalCollected || 0,
+      paidDays: cycle.paidDays || 0,
+      status: "Settled",
+      settlementDate: cycle.closedOn || new Date().toISOString().split('T')[0]
+    });
+
+    // History से wo cycle हटा दें, क्योंकि अब वो दोबारा active/settled record बन गया
+    await deleteDoc(doc(db, "customers", currentCustomerId, "loanHistory", cycle.historyId));
+
+    alert("✅ पुराना Loan Cycle वापस आ गया!");
+    window.location.reload();
+  } catch (err) {
+    alert("❌ Error: " + err.message);
   }
 }
 
