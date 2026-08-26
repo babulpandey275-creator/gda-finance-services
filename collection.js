@@ -113,12 +113,28 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const data = snap.data();
                 const newTotalCollected = Number(data.totalCollected || 0) + amount;
 
-                await updateDoc(custRef, {
+                // 🔥 FULL PAYMENT AUTO-CLOSE — agar total collected poore payable amount ke
+                // barabar/zyada ho gaya, to account khud-ba-khud "Closed" ho jaayega
+                const planDur = Number(data.planDuration || data.duration || 60);
+                const dailyEmiVal = Number(data.dailyEmi || data.emi || 0);
+                const loanAmt = Number(data.loanAmount || 0);
+                const baseTotal = Math.max(loanAmt * 1.2, planDur * dailyEmiVal);
+
+                const updatePayload = {
                     totalCollected: newTotalCollected,
                     paidDays: Number(data.paidDays || 0) + 1
-                });
+                };
 
-                alert(`✅ ₹${amount} जमा हो गया!`);
+                let justClosed = false;
+                if (newTotalCollected >= baseTotal && data.status !== 'Closed' && data.status !== 'Settled') {
+                    updatePayload.status = 'Closed';
+                    updatePayload.settlementDate = date;
+                    justClosed = true;
+                }
+
+                await updateDoc(custRef, updatePayload);
+
+                alert(`✅ ₹${amount} जमा हो गया!${justClosed ? '\n\n🎉 यह लोन पूरा भर गया है — Account अब बंद (Closed) हो गया है!' : ''}`);
 
                 window.location.href = "customer-list.html";
             } catch (err) {
