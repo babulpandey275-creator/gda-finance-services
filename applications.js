@@ -298,6 +298,21 @@ function generateApprovalPDF(cust) {
   doc.text('Authorized Signatory', margin, y + 5);
   doc.text('GDA Finance Services', margin, y + 10);
 
+  // ===== 🏢 HEAD OFFICE ADDRESS + CONTACT (footer) =====
+  const pageH = 297;
+  const footerY = pageH - 20;
+  doc.setDrawColor(220, 220, 230);
+  doc.setLineWidth(0.3);
+  doc.line(margin, footerY - 6, pageW - margin, footerY - 6);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(58, 28, 98);
+  doc.text('GDA FINANCE SERVICES — Head Office', pageW / 2, footerY, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 90);
+  doc.text('Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY + 5, { align: 'center' });
+  doc.text('Phone / WhatsApp: +91 95798 57108', pageW / 2, footerY + 10, { align: 'center' });
+
   doc.save(`Loan_Approval_${cust.customerCode || cust.name}.pdf`);
 }
 
@@ -343,6 +358,21 @@ function generateRejectionPDF(app) {
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
   doc.text('GDA Finance Services', margin, y + 5);
+
+  // ===== 🏢 HEAD OFFICE ADDRESS + CONTACT (footer) =====
+  const pageH2 = 297;
+  const footerY2 = pageH2 - 20;
+  doc.setDrawColor(220, 220, 230);
+  doc.setLineWidth(0.3);
+  doc.line(margin, footerY2 - 6, pageW - margin, footerY2 - 6);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(58, 28, 98);
+  doc.text('GDA FINANCE SERVICES — Head Office', pageW / 2, footerY2, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 90);
+  doc.text('Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY2 + 5, { align: 'center' });
+  doc.text('Phone / WhatsApp: +91 95798 57108', pageW / 2, footerY2 + 10, { align: 'center' });
 
   doc.save(`Application_Notice_${app.name || app.mobile}.pdf`);
 }
