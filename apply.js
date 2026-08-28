@@ -7,7 +7,7 @@
 // ==========================================================
 
 import { db } from "./firebase.js";
-import { collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const IMGBB_API_KEY = "5230b9fc28c784e9c389bcf09cb56dd2";
 
@@ -146,19 +146,6 @@ function validateForm() {
   return valid;
 }
 
-async function checkDuplicate(mobileVal) {
-  // customers + applications दोनों में check करें ताकि duplicate entry ना बने
-  const custQ = query(collection(db, "customers"), where("mobile", "==", mobileVal));
-  const custSnap = await getDocs(custQ);
-  if (!custSnap.empty) return "already-customer";
-
-  const appQ = query(collection(db, "applications"), where("mobile", "==", mobileVal), where("status", "==", "Pending"));
-  const appSnap = await getDocs(appQ);
-  if (!appSnap.empty) return "already-applied";
-
-  return null;
-}
-
 // ===== FORM SUBMIT =====
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -171,23 +158,9 @@ form.addEventListener("submit", async (e) => {
 
   const mobileVal = mobileInput.value.trim();
   submitBtn.disabled = true;
-  submitBtn.innerText = "⏳ Checking...";
+  submitBtn.innerText = "⏳ Submitting...";
 
   try {
-    const dupCheck = await checkDuplicate(mobileVal);
-    if (dupCheck === "already-customer") {
-      alert("⚠️ यह मोबाइल नंबर पहले से एक registered customer के नाम पर है। कृपया हमारी शाखा से संपर्क करें।");
-      submitBtn.disabled = false;
-      submitBtn.innerText = "📤 Application भेजें";
-      return;
-    }
-    if (dupCheck === "already-applied") {
-      alert("⚠️ इस मोबाइल नंबर से पहले ही एक application भेजी जा चुकी है। हमारी टीम जल्द संपर्क करेगी।");
-      submitBtn.disabled = false;
-      submitBtn.innerText = "📤 Application भेजें";
-      return;
-    }
-
     const docFiles = [
       { input: aadharInput, key: 'aadharPhoto', label: 'Aadhar Card' },
       { input: panInput, key: 'panPhoto', label: 'PAN Card' },
