@@ -154,7 +154,7 @@
 <div id="appContent" style="display:none;">
   <header class="app-header">
     <div class="gda-logo-container">
-      <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+      <div class="gda-logo-icon"><img src="logo-icon.png" alt="GDA" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
       <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
     </div>
     <div class="header-right">
@@ -209,6 +209,11 @@
 
     <div class="grid">
       <div class="box full dark"><p>Total Portfolio (Market Running)</p><h3 id="totalPortfolio">₹0</h3></div>
+      <div class="box full" id="efficiencyBox" style="background:linear-gradient(135deg,#3A1C62,#5B2C98);">
+        <p style="color:#E9D5FF;">📊 Collection Efficiency (इस period में)</p>
+        <h3 id="collectionEfficiency" style="color:#fff;font-size:26px;">0%</h3>
+        <p style="font-size:11px;color:#E9D5FF;margin-top:4px;" id="efficiencyDetail">जितना आना चाहिए था, उसमें से कितना आया</p>
+      </div>
       <div class="box"><p>Disbursement</p><h3 id="disbursement">₹0</h3><span class="delta" id="deltaDisbursement" style="display:none;"></span></div>
       <div class="box green"><p>Collection</p><h3 id="collection">₹0</h3><span class="delta" id="deltaCollection" style="display:none;"></span></div>
       <div class="box green"><p>Interest Income</p><h3 id="interestIncome">₹0</h3></div>
