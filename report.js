@@ -337,6 +337,7 @@ async function renderReport() {
     let rangeAccountsCount = 0;
     let rangeDisbursementSumPrev = 0;
     let rangeInterestSumPrev = 0;
+    let rangeExpectedCollectionSum = 0; // 📊 इस period में कुल कितना collect होना चाहिए था (Efficiency % के लिए)
     const allCustomers = [];
     const rangeDisbursedList = []; // 📄 Is period me disburse hue loans (PDF table ke liye)
 
@@ -376,6 +377,30 @@ async function renderReport() {
           const expectedTotalForCust = Math.max(loanAmt * 1.2, Number(cust.planDuration || cust.duration || 60) * Number(cust.dailyEmi || cust.emi || 0));
           const collectedForCust = Number(cust.totalCollected || 0);
           lifetimeWriteOffUptoTarget += Math.max(0, expectedTotalForCust - collectedForCust);
+        }
+      }
+
+      // 📊 EXPECTED COLLECTION — इस loan के हिसाब से इस period (startDateStr–endDateStr) में
+      // कितने दिनों की EMI बनती थी (loan की active अवधि और period के overlap से)
+      if (loanDateStr) {
+        const dailyEmiVal = Number(cust.dailyEmi || cust.emi || 0);
+        const planDur = Number(cust.planDuration || cust.duration || 60);
+        if (dailyEmiVal > 0) {
+          const loanStartD = new Date(loanDateStr);
+          const loanEndD = new Date(loanStartD);
+          loanEndD.setDate(loanEndD.getDate() + planDur - 1);
+          const rangeStartD = new Date(startDateStr);
+          const rangeEndD = new Date(endDateStr);
+          const todayD = new Date(todayIST);
+          const cappedRangeEndD = rangeEndD < todayD ? rangeEndD : todayD;
+
+          const overlapStart = loanStartD > rangeStartD ? loanStartD : rangeStartD;
+          const overlapEnd = loanEndD < cappedRangeEndD ? loanEndD : cappedRangeEndD;
+
+          if (overlapEnd >= overlapStart) {
+            const days = Math.floor((overlapEnd - overlapStart) / 86400000) + 1;
+            rangeExpectedCollectionSum += days * dailyEmiVal;
+          }
         }
       }
       if (loanDateStr && loanDateStr >= startDateStr && loanDateStr <= endDateStr) {
@@ -418,6 +443,20 @@ async function renderReport() {
     renderDelta('deltaCollection', rangeCollectionSum, rangeCollectionSumPrev);
     renderDelta('deltaNetProfit', netProfitSum, netProfitSumPrev);
 
+    // 📊 COLLECTION EFFICIENCY % — जितना आना चाहिए था उसमें से कितना % actually आया
+    const collectionEfficiency = rangeExpectedCollectionSum > 0
+      ? Math.round((rangeCollectionSum / rangeExpectedCollectionSum) * 100)
+      : 0;
+    const effEl = document.getElementById('collectionEfficiency');
+    const effDetailEl = document.getElementById('efficiencyDetail');
+    if (effEl) {
+      effEl.innerText = `${collectionEfficiency}%`;
+      effEl.style.color = collectionEfficiency >= 90 ? '#6EE7B7' : (collectionEfficiency >= 70 ? '#FDE68A' : '#FCA5A5');
+    }
+    if (effDetailEl) {
+      effDetailEl.innerText = `अपेक्षित: ₹${Math.round(rangeExpectedCollectionSum).toLocaleString('en-IN')} में से ₹${Math.round(rangeCollectionSum).toLocaleString('en-IN')} आया`;
+    }
+
     renderTrendChart(last7);
 
     // 📄 PDF export ke liye is calculation ka snapshot save kar lena
@@ -435,7 +474,9 @@ async function renderReport() {
       totalDue: totalOverdue,
       newAccounts: rangeAccountsCount,
       portfolioRemaining,
-      disbursedList: rangeDisbursedList
+      disbursedList: rangeDisbursedList,
+      expectedCollection: rangeExpectedCollectionSum,
+      collectionEfficiency
     };
 
     // 💵 CASH BOOK — सिर्फ Daily mode में दिखेगा
@@ -602,7 +643,17 @@ function generateSummaryReportPDF() {
   doc.setTextColor(60, 55, 75);
   doc.text(`New Loan Accounts Opened: ${s.newAccounts}`, margin, y);
   doc.text(`Portfolio Remaining (Outstanding): Rs. ${Math.round(s.portfolioRemaining).toLocaleString('en-IN')}`, margin, y + 6);
-  y += 16;
+  y += 14;
+
+  // ---- 📊 COLLECTION EFFICIENCY ----
+  doc.setFont('helvetica', 'bold');
+  const effColor = s.collectionEfficiency >= 90 ? [5, 120, 70] : (s.collectionEfficiency >= 70 ? [180, 130, 10] : [200, 40, 40]);
+  doc.setTextColor(effColor[0], effColor[1], effColor[2]);
+  doc.text(`Collection Efficiency: ${s.collectionEfficiency}%`, margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 110);
+  doc.text(`(Expected Rs. ${Math.round(s.expectedCollection).toLocaleString('en-IN')} vs Collected Rs. ${Math.round(s.collection).toLocaleString('en-IN')})`, margin + 62, y);
+  y += 12;
 
   // ---- 💵 CASH BOOK SECTION (सिर्फ Daily mode में) ----
   if (s.mode === "Daily" && s.cashBook) {
@@ -717,7 +768,7 @@ async function downloadBackup() {
   statusDiv.style.color = '#f59e0b';
 
   try {
-    const collections = ['customers', 'collections', 'expenses', 'metadata'];
+    const collections = ['customers', 'collections', 'expenses', 'metadata', 'applications', 'cashbook'];
     let backupData = {};
 
     for (const colName of collections) {
@@ -728,11 +779,22 @@ async function downloadBackup() {
       }));
     }
 
+    // 🔁 हर customer के अंदर की "Loan Cycle History" (Renew का पुराना data) भी बैकअप में जोड़ें
+    backupData.loanHistory = {};
+    for (const cust of backupData.customers) {
+      const histSnap = await getDocs(collection(db, "customers", cust.id, "loanHistory"));
+      if (!histSnap.empty) {
+        backupData.loanHistory[cust.id] = histSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    }
+
     backupData._backupInfo = {
       generatedAt: new Date().toISOString(),
-      version: 'GDA_Backup_v1',
+      version: 'GDA_Backup_v2',
       totalCustomers: backupData.customers?.length || 0,
-      totalCollections: backupData.collections?.length || 0
+      totalCollections: backupData.collections?.length || 0,
+      totalApplications: backupData.applications?.length || 0,
+      totalCashBookDays: backupData.cashbook?.length || 0
     };
 
     const jsonStr = JSON.stringify(backupData, null, 2);
