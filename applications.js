@@ -233,64 +233,89 @@ function generateApprovalPDF(cust) {
   const pageW = 210, margin = 16;
   let y = 0;
 
+  // ===== HEADER =====
   doc.setFillColor(58, 28, 98);
-  doc.rect(0, 0, pageW, 30, 'F');
+  doc.rect(0, 0, pageW, 32, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
+  doc.setFontSize(19);
   doc.setFont('helvetica', 'bold');
-  doc.text('GDA FINANCE SERVICES', pageW / 2, 14, { align: 'center' });
+  doc.text('GDA FINANCE SERVICES', pageW / 2, 15, { align: 'center' });
   doc.setFontSize(10.5);
   doc.setFont('helvetica', 'normal');
-  doc.text('Loan Approval / Sanction Slip', pageW / 2, 22, { align: 'center' });
-  y = 42;
+  doc.setTextColor(230, 220, 245);
+  doc.text('Loan Approval / Sanction Slip', pageW / 2, 23, { align: 'center' });
+  doc.setDrawColor(255, 193, 7);
+  doc.setLineWidth(0.6);
+  doc.line(pageW / 2 - 20, 27, pageW / 2 + 20, 27);
+  y = 44;
 
-  doc.setTextColor(20, 20, 30);
-  doc.setFontSize(11);
+  doc.setTextColor(90, 90, 100);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'normal');
   const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
   doc.text(`Date: ${today}`, pageW - margin, y, { align: 'right' });
-  y += 4;
+  y += 6;
 
+  // ===== CONGRATULATIONS BANNER (text ab box ke andar hi fit hoga) =====
   doc.setFillColor(240, 253, 244);
   doc.setDrawColor(22, 163, 74);
-  doc.roundedRect(margin, y, pageW - margin * 2, 14, 3, 3, 'FD');
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, y, pageW - margin * 2, 16, 3, 3, 'FD');
   doc.setTextColor(22, 163, 74);
-  doc.setFontSize(13);
+  doc.setFontSize(12.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('✔ Congratulations! Your Loan Has Been Approved', pageW / 2, y + 9, { align: 'center' });
-  y += 24;
+  doc.text('Congratulations! Your Loan Has Been Approved', pageW / 2, y + 10, { align: 'center' });
+  y += 26;
 
-  function row(label, value, bold) {
-    doc.setTextColor(100, 100, 110);
-    doc.setFontSize(10);
+  // ===== DETAILS CARD (halke background box ke andar, zyada professional) =====
+  const cardTop = y;
+  const rows = [
+    ['Customer Name', cust.name || '-', true],
+    ['Customer Code', cust.customerCode || '-', true],
+    ['Mobile Number', cust.mobile || '-', false],
+    ['Loan Amount', `Rs. ${Number(cust.loanAmount).toLocaleString('en-IN')}`, true],
+    ['Plan Duration', `${cust.planDuration} Days`, false],
+    ['Total Payable', `Rs. ${Math.round(cust.totalPayable).toLocaleString('en-IN')}`, true],
+    ['Daily EMI', `Rs. ${Math.round(cust.dailyEmi).toLocaleString('en-IN')}`, true],
+    ['Loan Start Date', cust.loanDate || '-', false]
+  ];
+  const rowH = 10.5;
+  const cardH = rows.length * rowH + 6;
+  doc.setFillColor(249, 247, 253);
+  doc.setDrawColor(230, 224, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, cardTop, pageW - margin * 2, cardH, 2, 2, 'FD');
+  y = cardTop + 10;
+
+  rows.forEach(([label, value, bold]) => {
+    doc.setTextColor(110, 105, 120);
+    doc.setFontSize(9.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(label, margin, y);
-    doc.setTextColor(20, 20, 30);
-    doc.setFontSize(12);
+    doc.text(label, margin + 6, y);
+    doc.setTextColor(30, 22, 45);
+    doc.setFontSize(11.5);
     doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    doc.text(String(value), pageW - margin, y, { align: 'right' });
-    y += 9;
-    doc.setDrawColor(240, 240, 245);
-    doc.line(margin, y - 5.5, pageW - margin, y - 5.5);
-  }
+    doc.text(String(value), pageW - margin - 6, y, { align: 'right' });
+    y += rowH;
+    if (label !== 'Loan Start Date') {
+      doc.setDrawColor(235, 230, 240);
+      doc.setLineWidth(0.2);
+      doc.line(margin + 6, y - rowH + 4.5, pageW - margin - 6, y - rowH + 4.5);
+    }
+  });
 
-  row('Customer Name', cust.name || '-', true);
-  row('Customer Code', cust.customerCode || '-', true);
-  row('Mobile Number', cust.mobile || '-');
-  row('Loan Amount', `Rs. ${Number(cust.loanAmount).toLocaleString('en-IN')}`, true);
-  row('Plan Duration', `${cust.planDuration} Days`);
-  row('Total Payable', `Rs. ${Math.round(cust.totalPayable).toLocaleString('en-IN')}`, true);
-  row('Daily EMI', `Rs. ${Math.round(cust.dailyEmi).toLocaleString('en-IN')}`, true);
-  row('Loan Start Date', cust.loanDate || '-');
+  y = cardTop + cardH + 12;
 
-  y += 8;
-  doc.setFontSize(9);
-  doc.setTextColor(120, 120, 130);
+  // ===== NOTE (English me, taaki jsPDF font sahi render kare) =====
+  doc.setFontSize(8.5);
+  doc.setTextColor(130, 125, 140);
   doc.setFont('helvetica', 'italic');
-  doc.text('कृपया अपनी दैनिक किश्त समय पर जमा करें। किसी भी सहायता के लिए हमारी शाखा से संपर्क करें।', margin, y, { maxWidth: pageW - margin * 2 });
-  y += 16;
+  doc.text('Please deposit your daily installment on time. For any assistance, contact our branch office.', margin, y, { maxWidth: pageW - margin * 2 });
+  y += 18;
 
+  // ===== SIGNATURE =====
   doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.3);
   doc.line(margin, y, margin + 55, y);
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
@@ -300,7 +325,7 @@ function generateApprovalPDF(cust) {
 
   // ===== 🏢 HEAD OFFICE ADDRESS + CONTACT (footer) =====
   const pageH = 297;
-  const footerY = pageH - 20;
+  const footerY = pageH - 22;
   doc.setDrawColor(220, 220, 230);
   doc.setLineWidth(0.3);
   doc.line(margin, footerY - 6, pageW - margin, footerY - 6);
@@ -310,7 +335,7 @@ function generateApprovalPDF(cust) {
   doc.text('GDA FINANCE SERVICES — Head Office', pageW / 2, footerY, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(80, 80, 90);
-  doc.text('Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY + 5, { align: 'center' });
+  doc.text('Flat No. 07, Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY + 5, { align: 'center' });
   doc.text('Phone / WhatsApp: +91 95798 57108', pageW / 2, footerY + 10, { align: 'center' });
 
   doc.save(`Loan_Approval_${cust.customerCode || cust.name}.pdf`);
@@ -347,7 +372,7 @@ function generateRejectionPDF(app) {
   doc.text(`Dear ${app.name || 'Applicant'},`, margin, y);
   y += 10;
 
-  const msg = `आपके द्वारा भेजी गई loan application (Mobile: ${app.mobile || '-'}) पर विचार करने के बाद, हम फिलहाल इसे आगे नहीं बढ़ा पा रहे हैं। अधिक जानकारी के लिए कृपया हमारी शाखा से संपर्क करें।`;
+  const msg = `After reviewing your loan application (Mobile: ${app.mobile || '-'}), we are unable to move forward with it at this time. For more information, please contact our branch office.`;
   doc.setFontSize(11);
   const lines = doc.splitTextToSize(msg, pageW - margin * 2);
   doc.text(lines, margin, y);
@@ -371,7 +396,7 @@ function generateRejectionPDF(app) {
   doc.text('GDA FINANCE SERVICES — Head Office', pageW / 2, footerY2, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(80, 80, 90);
-  doc.text('Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY2 + 5, { align: 'center' });
+  doc.text('Flat No. 07, Mahmoorganj, Mohani Kunji Colony, Varanasi', pageW / 2, footerY2 + 5, { align: 'center' });
   doc.text('Phone / WhatsApp: +91 95798 57108', pageW / 2, footerY2 + 10, { align: 'center' });
 
   doc.save(`Application_Notice_${app.name || app.mobile}.pdf`);
