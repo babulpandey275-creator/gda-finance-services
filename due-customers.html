@@ -122,7 +122,18 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 8px;
+      gap: 10px;
     }
+    .due-photo {
+      width: 50px; height: 50px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: #F1F5F9;
+      border: 2px solid #FFE4E6;
+      flex-shrink: 0;
+    }
+    .due-top .info-row { display: flex; gap: 10px; align-items: flex-start; flex: 1; min-width: 0; }
+    .due-top .info { min-width: 0; }
     .due-top .info h3 {
       font-size: 15px;
       font-weight: 800;
@@ -234,7 +245,7 @@
 <!-- ===== HEADER ===== -->
 <header class="app-header">
   <div class="gda-logo-container">
-    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-icon"><img src="logo-icon.png" alt="GDA" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
     <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
   </div>
   <a href="index.html" class="back-btn">← Home</a>
@@ -247,6 +258,12 @@
   <div class="filter-bar">
     <input type="date" id="dueDatePicker">
     <button class="btn-today" id="btnToday">📅 Today</button>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div style="position:relative; margin-bottom:14px;">
+    <span class="material-symbols-outlined" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94A3B8; font-size:20px;">search</span>
+    <input type="text" id="dueSearchInp" placeholder="Naam ya Customer Code se search karein..." style="width:100%; padding:12px 14px 12px 42px; border-radius:12px; border:1.5px solid #E9D5FF; font-size:14px; background:#fff; outline:none; box-sizing:border-box;">
   </div>
 
   <!-- SUMMARY -->
@@ -279,7 +296,7 @@
 <!-- ===== JAVASCRIPT (Module) ===== -->
 <script type="module">
   import { db, auth } from "./firebase.js";
-  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
   // DOM Elements
@@ -288,6 +305,10 @@
   const btnToday = document.getElementById("btnToday");
   const totalDueLabel = document.getElementById("totalDueAmount");
   const totalDueCustomers = document.getElementById("totalDueCustomers");
+  const dueSearchInp = document.getElementById("dueSearchInp");
+
+  // 🔍 Search के लिए सभी due customers की list याद रखेंगे (Firestore दोबारा नहीं पूछेंगे)
+  let allDueEntries = [];
 
   // Today's Date (IST)
   const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -312,8 +333,26 @@
     try {
       const targetDate = new Date(targetDateStr);
       const querySnapshot = await getDocs(collection(db, "customers"));
-      
-      let html = "";
+
+      // 🔥 AUTO-CLOSE FIX: पूरा पैसा collect हो चुके पर अभी भी "Active" दिख रहे
+      // customers को Due List दिखने से पहले ही खुद-ब-खुद "Closed" कर दें
+      const todayIST2 = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const closeUpdates = [];
+      querySnapshot.forEach((docSnap) => {
+        const c = docSnap.data();
+        if (c.status === 'Closed' || c.status === 'Settled') return;
+        const planDur = Number(c.planDuration || c.duration || 60);
+        const dailyEmiV = Number(c.dailyEmi || c.emi || 0);
+        const loanAmtV = Number(c.loanAmount || 0);
+        const baseTotal = Math.max(loanAmtV * 1.2, planDur * dailyEmiV);
+        const totalPaidV = Number(c.totalCollected || 0);
+        if (baseTotal > 0 && totalPaidV >= baseTotal) {
+          closeUpdates.push(updateDoc(doc(db, "customers", docSnap.id), { status: "Closed", settlementDate: todayIST2 }).catch(() => {}));
+        }
+      });
+      if (closeUpdates.length > 0) await Promise.all(closeUpdates);
+
+      let entries = [];
       let totalCount = 0;
       let totalSum = 0;
 
@@ -383,17 +422,22 @@
             `Dhanyawad,%0AGDA Finance Services`;
           const waLink = mobile ? `https://wa.me/91${mobile}?text=${waMsg}` : "#";
 
-          html += `
+          const photoUrl = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl : 'https://via.placeholder.com/50';
+
+          const cardHtml = `
             <div class="due-card">
               <div class="due-top">
-                <div class="info">
-                  <h3>${name} <small style="color:#64748B;">(${code})</small></h3>
-                  <small>📱 ${mobile} | EMI: ₹${dailyEmi}</small>
-                  <div class="badge-group">
-                    <span class="badge badge-red">${missedDays} Din Baki</span>
-                    <span class="badge badge-black">${daysElapsedRaw} Days Total</span>
-                    ${overdueInterest > 0 ? `<span class="badge" style="background:#7C2D12;color:#fff;">⚠️ +₹${Math.round(overdueInterest)} Overdue</span>` : ''}
-                    <span class="badge badge-blue">Paid: ₹${totalPaid}</span>
+                <div class="info-row">
+                  <img src="${photoUrl}" onerror="this.src='https://via.placeholder.com/50'" class="due-photo">
+                  <div class="info">
+                    <h3>${name} <small style="color:#64748B;">(${code})</small></h3>
+                    <small>📱 ${mobile} | EMI: ₹${dailyEmi}</small>
+                    <div class="badge-group">
+                      <span class="badge badge-red">${missedDays} Din Baki</span>
+                      <span class="badge badge-black">${daysElapsedRaw} Days Total</span>
+                      ${overdueInterest > 0 ? `<span class="badge" style="background:#7C2D12;color:#fff;">⚠️ +₹${Math.round(overdueInterest)} Overdue</span>` : ''}
+                      <span class="badge badge-blue">Paid: ₹${totalPaid}</span>
+                    </div>
                   </div>
                 </div>
                 <div class="amount-box">
@@ -409,25 +453,17 @@
               </div>
             </div>
           `;
+          entries.push({ name, code, mobile, html: cardHtml });
         }
       });
 
-      // Update Summary
+      // Update Summary (हमेशा पूरी list के हिसाब से — search filter से ये नहीं बदलते)
       totalDueCustomers.innerText = totalCount;
       totalDueAmount.innerText = `₹${totalSum.toLocaleString('en-IN')}`;
 
-      // Render List or Empty State
-      if (html === "") {
-        dueList.innerHTML = `
-          <div class="empty-state">
-            <div class="icon">✅</div>
-            <h3>No dues found for ${targetDateStr}</h3>
-            <p style="color:#64748B; font-size:13px; margin-top:4px;">All customers are up to date!</p>
-          </div>
-        `;
-      } else {
-        dueList.innerHTML = html;
-      }
+      // 🔍 आगे search filter के लिए यह पूरी list याद रखें
+      allDueEntries = entries;
+      renderFilteredList(dueSearchInp ? dueSearchInp.value : "");
 
     } catch (err) {
       console.error("Error loading due list:", err);
@@ -439,6 +475,46 @@
         </div>
       `;
     }
+  }
+
+  // =========================================================
+  // 🔍 SEARCH FILTER — naam ya customer code se list filter karna
+  // =========================================================
+  function renderFilteredList(searchTerm) {
+    const term = (searchTerm || "").trim().toLowerCase();
+    const filtered = term
+      ? allDueEntries.filter(e =>
+          (e.name && e.name.toLowerCase().includes(term)) ||
+          (e.code && e.code.toLowerCase().includes(term)) ||
+          (e.mobile && e.mobile.includes(term))
+        )
+      : allDueEntries;
+
+    if (allDueEntries.length === 0) {
+      dueList.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">✅</div>
+          <h3>No dues found</h3>
+          <p style="color:#64748B; font-size:13px; margin-top:4px;">All customers are up to date!</p>
+        </div>
+      `;
+    } else if (filtered.length === 0) {
+      dueList.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔍</div>
+          <h3>Koi customer nahi mila</h3>
+          <p style="color:#64748B; font-size:13px; margin-top:4px;">"${searchTerm}" se match karta koi due customer nahi hai</p>
+        </div>
+      `;
+    } else {
+      dueList.innerHTML = filtered.map(e => e.html).join("");
+    }
+  }
+
+  if (dueSearchInp) {
+    dueSearchInp.addEventListener("input", (e) => {
+      renderFilteredList(e.target.value);
+    });
   }
 
   // =========================================================
