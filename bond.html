@@ -9,8 +9,9 @@
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
     body { background:#f5f5f5; padding:16px; }
     .bond-sheet { max-width:800px; margin:0 auto; background:#ffffff; padding:28px 24px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); }
-    .header { text-align:center; border-bottom:3px solid #1E3A8A; padding-bottom:14px; margin-bottom:18px; }
-    .header h1 { font-size:26px; font-weight:800; color:#1E3A8A; }
+    .header { text-align:center; border-bottom:3px solid #3A1C62; padding-bottom:14px; margin-bottom:18px; }
+    .header .logo-icon { width:56px; height:56px; border-radius:16px; margin:0 auto 8px; object-fit:cover; box-shadow:0 4px 14px rgba(58,28,98,0.25); }
+    .header h1 { font-size:24px; font-weight:800; color:#3A1C62; }
     .header p { font-size:11px; font-weight:700; color:#64748B; letter-spacing:2.5px; text-transform:uppercase; margin-top:4px; }
     .bond-title { text-align:center; font-size:15px; font-weight:800; color:#0F172A; margin:12px 0 18px; background:#F8FAFF; padding:8px; border-radius:8px; }
     
@@ -27,17 +28,17 @@
     .row.full { grid-template-columns:140px 1fr; }
     .row .label { color:#64748B; font-weight:600; font-size:11px; text-transform:uppercase; }
     .row .value { color:#0F172A; font-weight:600; }
-    .row .blue { color:#1E3A8A; font-weight:800; }
+    .row .blue { color:#3A1C62; font-weight:800; }
     .row .red { color:#DC2626; font-weight:800; }
     
     .terms { margin-top:22px; background:#F8FAFF; padding:16px 18px; border-radius:12px; border:1px solid #E9D5FF; }
-    .terms h3 { font-size:13px; font-weight:800; color:#1E3A8A; margin-bottom:10px; }
+    .terms h3 { font-size:13px; font-weight:800; color:#3A1C62; margin-bottom:10px; }
     .terms ol { font-size:11px; color:#334155; line-height:1.7; padding-left:18px; }
     .terms ol li { margin-bottom:6px; }
     
     /* ✅ STAMP AREA - अब आपकी असली इमेज दिखेगी */
     .stamp-area { text-align:center; margin-top:30px; }
-    .stamp-area p { font-size:12px; font-weight:700; color:#1E3A8A; margin-bottom:8px; }
+    .stamp-area p { font-size:12px; font-weight:700; color:#3A1C62; margin-bottom:8px; }
     .stamp { 
       width:130px; height:130px; border:2.5px solid #5B21B6; border-radius:50%; 
       margin:0 auto; display:flex; align-items:center; justify-content:center; 
@@ -68,13 +69,13 @@
     /* ✅ CUSTOMER SIGNATURE / THUMB IMPRESSION */
     .sign-grid { display:flex; gap:20px; margin-top:30px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
     .sign-block { flex:1; min-width:220px; text-align:center; }
-    .sign-block > p { font-size:12px; font-weight:700; color:#1E3A8A; margin-bottom:8px; }
+    .sign-block > p { font-size:12px; font-weight:700; color:#3A1C62; margin-bottom:8px; }
     #sigPad {
       width:100%; max-width:280px; height:130px; border:2px dashed #94A3B8; border-radius:10px;
       background:#fff; touch-action:none; margin:0 auto; display:block; cursor:crosshair;
     }
     #thumbPad {
-      width:100%; max-width:280px; height:130px; border:2px dashed #1E3A8A; border-radius:10px;
+      width:100%; max-width:280px; height:130px; border:2px dashed #3A1C62; border-radius:10px;
       background:#F8FAFF; touch-action:none; margin:0 auto; display:block; cursor:crosshair;
       background-image: repeating-radial-gradient(circle, rgba(30,58,138,0.22) 0px, rgba(30,58,138,0.22) 1.4px, transparent 1.4px, transparent 7px);
       background-position: center;
@@ -85,7 +86,7 @@
       padding:8px 14px; border-radius:8px; border:none; font-weight:700; font-size:11.5px; cursor:pointer;
     }
     .btn-sig-clear { background:#F1F5F9; color:#334155; }
-    .btn-sig-save { background:#1E3A8A; color:#fff; }
+    .btn-sig-save { background:#3A1C62; color:#fff; }
     .sig-saved-box {
       width:100%; max-width:280px; margin:0 auto; border:2px solid #A7F3D0; border-radius:10px;
       background:#fff; padding:6px;
@@ -109,7 +110,8 @@
 
 <div class="bond-sheet">
   <div class="header">
-    <h1>🏦 GDA FINANCE SERVICES</h1>
+    <img src="logo-icon.png" alt="GDA" class="logo-icon">
+    <h1>GDA FINANCE SERVICES</h1>
     <p>Digital Loan Distribution &amp; Micro Finance System</p>
   </div>
   <div class="bond-title">📜 LOAN DISBURSEMENT AGREEMENT BOND</div>
@@ -165,10 +167,18 @@
       <p>For GDA Finance Services</p>
       <div class="stamp">
         <img src="stamp_signature.png" alt="Company Stamp" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-        <span class="fallback-text">GDA FINANCE<br>FROM THE TRUSTED FAMILY<br><br>Signature</span>
+        <span class="fallback-text">GDA FINANCE<br>WE ARE THE TRUSTED FAMILY<br><br>Signature</span>
       </div>
       <div class="signature-line">Branch Manager (Authorized)</div>
     </div>
+  </div>
+
+  <div style="margin-top:26px; padding-top:14px; border-top:1px solid #E2E8F0; text-align:center;">
+    <p style="font-size:11px; font-weight:800; color:#3A1C62;">GDA FINANCE SERVICES — Head Office</p>
+    <p style="font-size:10px; color:#64748B; margin-top:3px; line-height:1.6;">
+      Flat No. 07, Mahmoorganj, Mohani Kunji Colony, Varanasi<br>
+      Phone / WhatsApp: +91 95798 57108
+    </p>
   </div>
 </div>
 
@@ -292,7 +302,7 @@
       ctx.scale(dpr, dpr);
       ctx.lineWidth = 2.2;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = '#1E3A8A';
+      ctx.strokeStyle = '#3A1C62';
     }
     resizeCanvas();
 
