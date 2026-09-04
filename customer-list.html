@@ -12,199 +12,131 @@
             --gold: #FFC107;
             --bg: #F8FAFF;
             --muted: #64748B;
-            --line: #F1F5F9
+            --line: #F1F5F9;
+            --green: #16A34A;
+            --red: #DC2626;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif
-        }
-        body {
-            background: var(--bg);
-            padding-bottom: 85px
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); padding-bottom: 90px; }
+
         .app-header {
             background: linear-gradient(135deg, #2A1742 0%, #3A1C62 50%, #4C2A7A 100%);
             padding: 18px 16px 20px;
             border-radius: 0 0 26px 26px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 20
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 20;
+            box-shadow: 0 12px 32px rgba(58,28,98,0.28);
         }
-        .gda-logo-container {
-            display: flex;
-            align-items: center;
-            gap: 13px
-        }
+        .gda-logo-container { display: flex; align-items: center; gap: 13px; }
         .gda-logo-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
+            width: 52px; height: 52px; border-radius: 16px;
             background: linear-gradient(135deg, #E91E63, #FF5A8A);
-            display: flex;
-            justify-content: center;
-            align-items: center
+            display: flex; justify-content: center; align-items: center;
         }
-        .gda-logo-icon.material-symbols-outlined {
-            font-size: 28px;
-            color: #fff
-        }
-        .gda-logo-text h1 {
-            margin: 0;
-            font-size: 27px;
-            font-weight: 800;
-            color: #fff
-        }
-        .gda-logo-text p {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: 3.2px;
-            color: var(--gold);
-            text-transform: uppercase
-        }
-        .container {
-            padding: 14px;
-            max-width: 600px;
-            margin: 0 auto
-        }
-        .filterTabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px
-        }
-        .tabBtn {
-            padding: 11px 18px;
-            border-radius: 30px;
-            border: 1.5px solid #E2E8F0;
-            background: #fff;
-            font-weight: 700;
-            color: var(--muted);
-            cursor: pointer
-        }
-        .tabBtn.active {
-            background: var(--primary);
-            color: #fff
-        }
-        .searchWrap {
-            position: relative;
-            margin-bottom: 14px
-        }
-        .searchWrap input {
-            width: 100%;
-            padding: 14px 14px 14px 42px;
-            border-radius: 14px;
-            border: 1.5px solid #E9D5FF;
-            background: #fff;
-            outline: none
-        }
-        .searchWrap.icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted)
-        }
+        .gda-logo-icon .material-symbols-outlined { font-size: 28px; color: #fff; }
+        .gda-logo-text h1 { margin: 0; font-size: 24px; font-weight: 800; color: #fff; }
+        .gda-logo-text p { font-size: 10px; font-weight: 700; letter-spacing: 2.6px; color: var(--gold); text-transform: uppercase; }
+        .back-btn { background: rgba(255,255,255,0.14); color: #fff; padding: 9px 14px; border-radius: 12px; text-decoration: none; font-size: 12px; border: 1px solid rgba(255,255,255,0.18); }
+
+        .container { padding: 14px; max-width: 600px; margin: 0 auto; }
+
+        .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .stat-box { background: #fff; border-radius: 16px; padding: 13px 14px; border: 1px solid var(--line); }
+        .stat-box .label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-box .value { font-size: 19px; font-weight: 800; color: var(--primary); margin-top: 3px; }
+        .stat-box.warn .value { color: var(--red); }
+
+        .filterTabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tabBtn { padding: 10px 18px; border-radius: 30px; border: 1.5px solid #E2E8F0; background: #fff; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 13px; }
+        .tabBtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .searchWrap { position: relative; margin-bottom: 16px; }
+        .searchWrap input { width: 100%; padding: 14px 14px 14px 42px; border-radius: 14px; border: 1.5px solid #E9D5FF; background: #fff; outline: none; font-size: 14px; }
+        .searchWrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(58,28,98,0.08); }
+        .searchWrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
         .custCard {
-            background: #fff;
-            border-radius: 20px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border: 1px solid #F1F5F9;
-            margin-bottom: 10px
+            background: #fff; border-radius: 20px; padding: 14px;
+            border: 1px solid var(--line); margin-bottom: 12px;
+            box-shadow: 0 4px 14px rgba(15,23,42,0.04);
         }
-        .custTop {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            cursor: pointer
+        .custTop { display: flex; gap: 12px; align-items: center; cursor: pointer; }
+        .avatar-wrap { position: relative; flex-shrink: 0; }
+        .avatar-wrap img {
+            width: 58px; height: 58px; border-radius: 16px; object-fit: cover; background: #F1F5F9;
+            border: 2.5px solid var(--ring-color, #E2E8F0);
         }
-        .custTop img {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            object-fit: cover;
-            background: #F1F5F9
+        .status-dot {
+            position: absolute; bottom: -3px; right: -3px; width: 18px; height: 18px;
+            border-radius: 50%; border: 2.5px solid #fff;
+            display: flex; align-items: center; justify-content: center;
         }
-        .actions {
-            display: flex;
-            gap: 6px
-        }
-        .btn {
-            flex: 1;
-            padding: 9px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            text-decoration: none;
-            text-align: center;
-            border: none;
-            cursor: pointer
-        }
-        .btnCollect {
-            background: #0F172A;
-            color: #fff
-        }
-        .btnDel {
-            background: #FFF1F2;
-            color: #E11D48;
-            border: 1px solid #FFE4E6
-        }
-        .btnEdit {
-            background: #FFFBEB;
-            color: #92400E;
-            border: 1px solid #FEF3C7
-        }
+        .status-dot .material-symbols-outlined { font-size: 11px; color: #fff; }
+
+        .cust-info { flex: 1; min-width: 0; }
+        .cust-info h4 { font-size: 14.5px; font-weight: 800; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cust-info .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .code-chip { display: inline-block; background: #F3E8FF; color: var(--primary); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-top: 4px; }
+
+        .cust-amounts { text-align: right; flex-shrink: 0; }
+        .cust-amounts .due-label { font-size: 9.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+        .cust-amounts .due-value { font-size: 15px; font-weight: 800; }
+
+        .progress-track { height: 6px; background: #F1F5F9; border-radius: 6px; margin-top: 11px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 5px; font-weight: 600; }
+
+        .actions { display: flex; gap: 6px; margin-top: 12px; }
+        .btn { flex: 1; padding: 9px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; text-align: center; border: none; cursor: pointer; }
+        .btnCollect { background: #0F172A; color: #fff; }
+        .btnDel { background: #FFF1F2; color: #E11D48; border: 1px solid #FFE4E6; }
+        .btnEdit { background: #FFFBEB; color: #92400E; border: 1px solid #FEF3C7; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+        .empty-state .material-symbols-outlined { font-size: 48px; color: #E2E8F0; }
+        .empty-state p { margin-top: 10px; font-size: 13.5px; }
+
+        .skeleton { background: #fff; border-radius: 20px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--line); }
+        .skeleton .sk-row { display: flex; gap: 12px; align-items: center; }
+        .sk-box { background: linear-gradient(90deg,#F1F5F9 25%,#F8FAFF 37%,#F1F5F9 63%); background-size: 400% 100%; animation: shimmer 1.4s infinite; border-radius: 12px; }
+        @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 68px;
-            background: #fff;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            align-items: center;
-            border-top: 1px solid #F3E8FF;
-            z-index: 100
+            position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #fff;
+            display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+            border-top: 1px solid #F3E8FF; z-index: 100;
         }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #A8A0B5;
-            font-size: 10px;
-            font-weight: 600;
-            gap: 3px
-        }
-        .nav-item.active {
-            color: var(--pink)
-        }
-        .nav-item.material-symbols-outlined {
-            font-size: 24px
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #A8A0B5; font-size: 10px; font-weight: 600; gap: 3px; }
+        .nav-item.active { color: var(--pink); }
+        .nav-item .material-symbols-outlined { font-size: 24px; }
     </style>
 </head>
 <body>
 
     <header class="app-header">
         <div class="gda-logo-container">
-            <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+            <div class="gda-logo-icon"><img src="logo-icon.png" alt="GDA" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
             <div class="gda-logo-text">
                 <h1>GDA</h1>
                 <p>Finance Services</p>
             </div>
         </div>
-        <a href="index.html" style="background:rgba(255,255,255,0.14);color:#fff;padding:9px 14px;border-radius:12px;text-decoration:none;">← Back</a>
+        <a href="index.html" class="back-btn">← Back</a>
     </header>
 
     <div class="container">
+
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="label">कुल कस्टमर</div>
+                <div class="value" id="statTotal">0</div>
+            </div>
+            <div class="stat-box warn">
+                <div class="label">कुल बकाया (Due)</div>
+                <div class="value" id="statDue">₹0</div>
+            </div>
+        </div>
+
         <div class="filterTabs">
             <button class="tabBtn active" id="btnActive">Active Accounts</button>
             <button class="tabBtn" id="btnClosed">Closed Accounts</button>
@@ -212,11 +144,12 @@
 
         <div class="searchWrap">
             <span class="material-symbols-outlined icon">search</span>
-            <input id="searchInp" placeholder="Search name, mobile, code...">
+            <input id="searchInp" placeholder="नाम, मोबाइल या code से खोजें...">
         </div>
 
         <div id="listContainer">
-            <p style="text-align:center;padding:20px;">⏳ Loading...</p>
+            <div class="skeleton"><div class="sk-row"><div class="sk-box" style="width:58px;height:58px;"></div><div style="flex:1;"><div class="sk-box" style="width:60%;height:14px;margin-bottom:8px;"></div><div class="sk-box" style="width:40%;height:10px;"></div></div></div></div>
+            <div class="skeleton"><div class="sk-row"><div class="sk-box" style="width:58px;height:58px;"></div><div style="flex:1;"><div class="sk-box" style="width:60%;height:14px;margin-bottom:8px;"></div><div class="sk-box" style="width:40%;height:10px;"></div></div></div></div>
         </div>
     </div>
 
@@ -230,45 +163,112 @@
 
     <script type="module">
         import { db, auth } from "./firebase.js";
-        import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
         const listContainer = document.getElementById("listContainer"),
             searchInp = document.getElementById("searchInp"),
+            statTotal = document.getElementById("statTotal"),
+            statDue = document.getElementById("statDue"),
             ADMIN_PASSWORD = "GDA@2026";
 
         let allCustomers = [];
 
+        function getLoanMath(c) {
+            const planDur = Number(c.planDuration || c.duration || 60);
+            const dailyEmi = Number(c.dailyEmi || c.emi || 0);
+            const loanAmt = Number(c.loanAmount || 0);
+            const totalPaid = Number(c.totalCollected || 0);
+            const baseTotal = Math.max(loanAmt * 1.2, planDur * dailyEmi);
+            const isClosed = (c.status === 'Closed' || c.status === 'Settled');
+            const remaining = isClosed ? 0 : Math.max(0, baseTotal - totalPaid);
+            const progress = baseTotal > 0 ? Math.min(100, Math.round((totalPaid / baseTotal) * 100)) : 0;
+
+            const loanDate = new Date(c.loanDate || c.startDate || new Date());
+            const daysElapsed = Math.max(0, Math.floor((new Date() - loanDate) / 86400000)) + 1;
+            const expectedPaid = Math.min(planDur, daysElapsed) * dailyEmi;
+            const isOverdue = !isClosed && totalPaid < expectedPaid - dailyEmi;
+
+            return { baseTotal, remaining, progress, isClosed, isOverdue };
+        }
+
         async function load() {
             const snap = await getDocs(collection(db, "customers"));
             allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+            const toClose = allCustomers.filter(c => {
+                if (c.status === 'Closed' || c.status === 'Settled') return false;
+                const { baseTotal } = getLoanMath(c);
+                return baseTotal > 0 && Number(c.totalCollected || 0) >= baseTotal;
+            });
+            if (toClose.length > 0) {
+                await Promise.all(toClose.map(c =>
+                    updateDoc(doc(db, "customers", c.id), { status: "Closed", settlementDate: todayStr })
+                        .then(() => { c.status = "Closed"; c.settlementDate = todayStr; })
+                        .catch(() => {})
+                ));
+            }
+
+            renderStats();
             render(allCustomers.filter(c => c.status !== "Closed"));
+        }
+
+        function renderStats() {
+            const active = allCustomers.filter(c => c.status !== "Closed" && c.status !== "Settled");
+            let totalDue = 0;
+            active.forEach(c => { totalDue += getLoanMath(c).remaining; });
+            statTotal.innerText = active.length;
+            statDue.innerText = `₹${Math.round(totalDue).toLocaleString('en-IN')}`;
         }
 
         function render(data) {
             if (data.length === 0) {
-                listContainer.innerHTML = "<p style='text-align:center;padding:20px;'>कोई कस्टमर नहीं</p>";
+                listContainer.innerHTML = `
+                  <div class="empty-state">
+                    <span class="material-symbols-outlined">group_off</span>
+                    <p>कोई कस्टमर नहीं मिला</p>
+                  </div>`;
                 return;
             }
             listContainer.innerHTML = "";
             data.forEach(cust => {
+                const { remaining, progress, isClosed, isOverdue } = getLoanMath(cust);
                 const div = document.createElement("div");
                 div.className = "custCard";
                 const img = (cust.photoUrl && cust.photoUrl.startsWith('http')) ? cust.photoUrl :
-                    'https://via.placeholder.com/55';
+                    'https://via.placeholder.com/58';
+
+                let ringColor = '#3A1C62', dotColor = '#16A34A', dotIcon = 'check', barColor = '#3A1C62';
+                if (isClosed) { ringColor = '#16A34A'; dotColor = '#16A34A'; dotIcon = 'check'; barColor = '#16A34A'; }
+                else if (isOverdue) { ringColor = '#DC2626'; dotColor = '#DC2626'; dotIcon = 'priority_high'; barColor = '#DC2626'; }
+
                 div.innerHTML = `
                 <div class="custTop">
-                  <img src="${img}" onerror="this.src='https://via.placeholder.com/55'">
-                  <div>
-                    <h4 style="font-size:14px;font-weight:800;">${cust.name || "N/A"}</h4>
-                    <p style="font-size:11px;color:#64748B;">📱 ${cust.mobile || ""}</p>
-                    <p style="font-size:11px;color:#64748B;">💰 ₹${cust.loanAmount || 0} | ${cust.customerCode || ""}</p>
+                  <div class="avatar-wrap" style="--ring-color:${ringColor};">
+                    <img src="${img}" onerror="this.src='https://via.placeholder.com/58'">
+                    <div class="status-dot" style="background:${dotColor};"><span class="material-symbols-outlined">${dotIcon}</span></div>
+                  </div>
+                  <div class="cust-info">
+                    <h4>${cust.name || "N/A"}</h4>
+                    <p class="sub">📱 ${cust.mobile || "N/A"}</p>
+                    <span class="code-chip">${cust.customerCode || "GDA"}</span>
+                  </div>
+                  <div class="cust-amounts">
+                    <div class="due-label">${isClosed ? 'स्टेटस' : 'बकाया'}</div>
+                    <div class="due-value" style="color:${isClosed ? '#16A34A' : (isOverdue ? '#DC2626' : '#0F172A')};">
+                      ${isClosed ? '✅ Closed' : `₹${remaining.toLocaleString('en-IN')}`}
+                    </div>
                   </div>
                 </div>
+                ${!isClosed ? `
+                <div class="progress-track"><div class="progress-fill" style="width:${progress}%;background:${barColor};"></div></div>
+                <div class="progress-label"><span>${progress}% भरा हुआ</span><span>${isOverdue ? '⚠️ Overdue' : 'समय पर'}</span></div>
+                ` : ''}
                 <div class="actions">
-                  <a href="collection.html?id=${cust.id}" class="btn btnCollect">Collect</a>
-                  <button class="btn btnDel">Del</button>
-                  <button class="btn btnEdit">Edit</button>
+                  <a href="collection.html?id=${cust.id}" class="btn btnCollect">💰 Collect</a>
+                  <button class="btn btnEdit">✏️ Edit</button>
+                  <button class="btn btnDel">🗑️ Del</button>
                 </div>
               `;
 
@@ -284,7 +284,6 @@
                     if (confirm("Delete?")) deleteDoc(doc(db, "customers", cust.id)).then(() => load());
                 };
 
-                // ✅ Edit button – opens edit.html
                 div.querySelector(".btnEdit").onclick = e => {
                     e.stopPropagation();
                     const p = prompt("Admin Password:");
