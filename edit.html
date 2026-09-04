@@ -94,7 +94,7 @@
 
 <header class="app-header">
   <div class="gda-logo-container">
-    <div class="gda-logo-icon"><span class="material-symbols-outlined">shield_with_heart</span></div>
+    <div class="gda-logo-icon"><img src="logo-icon.png" alt="GDA" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
     <div class="gda-logo-text"><h1>GDA</h1><p>Finance Services</p></div>
   </div>
   <a href="customer-list.html" class="back-btn">← Back</a>
@@ -176,6 +176,30 @@
       <div class="form-group">
         <label>Daily EMI (₹)</label>
         <input type="text" id="emi" readonly>
+      </div>
+
+      <!-- ===== 🛠️ CORRECTION FIELDS (Settlement/Collection galti theek karne ke liye) ===== -->
+      <div style="margin:18px 0; border-top:2px dashed #FDE68A; padding-top:16px;">
+        <p style="font-size:13px; font-weight:800; color:#B45309; margin-bottom:12px;">🛠️ Correction Fields (सिर्फ गलती सुधारने के लिए)</p>
+        <div class="row-grid">
+          <div class="form-group">
+            <label>Total Collected (₹)</label>
+            <input type="number" id="totalCollectedInput" placeholder="e.g. 12600">
+          </div>
+          <div class="form-group">
+            <label>Paid Days</label>
+            <input type="number" id="paidDaysInput" placeholder="e.g. 42">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Account Status</label>
+          <select id="statusInput">
+            <option value="Active">Active</option>
+            <option value="Settled">Settled</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <p style="font-size:11px; color:#94A3B8; margin-top:-6px;">⚠️ Inko सिर्फ तभी बदलें जब कोई गलती हुई हो (जैसे settlement में गलत amount, या customer अब पूरा पैसा देना चाहता है)।</p>
       </div>
 
       <!-- ===== MAIN PHOTO ===== -->
