@@ -5,11 +5,11 @@
 import { db, auth } from "./firebase.js";
 import { collection, getDocs, doc, setDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { ADMIN_PASSWORD, getOverdueRate } from "./config.js";
 
 // ============================================================
 // ADMIN LOCK LOGIC (with Debugging)
 // ============================================================
-const ADMIN_PASSWORD = "GDA@2026"; // ✅ सही पासवर्ड (Case-Sensitive)
 const lockOverlay = document.getElementById('lockOverlay');
 const appContent = document.getElementById('appContent');
 const lockPassword = document.getElementById('lockPassword');
@@ -215,15 +215,6 @@ function renderTrendChart(dailyTotals) {
 }
 
 // ============================================================
-// 💰 OVERDUE RATE — Plan खत्म होने के बाद Daily EMI का %
-// ============================================================
-function getOverdueRate(planDur) {
-  if (planDur <= 60) return 0.10;
-  if (planDur <= 80) return 0.20;
-  return 0.30;
-}
-
-// ============================================================
 // TOTAL DUE CALCULATION (अब Overdue Interest भी शामिल)
 // ============================================================
 function calculateTotalDue(customers, targetDateStr) {
@@ -329,9 +320,7 @@ async function renderReport() {
 
     // --- Customers ---
     const custSnap = await getDocs(collection(db, "customers"));
-    let lifetimeDisbursementUptoTarget = 0;
-    let lifetimeInterestUptoTarget = 0;
-    let lifetimeWriteOffUptoTarget = 0; // 🔥 Settled/Closed accounts में जो interest छोड़ा गया
+    let runningPortfolioAmount = 0; // 💰 Sirf abhi active/running loans ka outstanding (Total Portfolio ke liye)
     let rangeDisbursementSum = 0;
     let rangeInterestSum = 0;
     let rangeAccountsCount = 0;
@@ -367,17 +356,14 @@ async function renderReport() {
         }
       }
 
-      if (loanDateStr && loanDateStr <= targetDate) {
-        lifetimeDisbursementUptoTarget += loanAmt;
-        lifetimeInterestUptoTarget += (loanAmt * 0.20);
-
-        // 🔥 FIX: Settle करते वक्त जो amount छोड़ा गया, उसे "Portfolio" से हमेशा के लिए हटा दें
-        // वरना settled loan का बचा हुआ हिस्सा हमेशा "outstanding portfolio" जैसा दिखता रहेगा
-        if (isSettledCust) {
-          const expectedTotalForCust = Math.max(loanAmt * 1.2, Number(cust.planDuration || cust.duration || 60) * Number(cust.dailyEmi || cust.emi || 0));
-          const collectedForCust = Number(cust.totalCollected || 0);
-          lifetimeWriteOffUptoTarget += Math.max(0, expectedTotalForCust - collectedForCust);
-        }
+      // 💰 PORTFOLIO FIX: Total Portfolio ab sirf unhi loans ka jodh hai jo ABHI
+      // chal rahe hain (Active) — Closed/Settled customer, chahe purana ho ya
+      // Renew ke baad naya active ho chuka ho, hamesha unke CURRENT loanAmount
+      // aur totalCollected se hi sahi outstanding milta hai.
+      if (!isSettledCust) {
+        const expectedTotalForCust = Math.max(loanAmt * 1.2, Number(cust.planDuration || cust.duration || 60) * Number(cust.dailyEmi || cust.emi || 0));
+        const collectedForCust = Number(cust.totalCollected || 0);
+        runningPortfolioAmount += Math.max(0, expectedTotalForCust - collectedForCust);
       }
 
       // 📊 EXPECTED COLLECTION — इस loan के हिसाब से इस period (startDateStr–endDateStr) में
@@ -424,8 +410,7 @@ async function renderReport() {
     // Total Due
     const totalOverdue = calculateTotalDue(allCustomers, targetDate);
 
-    const rawTotalMarketCap = lifetimeDisbursementUptoTarget + lifetimeInterestUptoTarget;
-    const portfolioRemaining = Math.max(0, rawTotalMarketCap - lifetimeCollectionUptoTarget - lifetimeWriteOffUptoTarget);
+    const portfolioRemaining = runningPortfolioAmount;
     const netProfitSum = rangeInterestSum - expensesSum;
     const netProfitSumPrev = rangeInterestSumPrev - expensesSumPrev;
 
